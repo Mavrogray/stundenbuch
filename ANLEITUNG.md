@@ -1,0 +1,74 @@
+# Stundenbuch – Einrichtung
+
+## 1. App auf das Tablet bringen (einmalig, braucht Internet)
+
+Die App muss einmal über **HTTPS** geladen werden, danach läuft sie offline.
+
+**Weg A – GitHub Pages (kostenlos, ohne Git-Kenntnisse)**
+1. Auf github.com ein Konto anlegen, dann ein neues Repository „stundenbuch“ (Public).
+2. „Add file → Upload files“ → alle Dateien aus der ZIP hochladen (nicht die ZIP selbst) → „Commit changes“.
+3. Settings → Pages → Source „Deploy from a branch“, Branch `main`, Ordner `/ (root)` → Save.
+4. Nach ca. 1 Minute ist die App unter `https://DEINNAME.github.io/stundenbuch/` erreichbar.
+
+Im Repository liegt nur der Programmcode. Deine Zeiten bleiben ausschließlich auf dem Tablet.
+
+**Auf dem Tablet**
+1. Die Adresse in **Chrome** öffnen.
+2. Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
+3. App einmal über das neue Symbol starten. Ab jetzt funktioniert sie ohne Netz.
+4. Unter „Daten“: Name, Sollstunden, Pausenlängen prüfen.
+
+**Update der App:** neue Dateien hochladen, App auf dem Tablet zweimal neu öffnen (mit Internet).
+
+## 2. Sicherung per Syncthing
+
+Ablauf: Bei „Gehen“ legt die App `stundenbuch-backup-JJJJ-MM-TT.json` im Download-Ordner ab.
+Syncthing schickt diese Dateien im Firmen- oder Heim-WLAN an deinen Proxmox.
+
+### 2a. Proxmox: Container mit Syncthing
+1. Neuen LXC anlegen: Debian 12, 1 Kern, 512 MB RAM, 4 GB Disk, unprivilegiert.
+2. In der Konsole des Containers (Achtung: Debian hat schon einen System-Benutzer `sync`, daher heißt unserer `syncthing`):
+   ```
+   apt update && apt install -y --no-install-recommends syncthing
+   useradd -m -s /bin/bash syncthing
+   mkdir -p /etc/systemd/system/syncthing@syncthing.service.d
+   printf '[Service]\nEnvironment=STGUIADDRESS=0.0.0.0:8384\n' > /etc/systemd/system/syncthing@syncthing.service.d/gui.conf
+   systemctl daemon-reload && systemctl enable --now syncthing@syncthing
+   ```
+3. Von außen (nur Host per ZeroTier erreichbar) am Laptop: `ssh -L 8384:IP-DES-CONTAINERS:8384 root@ZEROTIER-IP-DES-HOSTS`, dann im Browser `http://localhost:8384`.
+4. Im Browser `http://IP-DES-CONTAINERS:8384` (bzw. `http://localhost:8384`) öffnen → **sofort ein GUI-Passwort setzen** (Einstellungen → GUI).
+5. Den Container in deinen Proxmox-Backup-Job aufnehmen (Datacenter → Backup).
+
+### 2b. Tablet: Syncthing-Fork
+1. „Syncthing-Fork“ aus F-Droid oder dem Play Store installieren.
+2. Geräte gegenseitig verbinden: Auf dem Tablet „Gerät hinzufügen“ → QR-Code der Geräte-ID vom Container scannen (im Container: Aktionen → ID anzeigen). Auf dem Container die Anfrage bestätigen.
+3. Ordner hinzufügen: den **Download**-Ordner, Ordnertyp **„Nur senden“**, für den Container freigeben.
+4. Ignorier-Muster für diesen Ordner setzen, damit nur die Sicherungen übertragen werden:
+   ```
+   !/stundenbuch-backup-*.json
+   *
+   ```
+5. Einstellungen → Ausführungsbedingungen: „Nur bei WLAN“ und „Nur in ausgewählten WLANs“ → Firmen-Gast-WLAN und Heim-WLAN wählen. Die App braucht dafür die Standort-Berechtigung, sonst sieht sie den WLAN-Namen nicht.
+6. Akku-Optimierung für Syncthing-Fork ausschalten, sonst stoppt Android die Synchronisation.
+
+### 2c. Container: Ordner annehmen
+- Die Ordner-Anfrage vom Tablet annehmen, Ordnertyp **„Nur empfangen“**.
+- Ordner-Einstellungen → Dateiversionierung „Einfach“, damit auch versehentlich gelöschte Sicherungen erhalten bleiben.
+
+### Wiederherstellen
+Neueste `stundenbuch-backup-….json` aufs Tablet kopieren → App → „Daten“ → „Sicherung laden“.
+
+## 3. Stempeln per Link (für NFC-Tag oder QR-Code)
+
+Die App führt Aktionen aus, wenn sie mit einem dieser Zusätze an der Adresse geöffnet wird:
+
+| Zusatz       | Wirkung                                                        |
+|--------------|----------------------------------------------------------------|
+| `?a=stempel` | nicht eingestempelt → Kommen, sonst → Gehen                     |
+| `?a=kommen`  | Kommen                                                         |
+| `?a=gehen`   | Gehen (mit „Rückgängig“ und Auto-Sicherung)                    |
+| `?a=pause`   | Pause starten (vor 11 Uhr Frühstück, danach Mittag) bzw. beenden |
+
+Beispiel: `https://DEINNAME.github.io/stundenbuch/?a=stempel`
+
+Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NFC Tools“) oder als QR-Code gedruckt werden.

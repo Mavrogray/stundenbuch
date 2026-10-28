@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Stundenbuch</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--fg:#1a1d21;--mut:#666d75;--line:#dde1e6;--pri:#1d4ed8;--priFg:#fff;--warn:#b45309;--bad:#b91c1c;--act:#dbeafe}
+@media (prefers-color-scheme:dark){:root{--bg:#111316;--card:#1b1e22;--fg:#e8eaed;--mut:#9aa1a9;--line:#2c3036;--pri:#3b82f6;--act:#1e3a5f;--warn:#f59e0b}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:10px 14px}
+#state{font-size:14px;color:var(--mut)}
+#cur{font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#timer{font-variant-numeric:tabular-nums;font-size:28px;font-weight:700}
+.stamps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:10px;min-height:48px;cursor:pointer}
+button.primary{background:var(--pri);color:var(--priFg);border-color:var(--pri)}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.4}
+nav{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
+nav button{flex:1;border:0;border-radius:0;border-bottom:3px solid transparent;background:none}
+nav button.on{border-bottom-color:var(--pri);font-weight:600}
+main{padding:12px 14px 40px;max-width:1000px;margin:0 auto}
+section.tab{display:none}section.tab.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+input,select{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:44px}
+input[type=checkbox]{width:auto;min-height:0}
+label{display:block;font-size:14px;color:var(--mut);margin:8px 0}
+label>input,label>select{margin-top:4px;color:var(--fg)}
+label.chk{display:flex;gap:8px;align-items:center}
+.row{display:flex;gap:8px;align-items:flex-end}.row>*{flex:1;min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-top:10px}
+.tile{text-align:left;min-height:72px}
+.tile small{display:block;color:var(--mut);font-variant-numeric:tabular-nums}
+.tile b{display:block;font-size:17px;hyphens:auto;overflow-wrap:break-word}
+.tile.on{background:var(--act);border-color:var(--pri)}
+.list .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.list .it:last-child{border:0}
+.mut{color:var(--mut)}.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.warn{color:var(--warn)}
+h2{font-size:18px;margin:0 0 8px}h3{margin:0 0 8px}
+dialog{border:0;border-radius:14px;padding:16px;width:min(480px,94vw);background:var(--card);color:var(--fg)}
+dialog::backdrop{background:#0008}
+.btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;display:none;z-index:20;align-items:center;gap:12px;max-width:92vw}
+#toast .tbtn{min-height:36px;padding:6px 12px;background:#444;color:#fff;border-color:#666}
+#printOut{display:none}
+.pdoc{background:#fff;color:#000;padding:8mm;border:1px solid var(--line);overflow:auto;font-family:Arial,Helvetica,sans-serif}
+.pdoc h1{font-size:15pt;margin:0}
+.pmeta{font-size:9.5pt;margin:1mm 0 5mm}
+.pday{break-inside:avoid;page-break-inside:avoid;margin-bottom:6mm}
+.phead{display:flex;justify-content:space-between;font-weight:700;font-size:12pt;border-bottom:1.5pt solid #000;padding-bottom:1mm}
+.pstamp{font-size:8.5pt;color:#444;margin:1mm 0}
+.pdoc table{width:100%;border-collapse:collapse;font-size:10.5pt;table-layout:fixed}
+.pdoc th:nth-child(1){width:26mm}.pdoc th:nth-child(2){width:32%}.pdoc th:nth-child(4){width:18mm}
+.pdoc td{overflow-wrap:anywhere}
+.pdoc th{text-align:left;font-size:8.5pt;color:#444;font-weight:600;border-bottom:.5pt solid #888;padding:1mm}
+.pdoc td{padding:1.2mm 1mm;border-bottom:.3pt solid #ccc;vertical-align:top}
+.pdoc .r{text-align:right;white-space:nowrap}
+.pdoc .nr{white-space:nowrap;width:24mm}
+.pdoc tfoot td{font-weight:700;border-top:1pt solid #000;border-bottom:0}
+.psum{text-align:right;font-weight:700;margin-top:3mm;font-size:11pt}
+@media print{
+ @page{size:A4;margin:12mm}
+ body{background:#fff}
+ body>*:not(#printOut){display:none!important}
+ #printOut{display:block}
+ #printOut .pdoc{border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="row" style="align-items:center">
+  <div style="flex:3"><div id="state"></div><div id="cur"></div></div>
+  <div id="timer" style="flex:0 0 auto">--:--</div>
+ </div>
+ <div class="stamps">
+  <button id="bK">Kommen</button><button id="bP">Pause</button><button id="bG">Gehen</button><button id="bI">Info ✎</button>
+ </div>
+</header>
+<nav><button data-t="t1" class="on">Stempeln</button><button data-t="t2">Aufträge</button><button data-t="t3">Ausdruck</button><button data-t="t4">Daten</button></nav>
+<main>
+<section class="tab on" id="t1">
+ <div class="card">
+  <input id="q" type="search" placeholder="Auftrag suchen (Nr. oder Kunde) …" autocomplete="off">
+  <div class="tiles" id="tiles"></div>
+ </div>
+ <div class="card">
+  <div class="row" style="align-items:center"><h2 style="margin:0">Tag</h2><input type="date" id="dSel"></div>
+  <div id="dayInfo" class="mut" style="margin-top:8px"></div>
+  <div class="list" id="dayList"></div>
+  <div class="btns"><button id="bAddE">+ Eintrag</button><button id="bEditDay">Kommen / Gehen / Pausen</button></div>
+ </div>
+</section>
+
+<section class="tab" id="t2">
+ <div class="card"><h2>Neuer Auftrag</h2>
+  <div class="row"><label>Auftrags-Nr.<input id="nNr" inputmode="numeric" placeholder="0505 oder 21260505"></label><label>Kunde<input id="nKu"></label></div>
+  <label>Standard-Info (optional)<input id="nIn"></label>
+  <div class="row" style="align-items:center"><div class="mut" style="font-size:13px">4 Ziffern werden mit dem Präfix ergänzt (Einstellung unter „Daten“).</div><div class="btns" style="flex:0 0 auto;margin:0"><button class="primary" id="bAddO">Anlegen</button></div></div>
+ </div>
+ <div class="card"><h2>Aufträge</h2><label class="chk"><input type="checkbox" id="showArch"> archivierte zeigen</label><div class="list" id="oList"></div></div>
+</section>
+
+<section class="tab" id="t3">
+ <div class="card">
+  <div class="row"><label>Von<input type="date" id="pFrom"></label><label>Bis<input type="date" id="pTo"></label></div>
+  <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen / Pause mitdrucken</label>
+  <div class="btns"><button id="bWeek">Diese Woche</button><button id="bLastWeek">Letzte Woche</button><button class="primary" id="bPrint">Drucken / PDF</button></div>
+ </div>
+ <div class="pdoc" id="pPrev"></div>
+</section>
+
+<section class="tab" id="t4">
+ <div class="card"><h2>Sicherung</h2><div id="bkInfo" class="mut"></div>
+  <div class="btns"><button class="primary" id="bExp">Sicherung speichern</button><button id="bCsv">CSV exportieren</button><button id="bImp">Sicherung laden</button></div>
+  <input type="file" id="fImp" accept=".json,application/json" hidden>
+ </div>
+ <div class="card"><h2>Einstellungen</h2>
+  <label>Name auf dem Ausdruck<input id="sName"></label>
+  <label>Präfix für Kurznummern (Abteilung + Jahr)<input id="sPre" inputmode="numeric"></label>
+  <label>Rundung im Stundenbuch<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
+  <div class="row"><label>Soll Mo–Do (h)<input id="sSoll" inputmode="decimal"></label><label>Soll Fr (h)<input id="sSollFr" inputmode="decimal"></label></div>
+  <div class="row"><label>Frühstück (min)<input id="sFr" inputmode="numeric"></label><label>Mittag (min)<input id="sMi" inputmode="numeric"></label></div>
+  <label class="chk"><input type="checkbox" id="sAuto"> Bei „Gehen“ automatisch Sicherung speichern</label>
+  <div id="stInfo" class="mut" style="font-size:13px"></div>
+ </div>
+</section>
+</main>
+<dialog id="dlg"></dialog>
+<div id="toast"></div>
+<div id="printOut"></div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const KEY='stundenbuch-v1';
+const WD=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const pad=n=>String(n).padStart(2,'0');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dkey=(d=new Date())=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const hm=t=>{if(!t)return '';const d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes());};
+const tsOf=(k,t)=>t?new Date(k+'T'+t).getTime():null;
+const fmtH=h=>h.toLocaleString('de-DE',{maximumFractionDigits:2});
+const fmtDur=m=>{m=Math.round(m);return Math.floor(m/60)+':'+pad(m%60);};
+const fmtClock=ms=>{const s=Math.max(0,Math.floor(ms/1000));return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60);};
+const dDate=k=>{const d=new Date(k+'T12:00');return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear();};
+
+function defaults(){return{v:1,orders:[
+ {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false},
+ {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false}],
+ days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true},lastBackup:null};}
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+if(!S||!S.orders||!S.days)S=defaults();
+S.settings=Object.assign(defaults().settings,S.settings||{});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Speichern fehlgeschlagen!');}}
+
+const order=id=>S.orders.find(o=>o.id===id)||{nr:'?',kunde:'(gelöscht)',info:''};
+function day(k){return S.days[k]||(S.days[k]={kommen:null,gehen:null,pausen:[],entries:[]});}
+const today=()=>day(dkey());
+const openEntry=d=>d.entries.find(e=>e.h==null&&!e.e);
+const openPause=d=>d.pausen.find(p=>!p.e);
+const emin=e=>e.h!=null?e.h*60:Math.max(0,((e.e||Date.now())-e.s)/60000);
+const pmin=d=>d.pausen.reduce((a,p)=>a+Math.max(0,((p.e||Date.now())-p.s)/60000),0);
+const presence=d=>d.kommen?Math.max(0,((d.gehen||Date.now())-d.kommen)/60000-pmin(d)):0;
+const sollOf=k=>{const w=new Date(k+'T12:00').getDay();return w>=1&&w<=4?(+S.settings.soll||0):w===5?(+S.settings.sollFr||0):0;};
+const fmtSig=v=>(v>0.001?'+':v<-0.001?'−':'±')+fmtH(Math.abs(v));
+const normNr=v=>{v=String(v||'').replace(/\s/g,'');return /^\d{4}$/.test(v)?S.settings.prefix+v:v;};
+
+/* Tageszusammenfassung: gleiche Auftrag+Info zusammengefasst, gerundet so,
+   dass die Summe der Zeilen exakt der gerundeten Gesamtzeit entspricht. */
+function summary(k){
+ const d=S.days[k];if(!d||!d.entries.length)return null;
+ const m=new Map();
+ d.entries.forEach(e=>{const key=e.o+'|'+(e.info||'');const r=m.get(key)||{o:e.o,info:e.info||'',min:0};r.min+=emin(e);m.set(key,r);});
+ const rows=[...m.values()].sort((a,b)=>order(a.o).nr.localeCompare(order(b.o).nr)||a.info.localeCompare(b.info));
+ const R=+S.settings.round||15;
+ const tot=rows.reduce((a,r)=>a+r.min,0);
+ const units=Math.round(tot/R);
+ rows.forEach(r=>{r.u=Math.floor(r.min/R);r.rem=r.min-r.u*R;});
+ let left=units-rows.reduce((a,r)=>a+r.u,0);
+ rows.slice().sort((a,b)=>b.rem-a.rem).forEach(r=>{if(left>0){r.u++;left--;}});
+ rows.forEach(r=>r.h=r.u*R/60);
+ return{rows,total:units*R/60,min:tot};
+}
+
+/* ---------- Stempel-Aktionen ---------- */
+// Einträge unter 30 s (Fehltipper) werden verworfen
+function closeEntry(d,oe,t){oe.e=t;if(t-oe.s<30000)d.entries=d.entries.filter(x=>x!==oe);}
+function resumeAfterGehen(d,t){if(d.gehen){d.pausen.push({s:d.gehen,e:t});d.gehen=null;toast('Weiter – Lücke als Pause gewertet');}}
+function startOrder(id){
+ const d=today(),t=Date.now(),oe=openEntry(d);
+ if(oe&&oe.o===id)return;
+ if(!d.kommen)d.kommen=t;
+ resumeAfterGehen(d,t);
+ const p=openPause(d);if(p)p.e=t;
+ if(oe)closeEntry(d,oe,t);
+ S.resume=null;
+ d.entries.push({id:uid(),o:id,info:order(id).info||'',s:t,e:null});
+ save();render();
+}
+function doKommen(){const d=today();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,Date.now());else{d.kommen=Date.now();toast('Kommen '+hm(d.kommen));}save();render();}
+function startPause(plan){
+ const d=today(),t=Date.now();if(!d.kommen||d.gehen||openPause(d))return;
+ const oe=openEntry(d);if(oe){closeEntry(d,oe,t);S.resume={o:oe.o,info:oe.info};}else S.resume=null;
+ d.pausen.push({s:t,e:null,plan:plan||0});save();render();
+ toast(plan?'Pause bis '+hm(t+plan*60000):'Pause offen – „Weiter“ zum Beenden');
+}
+function endPause(at){
+ const d=today(),p=openPause(d);if(!p)return;const t=at||Date.now();p.e=t;
+ if(S.resume){d.entries.push({id:uid(),o:S.resume.o,info:S.resume.info,s:t,e:null});S.resume=null;}
+ save();render();
+}
+function checkPlannedPause(){
+ const d=S.days[dkey()];if(!d)return;const p=openPause(d);
+ if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){endPause(p.s+p.plan*60000);toast('Pause vorbei – Auftrag läuft weiter');}
+}
+function doPause(){
+ const d=today();if(openPause(d))return endPause();if(!d.kommen||d.gehen)return;
+ const st=S.settings;
+ dlg(`<h3>Pause</h3><div class="tiles"><button class="tile" data-pl="${st.fruehstueck}"><b>Frühstück</b><small>${st.fruehstueck} min</small></button><button class="tile" data-pl="${st.mittag}"><b>Mittag</b><small>${st.mittag} min</small></button><button class="tile" data-pl="0"><b>Offen</b><small>bis „Weiter“</small></button></div><div class="btns"><button data-x>Abbrechen</button></div>`);
+ D.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{closeDlg();startPause(+b.dataset.pl);});
+}
+function backup(){download('stundenbuch-backup-'+dkey()+'.json',JSON.stringify(S,null,1),'application/json');S.lastBackup=Date.now();save();}
+function doGehen(){
+ const d=today(),t=Date.now();if(!d.kommen||d.gehen)return;const snap=JSON.stringify(S);
+ const oe=openEntry(d);if(oe)closeEntry(d,oe,t);const p=openPause(d);if(p)p.e=t;S.resume=null;d.gehen=t;save();render();
+ toast('Feierabend '+hm(t),()=>{S=JSON.parse(snap);save();render();});
+ if(S.settings.autoBackup)backup();
+}
+/* Aktionen per Link (NFC-Tag/QR-Code): ?a=stempel | kommen | gehen | pause */
+function urlAction(){
+ const a=new URLSearchParams(location.search).get('a');if(!a)return;
+ history.replaceState(null,'',location.pathname);const d=today();
+ if(a==='stempel'){if(!d.kommen||d.gehen)doKommen();else doGehen();}
+ else if(a==='kommen')doKommen();else if(a==='gehen')doGehen();
+ else if(a==='pause'){if(openPause(d))endPause();else startPause(new Date().getHours()<11?S.settings.fruehstueck:S.settings.mittag);}
+}
+function doInfo(){
+ const oe=openEntry(today());if(!oe)return;
+ dlg(`<h3>Info für ${esc(order(oe.o).nr)}</h3><input id="fI" value="${esc(oe.info)}" placeholder="z.B. EM-3555 tanken/aufräumen"><div class="btns"><button data-x>Abbrechen</button><button class="primary" id="fOk">OK</button></div>`);
+ $('#fI').focus();
+ $('#fOk').onclick=()=>{oe.info=$('#fI').value.trim();save();closeDlg();render();};
+}
+
+/* ---------- UI-Helfer ---------- */
+const D=$('#dlg');
+function dlg(h){D.innerHTML=h;D.querySelectorAll('[data-x]').forEach(b=>b.onclick=closeDlg);D.showModal();}
+function closeDlg(){D.close();}
+function toast(t,undo){const e=$('#toast');e.innerHTML='';e.append(t);if(undo){const b=document.createElement('button');b.className='tbtn';b.textContent='Rückgängig';b.onclick=()=>{undo();toast('Rückgängig gemacht');};e.append(b);}e.style.display='flex';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',undo?8000:2500);}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
+
+/* ---------- Rendering ---------- */
+function renderHeader(){
+ const d=today(),oe=openEntry(d),p=openPause(d);let st,cur='',from=null;
+ if(p){st='Pause seit '+hm(p.s)+(p.plan?' · bis '+hm(p.s+p.plan*60000):'');cur=S.resume?'danach: '+order(S.resume.o).nr+' '+order(S.resume.o).kunde:'Pause';from=p.s;}
+ else if(oe){const o=order(oe.o);st='Läuft seit '+hm(oe.s);cur=o.nr+' · '+o.kunde+(oe.info?' · '+oe.info:'');from=oe.s;}
+ else if(d.gehen){st='Feierabend '+hm(d.gehen);cur='Heute '+fmtDur(presence(d))+' h anwesend';}
+ else if(d.kommen){st='Eingestempelt seit '+hm(d.kommen);cur='Kein Auftrag gewählt';from=d.kommen;}
+ else{st='Nicht eingestempelt';cur='Auftrag antippen oder Kommen';}
+ $('#state').textContent=st;$('#cur').textContent=cur;
+ $('#timer').textContent=p&&p.plan?'−'+fmtClock(p.s+p.plan*60000-Date.now()):from?fmtClock(Date.now()-from):'--:--';
+ $('#bK').disabled=!!(d.kommen&&!d.gehen);
+ $('#bP').textContent=p?'Weiter':'Pause';$('#bP').classList.toggle('primary',!!p);
+ $('#bP').disabled=!d.kommen||!!d.gehen;$('#bG').disabled=!d.kommen||!!d.gehen;$('#bI').disabled=!oe;
+}
+function recentIds(){const ids=[];Object.keys(S.days).sort().reverse().slice(0,30).forEach(k=>S.days[k].entries.slice().reverse().forEach(e=>{if(!ids.includes(e.o))ids.push(e.o);}));return ids;}
+function renderTiles(){
+ const q=$('#q').value.trim().toLowerCase(),act=openEntry(today()),live=S.orders.filter(o=>!o.arch);let list;
+ if(q)list=live.filter(o=>(o.nr+' '+o.kunde+' '+o.info).toLowerCase().includes(q));
+ else{list=live.filter(o=>o.fav);recentIds().forEach(id=>{const o=live.find(x=>x.id===id);if(o&&!list.includes(o)&&list.length<16)list.push(o);});}
+ let h=list.map(o=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b>${o.info?`<small>${esc(o.info)}</small>`:''}</button>`).join('');
+ if(q&&!list.length)h=`<button class="tile" id="qNew"><b>+ Neu anlegen</b><small>${esc(q)}</small></button>`;
+ $('#tiles').innerHTML=h||'<div class="mut">Noch keine Aufträge – unter „Aufträge“ anlegen.</div>';
+}
+function renderDay(){
+ const k=$('#dSel').value||dkey(),d=S.days[k];
+ if(!d||(!d.kommen&&!d.entries.length&&!d.pausen.length)){$('#dayList').innerHTML='';$('#dayInfo').textContent='Keine Einträge.';return;}
+ const items=d.entries.map(e=>({t:e.s||0,h:`<div class="it" data-e="${e.id}"><div style="min-width:0"><b class="num">${esc(order(e.o).nr)}</b> ${esc(order(e.o).kunde)}${e.info?`<div class="mut">${esc(e.info)}</div>`:''}</div><div class="num">${e.h!=null?fmtH(e.h)+' h manuell':hm(e.s)+'–'+(e.e?hm(e.e):'läuft')+' · '+fmtDur(emin(e))}</div></div>`}))
+  .concat(d.pausen.map(p=>({t:p.s,h:`<div class="it mut" data-pz="1"><div>Pause</div><div class="num">${hm(p.s)}–${p.e?hm(p.e):'läuft'} · ${fmtDur(Math.max(0,((p.e||Date.now())-p.s)/60000))}</div></div>`})))
+  .sort((a,b)=>a.t-b.t);
+ $('#dayList').innerHTML=items.map(i=>i.h).join('');
+ const sm=summary(k),pres=presence(d);
+ let info=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pause ${Math.round(pmin(d))} min<br>Gebucht ${sm?fmtDur(sm.min):'0:00'} h → Stundenbuch <b>${sm?fmtH(sm.total):'0'} h</b>`;
+ if(sm&&sollOf(k))info+=` · Soll ${fmtH(sollOf(k))} h, Differenz ${fmtSig(sm.total-sollOf(k))} h`;
+ if(d.kommen&&Math.abs(pres-(sm?sm.min:0))>5)info+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h</span>`;
+ if(k!==dkey()&&(openEntry(d)||openPause(d)||(d.kommen&&!d.gehen)))info+=`<br><span class="warn">Tag nicht abgeschlossen – Gehen bzw. Ende nachtragen.</span>`;
+ $('#dayInfo').innerHTML=info;
+}
+function renderOrders(){
+ const sa=$('#showArch').checked,list=S.orders.filter(o=>sa||!o.arch).sort((a,b)=>a.nr.localeCompare(b.nr));
+ $('#oList').innerHTML=list.map(o=>`<div class="it"><div style="min-width:0"><b class="num">${esc(o.nr)}</b> ${esc(o.kunde)}${o.info?`<div class="mut">${esc(o.info)}</div>`:''}${o.arch?'<div class="mut">archiviert</div>':''}</div><div style="display:flex;gap:6px;flex:0 0 auto"><button data-fav="${o.id}" title="Favorit">${o.fav?'★':'☆'}</button><button data-ed="${o.id}">✎</button></div></div>`).join('')||'<div class="mut">Keine Aufträge.</div>';
+}
+function render(){renderHeader();renderTiles();renderDay();if($('#t2').classList.contains('on'))renderOrders();}
+
+/* ---------- Dialoge ---------- */
+function editEntry(k,id){
+ const d=day(k),ent=id?d.entries.find(x=>x.id===id):null;
+ const opts=S.orders.filter(o=>!o.arch||(ent&&o.id===ent.o)).sort((a,b)=>a.nr.localeCompare(b.nr)).map(o=>`<option value="${o.id}"${ent&&ent.o===o.id?' selected':''}>${esc(o.nr)} ${esc(o.kunde)}</option>`).join('');
+ const man=ent&&ent.h!=null;
+ dlg(`<h3>${ent?'Eintrag bearbeiten':'Eintrag hinzufügen'} – ${dDate(k)}</h3>
+ <label>Auftrag<select id="fO">${opts}</select></label>
+ <label>Info<input id="fI" value="${esc(ent?ent.info:'')}"></label>
+ <div class="row"><label>Von<input type="time" id="fS" value="${ent&&!man?hm(ent.s):''}"></label><label>Bis<input type="time" id="fE" value="${ent&&!man&&ent.e?hm(ent.e):''}"></label></div>
+ <label>oder Stunden direkt<input id="fH" inputmode="decimal" placeholder="z.B. 1,5" value="${man?fmtH(ent.h):''}"></label>
+ <div class="btns">${ent?'<button class="danger" id="fDel">Löschen</button>':''}<button data-x>Abbrechen</button><button class="primary" id="fOk">Speichern</button></div>`);
+ if(ent)$('#fDel').onclick=()=>{if(!confirm('Eintrag löschen?'))return;d.entries=d.entries.filter(x=>x!==ent);save();closeDlg();render();};
+ $('#fOk').onclick=()=>{
+  const o=$('#fO').value;if(!o)return toast('Auftrag wählen');
+  const info=$('#fI').value.trim(),hv=$('#fH').value.trim().replace(',','.');let ne;
+  if(hv!==''){const h=parseFloat(hv);if(!(h>=0))return toast('Stunden ungültig');ne={o,info,h,s:null,e:null};}
+  else{
+   const s=tsOf(k,$('#fS').value);if(!s)return toast('Von-Zeit fehlt (oder Stunden angeben)');
+   const e=tsOf(k,$('#fE').value);if(e&&e<s)return toast('Bis liegt vor Von');
+   const oe=openEntry(d);if(!e&&(k!==dkey()||(oe&&oe!==ent)))return toast('Bis-Zeit fehlt');
+   ne={o,info,s,e,h:null};
+  }
+  if(ent)Object.assign(ent,ne);else d.entries.push(Object.assign({id:uid()},ne));
+  d.entries.sort((a,b)=>(a.s||0)-(b.s||0));save();closeDlg();render();
+ };
+}
+function editDay(k){
+ const d=day(k);const P=d.pausen.map(p=>({s:hm(p.s),e:hm(p.e)}));
+ dlg(`<h3>${WD[new Date(k+'T12:00').getDay()]} ${dDate(k)}</h3>
+ <div class="row"><label>Kommen<input type="time" id="fK" value="${hm(d.kommen)}"></label><label>Gehen<input type="time" id="fG" value="${hm(d.gehen)}"></label></div>
+ <label>Pausen (von – bis)</label><div id="pl"></div><button id="pAdd">+ Pause</button>
+ <div class="btns"><button data-x>Abbrechen</button><button class="primary" id="fOk">Speichern</button></div>`);
+ const draw=()=>{$('#pl').innerHTML=P.map((p,i)=>`<div class="row" style="margin:6px 0"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button data-rm="${i}" style="flex:0 0 48px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
+ draw();
+ $('#pl').oninput=e=>{const i=e.target.dataset.i;if(i!=null)P[i][e.target.dataset.f]=e.target.value;};
+ $('#pl').onclick=e=>{const i=e.target.dataset.rm;if(i!=null){P.splice(+i,1);draw();}};
+ $('#pAdd').onclick=()=>{P.push({s:'12:00',e:'12:30'});draw();};
+ $('#fOk').onclick=()=>{
+  const K=tsOf(k,$('#fK').value),G=tsOf(k,$('#fG').value);
+  if(K&&G&&G<K)return toast('Gehen liegt vor Kommen');
+  const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');np.push({s,e});}
+  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);save();closeDlg();render();
+ };
+}
+function editOrder(id){
+ const o=S.orders.find(x=>x.id===id),used=Object.values(S.days).some(d=>d.entries.some(e=>e.o===id));
+ dlg(`<h3>Auftrag bearbeiten</h3>
+ <label>Auftrags-Nr.<input id="eNr" inputmode="numeric" value="${esc(o.nr)}"></label>
+ <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label>
+ <label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
+ <label class="chk"><input type="checkbox" id="eAr"${o.arch?' checked':''}> archiviert (abgeschlossen)</label>
+ <div class="btns">${used?'':'<button class="danger" id="eDel">Löschen</button>'}<button data-x>Abbrechen</button><button class="primary" id="eOk">Speichern</button></div>`);
+ if(!used)$('#eDel').onclick=()=>{S.orders=S.orders.filter(x=>x!==o);save();closeDlg();render();renderOrders();};
+ $('#eOk').onclick=()=>{const nr=normNr($('#eNr').value),ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
+  o.nr=nr;o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;if(o.arch)o.fav=false;save();closeDlg();render();renderOrders();};
+}
+
+/* ---------- Ausdruck ---------- */
+function kw(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-n);const y=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil(((d-y)/864e5+1)/7);}
+function monday(off){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7+off*7);return d;}
+function setRange(off){const m=monday(off),e=new Date(m);e.setDate(m.getDate()+6);$('#pFrom').value=dkey(m);$('#pTo').value=dkey(e);renderPrint();}
+function printHtml(){
+ const from=$('#pFrom').value,to=$('#pTo').value,show=$('#pStamp').checked;if(!from||!to)return '';
+ let h='',sum=0,n=0,soll=0;
+ for(const d=new Date(from+'T12:00');dkey(d)<=to;d.setDate(d.getDate()+1)){
+  const k=dkey(d),sm=summary(k);if(!sm)continue;const dd=S.days[k];n++;sum+=sm.total;soll+=sollOf(k);
+  h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}</span><span>${dDate(k)}</span></div>`;
+  if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'} · Pause ${Math.round(pmin(dd))} min</div>`;
+  h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
+   sm.rows.map(r=>{const o=order(r.o);return `<tr><td class="nr">${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td>${esc(r.info)}</td><td class="r">${fmtH(r.h)}</td></tr>`;}).join('')+
+   `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${fmtH(sm.total)}</td></tr></tfoot></table></section>`;
+ }
+ const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
+ return head+(n?h+`<div class="psum">Summe Zeitraum: ${fmtH(sum)} h${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+}
+function renderPrint(){$('#pPrev').innerHTML=printHtml();}
+
+/* ---------- Daten ---------- */
+function renderData(){
+ const lb=S.lastBackup,dd=lb?Math.floor((Date.now()-lb)/864e5):null;
+ $('#bkInfo').innerHTML=lb?'Letzte Sicherung: '+new Date(lb).toLocaleString('de-DE')+(dd>=7?` <span class="warn">(${dd} Tage her)</span>`:''):'<span class="warn">Noch keine Sicherung gespeichert.</span>';
+ $('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;
+}
+
+/* ---------- Events ---------- */
+$('#bK').onclick=doKommen;$('#bP').onclick=doPause;$('#bG').onclick=doGehen;$('#bI').onclick=doInfo;
+$('#q').oninput=renderTiles;
+$('#tiles').onclick=e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.id==='qNew'){const q=$('#q').value.trim();showTab('t2');if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;$('#q').value='';return;}
+ if(b.dataset.o){startOrder(b.dataset.o);$('#q').value='';renderTiles();}
+};
+$('#dSel').onchange=renderDay;
+$('#dayList').onclick=e=>{const it=e.target.closest('.it');if(!it)return;const k=$('#dSel').value||dkey();if(it.dataset.e)editEntry(k,it.dataset.e);else if(it.dataset.pz)editDay(k);};
+$('#bAddE').onclick=()=>editEntry($('#dSel').value||dkey(),null);
+$('#bEditDay').onclick=()=>editDay($('#dSel').value||dkey());
+$('#bAddO').onclick=()=>{
+ const nr=normNr($('#nNr').value),ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
+ if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
+ S.orders.push({id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false});
+ $('#nNr').value=$('#nKu').value=$('#nIn').value='';save();render();renderOrders();toast('Angelegt: '+nr);
+};
+$('#showArch').onchange=renderOrders;
+$('#oList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.fav){const o=S.orders.find(x=>x.id===b.dataset.fav);o.fav=!o.fav;save();renderOrders();renderTiles();}
+ if(b.dataset.ed)editOrder(b.dataset.ed);};
+$('#pFrom').onchange=$('#pTo').onchange=renderPrint;
+$('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};
+$('#bWeek').onclick=()=>setRange(0);$('#bLastWeek').onclick=()=>setRange(-1);
+$('#bPrint').onclick=()=>{$('#printOut').innerHTML='<div class="pdoc">'+printHtml()+'</div>';window.print();};
+$('#bExp').onclick=()=>{backup();renderData();};
+$('#bImp').onclick=()=>$('#fImp').click();
+$('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const n=JSON.parse(r.result);if(!n.orders||!n.days)throw 0;if(!confirm('Alle aktuellen Daten durch die Sicherung ersetzen?'))return;
+  S=n;S.settings=Object.assign(defaults().settings,S.settings||{});save();render();renderData();toast('Sicherung geladen');}catch(x){toast('Datei ungültig');}};
+ r.readAsText(f);e.target.value='';};
+$('#bCsv').onclick=()=>{
+ const L=['Datum;Tag;Auftrag;Kunde;Info;Stunden'];
+ Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;const wd=WD[new Date(k+'T12:00').getDay()];
+  sm.rows.forEach(r=>{const o=order(r.o);L.push([dDate(k),wd,o.nr,o.kunde,r.info,fmtH(r.h)].map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';'));});});
+ download('stundenbuch-'+dkey()+'.csv','\ufeff'+L.join('\r\n'),'text/csv');};
+$('#sName').onchange=()=>{S.settings.name=$('#sName').value.trim();save();};
+$('#sPre').onchange=()=>{S.settings.prefix=$('#sPre').value.trim();save();};
+$('#sSoll').onchange=()=>{const v=parseFloat($('#sSoll').value.replace(',','.'));if(v>=0){S.settings.soll=v;save();render();}};
+$('#sSollFr').onchange=()=>{const v=parseFloat($('#sSollFr').value.replace(',','.'));if(v>=0){S.settings.sollFr=v;save();render();}};
+$('#sFr').onchange=()=>{const v=parseInt($('#sFr').value);if(v>0){S.settings.fruehstueck=v;save();}};
+$('#sMi').onchange=()=>{const v=parseInt($('#sMi').value);if(v>0){S.settings.mittag=v;save();}};
+$('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};
+$('#sRnd').onchange=()=>{S.settings.round=+$('#sRnd').value;save();render();};
+document.querySelector('nav').onclick=e=>{const t=e.target.dataset.t;if(t)showTab(t);};
+function showTab(t){
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ document.querySelectorAll('section.tab').forEach(s=>s.classList.toggle('on',s.id===t));
+ if(t==='t2')renderOrders();if(t==='t3')renderPrint();if(t==='t4')renderData();
+}
+
+/* ---------- Start ---------- */
+$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;setRange(0);checkPlannedPause();render();urlAction();
+let tickN=0;setInterval(()=>{checkPlannedPause();renderHeader();if(++tickN%15===0&&$('#t1').classList.contains('on'))renderDay();},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();render();}});
+if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – unter „Daten“ sichern'),800);
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
