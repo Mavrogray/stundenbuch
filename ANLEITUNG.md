@@ -86,6 +86,7 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - **Auftrag antippen** = Arbeit startet (die 3 zuletzt genutzten stehen oben, alles andere über die Suche).
 - **🚗 Fahrt:** Ziel wählen → blauer Fahrtbalken → bei Ankunft „Angekommen“. Fertig beim Kunden: 🚗 → „Zurück in die Firma“, „Wie Hinfahrt“ oder nächster Kunde (Fahrzeit wird auf beide Kunden halbiert).
 - **☕ Pause:** Frühstück/Mittag enden automatisch mit Ton. Danach läuft Betriebsarbeiten, die App fragt „Weiter mit Kunde?“.
+- **🏖 Urlaubsplanung (☰):** Zeitraum von–bis eintragen (Urlaub, Krank, Bildungsurlaub, RV Fit, Gleittag – nur Werktage zählen). Der Brückentag-Finder zeigt die Zeiträume mit den meisten freien Tagen pro Urlaubstag, „Eintragen“ übernimmt sie. Im Ausdruck erscheinen Abwesenheiten als ein Block ohne Stunden.
 - **☰ Menü:** Aufträge, Ausdruck, Tag bearbeiten (Urlaub, halber Urlaubstag, Krank, RV Fit, Bildungsurlaub, Gleittag), Sicherung, Einstellungen, Über/Hilfe (Version, Fehlerprotokoll).
 - **Feiertage Niedersachsen** werden automatisch berücksichtigt, 24.12./31.12. sind halbe Tage.
 - **Konten:** Unter Einstellungen einmal Überstunden- und Resturlaub-Startwert mit Datum eintragen. Am 1.1. kommen die Jahres-Urlaubstage dazu.
