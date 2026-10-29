@@ -132,7 +132,7 @@ dialog::backdrop{background:#0008}
  <div class="card"><h2>Neuer Auftrag</h2>
   <div class="row"><label>Auftrags-Nr.<input id="nNr" inputmode="numeric" placeholder="0505 oder 21260505"></label><label>Kunde<input id="nKu"></label></div>
   <label>Standard-Info (optional)<input id="nIn"></label>
-  <div class="row" style="align-items:center"><div class="mut" style="font-size:13px">4 Ziffern werden mit dem Präfix ergänzt (Einstellung unter „Daten“).</div><div class="btns" style="flex:0 0 auto;margin:0"><button class="primary" id="bAddO">Anlegen</button></div></div>
+  <div class="row" style="align-items:center"><div class="mut" style="font-size:13px">Kurz-Nr. (z. B. 405 oder 0405) wird mit dem Präfix ergänzt (Einstellung unter „Daten“).</div><div class="btns" style="flex:0 0 auto;margin:0"><button class="primary" id="bAddO">Anlegen</button></div></div>
  </div>
  <div class="card"><h2>Aufträge</h2><label class="chk"><input type="checkbox" id="showArch"> archivierte zeigen</label><div class="list" id="oList"></div></div>
 </section>
@@ -163,6 +163,7 @@ dialog::backdrop{background:#0008}
   <div class="row"><label>Soll Mo–Do (h)<input id="sSoll" inputmode="decimal"></label><label>Soll Fr (h)<input id="sSollFr" inputmode="decimal"></label></div>
   <div class="row"><label>Frühstück (min)<input id="sFr" inputmode="numeric"></label><label>Mittag (min)<input id="sMi" inputmode="numeric"></label></div>
   <div class="row"><label>Aufträge archivieren nach (Tage ungenutzt, 0 = nie)<input id="sArch" inputmode="numeric"></label><label>Gedruckte Tage löschen nach (Tage, 0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
+  <label class="chk"><input type="checkbox" id="sSound"> Ton + Vibration bei Pausenende und Feierabend-Erinnerung (Display bleibt in der Pause an)</label>
   <label class="chk"><input type="checkbox" id="sRemind"> Erinnern, wenn das Tagessoll erreicht ist (Gehen oder Überstunden)</label>
   <label class="chk"><input type="checkbox" id="sFill"> Bei „Gehen“ nicht zugeordnete Zeit automatisch auffüllen</label>
   <label>Auffüll-Auftrag (Nr.)<input id="sFillNr" inputmode="numeric"></label>
@@ -195,7 +196,7 @@ const dDate=k=>{const d=new Date(k+'T12:00');return pad(d.getDate())+'.'+pad(d.g
 function defaults(){return{v:1,orders:[
  {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false},
  {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false}],
- days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal'},lastBackup:null};}
+ days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});
@@ -218,7 +219,7 @@ function otBalance(until){
  const st=S.settings;if(!st.otDate)return null;let b=+st.otStart||0;
  Object.keys(S.days).forEach(k=>{if(k>=st.otDate&&k<=until&&counts(k)){const sm=summary(k);b+=(sm?sm.total:0)-sollOf(k);}});
  return b;}
-const normNr=v=>{v=String(v||'').replace(/\s/g,'');return /^\d{4}$/.test(v)?S.settings.prefix+v:v;};
+const normNr=v=>{v=String(v||'').replace(/[\s.\-]/g,'');return /^\d{1,4}$/.test(v)?S.settings.prefix+v.padStart(4,'0'):v;};
 
 /* Tageszusammenfassung: gleiche Auftrag+Info zusammengefasst, gerundet so,
    dass die Summe der Zeilen exakt der gerundeten Gesamtzeit entspricht. */
@@ -298,20 +299,47 @@ function doFahrt(){
  $('#fQ').oninput=()=>{const q=$('#fQ').value.trim().toLowerCase();$('#fT').innerHTML=live.filter(o=>!q||(o.nr+' '+o.kunde).toLowerCase().includes(q)).slice(0,12).map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('');};
 }
 function doKommen(){const d=today();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,Date.now());else{d.kommen=Date.now();toast('Kommen '+hm(d.kommen));}save();render();}
+/* ---------- Ton & Display wach halten ---------- */
+let actx=null,wake=null;
+function primeAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}}
+function alarm(){
+ if(!S.settings.sound)return;
+ try{navigator.vibrate&&navigator.vibrate([400,200,400,200,400]);}catch(e){}
+ try{primeAudio();if(!actx)return;const t0=actx.currentTime;
+  for(let r=0;r<3;r++)for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain(),t=t0+r*1.2+i*0.22;
+   o.type='square';o.frequency.value=i===2?1320:988;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.35,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+   o.connect(g).connect(actx.destination);o.start(t);o.stop(t+0.2);}
+ }catch(e){}
+}
+async function keepAwake(on){try{if(on&&!wake&&navigator.wakeLock){wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null;});}
+ if(!on&&wake){await wake.release();wake=null;}}catch(e){}}
 function startPause(plan){
  const d=today(),t=Date.now();if(!d.kommen||d.gehen||openPause(d))return;
  const oe=openEntry(d);if(oe){closeEntry(d,oe,t);S.resume={o:oe.o,info:oe.info,taet:oe.taet||''};}else S.resume=null;
- d.pausen.push({s:t,e:null,plan:plan||0});save();render();
+ d.pausen.push({s:t,e:null,plan:plan||0});save();render();if(plan&&S.settings.sound){primeAudio();keepAwake(true);}
  toast(plan?'Pause bis '+hm(t+plan*60000):'Pause offen – „Weiter“ zum Beenden');
 }
 function endPause(at){
- const d=today(),p=openPause(d);if(!p)return;const t=at||Date.now();p.e=t;
- if(S.resume){d.entries.push({id:uid(),o:S.resume.o,info:S.resume.info,taet:S.resume.taet||'',s:t,e:null});S.resume=null;}
- save();render();
+ const d=today(),p=openPause(d);if(!p)return;const t=at||Date.now();p.e=t;keepAwake(false);
+ const b=balOrder(),eid=uid();
+ d.entries.push({id:eid,o:b.id,info:'',s:t,e:null});
+ if(S.resume&&S.resume.o!==b.id)S.askResume=Object.assign({eid,k:dkey()},S.resume);
+ S.resume=null;save();render();checkAskResume();
+}
+function checkAskResume(){
+ const a=S.askResume;if(!a||D.open)return;
+ if(a.k!==dkey()){delete S.askResume;save();return;}
+ const o=order(a.o);
+ dlg(`<h3>Pause vorbei</h3><p style="margin:0 0 6px">Läuft jetzt: <b>Betriebsarbeiten</b>.</p><p class="mut" style="margin:0 0 6px">Vor der Pause: ${esc(o.nr)} · ${esc(o.kunde)}${a.info?' · '+esc(a.info):''}</p>
+ <div class="tiles"><button class="tile primary" id="arY"><b>Weiter mit ${esc(o.kunde)}</b><small>ab Pausenende umbuchen</small></button><button class="tile" id="arN"><b>Nein</b><small>bei Betriebsarbeiten bleiben</small></button></div>`);
+ $('#arY').onclick=()=>{const d=S.days[a.k],e=d&&d.entries.find(x=>x.id===a.eid);
+  if(e){e.o=a.o;e.info=a.info||'';e.taet=a.taet||'';}
+  delete S.askResume;save();closeDlg();render();toast('Weiter mit '+o.kunde);};
+ $('#arN').onclick=()=>{delete S.askResume;save();closeDlg();};
 }
 function checkPlannedPause(){
  const d=S.days[dkey()];if(!d)return;const p=openPause(d);
- if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){endPause(p.s+p.plan*60000);toast('Pause vorbei – Auftrag läuft weiter');}
+ if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){const late=Date.now()-(p.s+p.plan*60000)<5*60000;endPause(p.s+p.plan*60000);toast('Pause vorbei');if(late)alarm();}
 }
 function doPause(){
  const d=today();if(openPause(d))return endPause();if(!d.kommen||d.gehen)return;
@@ -321,10 +349,12 @@ function doPause(){
 }
 /* Lücke = eingestempelte Zeit ohne Pausen minus gebuchte Zeit */
 function gapMin(d){if(!d||!d.kommen||!d.gehen)return 0;const b=d.entries.reduce((a,e)=>a+emin(e),0);return presence(d)-b;}
+function balOrder(){const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
+ if(!o){o=S.orders.find(x=>x.nr===nr);if(o){o.arch=false;delete o.archAt;}else{o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false};S.orders.push(o);}}return o;}
+const pauseList=d=>d.pausen.map(p=>hm(p.s)+'–'+(p.e?hm(p.e):'läuft')).join(', ');
 function fillGap(k,silent){
  const d=S.days[k],g=gapMin(d);if(g<1){if(!silent)toast('Keine Lücke zum Auffüllen');return false;}
- const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
- if(!o){o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false};S.orders.push(o);}
+ const o=balOrder();
  const ex=d.entries.find(e=>e.auto);
  if(ex)ex.h=+(ex.h+g/60).toFixed(4);else d.entries.push({id:uid(),o:o.id,info:'',h:+(g/60).toFixed(4),s:null,e:null,auto:true});
  save();render();if(!silent)toast(fmtDur(g)+' h auf '+o.nr+' aufgefüllt');return true;
@@ -340,7 +370,7 @@ function checkRemind(){
  if(!d||!d.kommen||d.gehen||openPause(d))return;
  const due=d.remindAt||sollEnd(d,k);if(!due||Date.now()<due)return;
  d.remindAt=9e15;save();
- try{navigator.vibrate&&navigator.vibrate([300,150,300]);}catch(e){}
+alarm();
  dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3>
  <p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter?</p>
  <div class="tiles"><button class="tile primary" id="rG"><b>Gehen</b><small style="color:inherit">Feierabend stempeln</small></button>
@@ -484,7 +514,7 @@ function renderDay(){
   .sort((a,b)=>a.t-b.t);
  $('#dayList').innerHTML=items.map(i=>i.h).join('');
  const sm=summary(k),pres=presence(d);
- let info=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pause ${Math.round(pmin(d))} min<br>Gebucht ${sm?fmtDur(sm.min):'0:00'} h → Stundenbuch <b>${sm?fmtH(sm.total):'0'} h</b>`;
+ let info=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'}<br>Pausen: ${d.pausen.length?pauseList(d)+' ('+Math.round(pmin(d))+' min)':'keine'}<br>Gebucht ${sm?fmtDur(sm.min):'0:00'} h → Stundenbuch <b>${sm?fmtH(sm.total):'0'} h</b>`;
  if(sm&&sm.over)info+=`<br><span class="warn">Aufrundung +${fmtH(sm.over)} h konnte nicht über Betriebsarbeiten ausgeglichen werden</span>`;
  if(sm&&sollOf(k))info+=` · Soll ${fmtH(sollOf(k))} h, Differenz ${fmtSig(sm.total-sollOf(k))} h`;
  if(d.kommen&&Math.abs(pres-(sm?sm.min:0))>5)info+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h</span>`;
@@ -569,7 +599,7 @@ function printHtml(){
   const k=dkey(d),sm=summary(k),ty=typeOf(k);if(!sm&&!ty)continue;const dd=S.days[k];n++;sum+=sm?sm.total:0;if(counts(k))soll+=sollOf(k);
   if(!sm){h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}</span><span>${dDate(k)}</span></div><table><tbody><tr><td colspan="3">${TYP[ty]}</td><td class="r">0</td></tr></tbody></table></section>`;continue;}
   h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}${ty?' · '+TYP[ty]:''}</span><span>${dDate(k)}</span></div>`;
-  if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'} · Pause ${Math.round(pmin(dd))} min</div>`;
+  if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'}${dd.pausen.length?' · Pause '+pauseList(dd):''}</div>`;
   h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
    sm.rows.map(r=>{const o=order(r.o);return `<tr><td class="nr">${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td>${esc(r.info)}</td><td class="r">${fmtH(r.h)}</td></tr>`;}).join('')+
    `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${fmtH(sm.total)}</td></tr></tfoot></table></section>`;
@@ -585,7 +615,7 @@ function renderPrint(){applyPaper();$('#pPrev').innerHTML=printHtml();}
 function renderData(){
  const lb=S.lastBackup,dd=lb?Math.floor((Date.now()-lb)/864e5):null;
  $('#bkInfo').innerHTML=lb?'Letzte Sicherung: '+new Date(lb).toLocaleString('de-DE')+(dd>=7?` <span class="warn">(${dd} Tage her)</span>`:''):'<span class="warn">Noch keine Sicherung gespeichert.</span>';
- renderPw();$('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sRMode').value=S.settings.roundMode||'dist';$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;$('#sFill').checked=!!S.settings.fill;$('#sRemind').checked=!!S.settings.remind;$('#sArch').value=S.settings.archDays;$('#sKeep').value=S.settings.keepDays;$('#sFillNr').value=S.settings.fillNr||'';$('#sOt').value=fmtH(+S.settings.otStart||0);$('#sOtD').value=S.settings.otDate||'';
+ renderPw();$('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sRMode').value=S.settings.roundMode||'dist';$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;$('#sFill').checked=!!S.settings.fill;$('#sRemind').checked=!!S.settings.remind;$('#sSound').checked=!!S.settings.sound;$('#sArch').value=S.settings.archDays;$('#sKeep').value=S.settings.keepDays;$('#sFillNr').value=S.settings.fillNr||'';$('#sOt').value=fmtH(+S.settings.otStart||0);$('#sOtD').value=S.settings.otDate||'';
 }
 
 /* ---------- Events ---------- */
@@ -603,6 +633,7 @@ $('#bAddE').onclick=()=>editEntry($('#dSel').value||dkey(),null);
 $('#bEditDay').onclick=()=>editDay($('#dSel').value||dkey());
 $('#bAddO').onclick=()=>{
  const nr=normNr($('#nNr').value),ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
+ if(!/^\d{8}$/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
  if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
  S.orders.push({id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey()});
  $('#nNr').value=$('#nKu').value=$('#nIn').value='';save();render();renderOrders();toast('Angelegt: '+nr);
@@ -648,6 +679,7 @@ $('#sOt').onchange=()=>{const v=parseFloat($('#sOt').value.replace(',','.').repl
 $('#sOtD').onchange=()=>{S.settings.otDate=$('#sOtD').value;save();render();};
 $('#sArch').onchange=()=>{const v=parseInt($('#sArch').value);if(v>=0){S.settings.archDays=v;save();}};
 $('#sKeep').onchange=()=>{const v=parseInt($('#sKeep').value);if(v>=0){S.settings.keepDays=v;save();}};
+$('#sSound').onchange=()=>{S.settings.sound=$('#sSound').checked;save();if(S.settings.sound){primeAudio();alarm();}};
 $('#sRemind').onchange=()=>{S.settings.remind=$('#sRemind').checked;save();};
 $('#sFill').onchange=()=>{S.settings.fill=$('#sFill').checked;save();};
 $('#sFillNr').onchange=()=>{S.settings.fillNr=normNr($('#sFillNr').value);$('#sFillNr').value=S.settings.fillNr;save();};
@@ -661,10 +693,12 @@ function showTab(t){
  if(t==='t2')renderOrders();if(t==='t3')renderPrint();if(t==='t4')renderData();
 }
 
+document.addEventListener('pointerdown',()=>{if(S.settings.sound)primeAudio();},{once:true});
 /* ---------- Start ---------- */
-$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A4';setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);
-let tickN=0;setInterval(()=>{checkPlannedPause();checkRemind();renderHeader();if(++tickN%15===0&&$('#t1').classList.contains('on'))renderDay();},1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();}});
+$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A4';S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);});save();
+setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);
+let tickN=0;setInterval(()=>{checkPlannedPause();checkAskResume();checkRemind();renderHeader();if(++tickN%15===0&&$('#t1').classList.contains('on'))renderDay();},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();{const p=openPause(today());if(p&&p.plan&&S.settings.sound)keepAwake(true);}}});
 if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – unter „Daten“ sichern'),800);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js');
