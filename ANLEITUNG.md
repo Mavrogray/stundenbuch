@@ -72,3 +72,11 @@ Die App führt Aktionen aus, wenn sie mit einem dieser Zusätze an der Adresse g
 Beispiel: `https://DEINNAME.github.io/stundenbuch/?a=stempel`
 
 Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NFC Tools“) oder als QR-Code gedruckt werden.
+
+## 4. Datenschutz / Verschlüsselung
+
+- **Tablet:** Bildschirmsperre mit PIN setzen (Android verschlüsselt den Speicher dann automatisch).
+- **App:** Daten → „Passwort setzen“. Alle Sicherungsdateien (auch die automatische bei „Gehen“) werden mit AES-256-GCM verschlüsselt (Schlüssel per PBKDF2-SHA256, 310.000 Runden). **Passwort verloren = Sicherungen verloren.** Im Passwortmanager ablegen.
+- **CSV-Export** ist nicht verschlüsselt – nur bei Bedarf nutzen und danach löschen.
+- **Syncthing:** Beim Freigeben des Ordners auf dem Tablet für das Gerät „betzendorf“ ein **Verschlüsselungspasswort** eintragen → der Server speichert nur verschlüsselte Dateien („nicht vertrauenswürdiges Gerät“).
+- **Proxmox Backup:** Speicher „pbs“ auf betzendorf → Edit → Reiter „Encryption“ → Schlüssel erzeugen → **Schlüssel herunterladen und sicher aufbewahren.**

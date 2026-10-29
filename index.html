@@ -16,11 +16,12 @@ header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px 
 #state{font-size:14px;color:var(--mut)}
 #cur{font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #timer{font-variant-numeric:tabular-nums;font-size:28px;font-weight:700}
-.stamps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
 button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:10px;min-height:48px;cursor:pointer}
 button.primary{background:var(--pri);color:var(--priFg);border-color:var(--pri)}
 button.danger{color:var(--bad)}
 button:disabled{opacity:.4}
+.stamps button{padding:10px 4px}
 nav{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
 nav button{flex:1;border:0;border-radius:0;border-bottom:3px solid transparent;background:none}
 nav button.on{border-bottom-color:var(--pri);font-weight:600}
@@ -29,6 +30,7 @@ section.tab{display:none}section.tab.on{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
 input,select{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:44px}
 input[type=checkbox]{width:auto;min-height:0}
+textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:110px;margin-top:4px;resize:vertical}
 label{display:block;font-size:14px;color:var(--mut);margin:8px 0}
 label>input,label>select{margin-top:4px;color:var(--fg)}
 label.chk{display:flex;gap:8px;align-items:center}
@@ -37,6 +39,7 @@ label.chk{display:flex;gap:8px;align-items:center}
 .tile{text-align:left;min-height:72px}
 .tile small{display:block;color:var(--mut);font-variant-numeric:tabular-nums}
 .tile b{display:block;font-size:17px;hyphens:auto;overflow-wrap:break-word}
+.tile.primary small{color:#dbeafe}
 .tile.on{background:var(--act);border-color:var(--pri)}
 .list .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}
 .list .it:last-child{border:0}
@@ -65,13 +68,21 @@ dialog::backdrop{background:#0008}
 .pdoc tfoot td{font-weight:700;border-top:1pt solid #000;border-bottom:0}
 .psum{text-align:right;font-weight:700;margin-top:3mm;font-size:11pt}
 @media print{
- @page{size:A4;margin:12mm}
  body{background:#fff}
  body>*:not(#printOut){display:none!important}
  #printOut{display:block}
  #printOut .pdoc{border:0;padding:0}
 }
+/* kleine Formate */
+.pdoc.p-A5{font-size:90%}
+.pdoc.p-A6 h1{font-size:10pt}.pdoc.p-A6 .pmeta{font-size:7pt;margin:0 0 2mm}
+.pdoc.p-A6 .phead{font-size:8.5pt;border-bottom-width:1pt}.pdoc.p-A6 .pstamp{font-size:6.5pt;margin:.5mm 0}
+.pdoc.p-A6 table{font-size:7.5pt}.pdoc.p-A6 th{font-size:6pt;padding:.5mm}.pdoc.p-A6 td{padding:.6mm .5mm}
+.pdoc.p-A6 th:nth-child(1){width:15mm}.pdoc.p-A6 th:nth-child(2){width:28%}.pdoc.p-A6 th:nth-child(4){width:9mm}
+.pdoc.p-A6 .pday{margin-bottom:3mm}.pdoc.p-A6 .psum{font-size:7.5pt}
+#pPrev.p-A6{max-width:105mm;margin:0 auto;padding-left:14mm}#pPrev.p-A5{max-width:148mm;margin:0 auto}
 </style>
+<style id="pageStyle">@page{size:A4;margin:12mm}</style>
 </head>
 <body>
 <header>
@@ -80,7 +91,7 @@ dialog::backdrop{background:#0008}
   <div id="timer" style="flex:0 0 auto">--:--</div>
  </div>
  <div class="stamps">
-  <button id="bK">Kommen</button><button id="bP">Pause</button><button id="bG">Gehen</button><button id="bI">Info ✎</button>
+  <button id="bK">Kommen</button><button id="bP">Pause</button><button id="bF">🚗 Fahrt</button><button id="bG">Gehen</button><button id="bI">Info / Tätigkeit</button>
  </div>
 </header>
 <nav><button data-t="t1" class="on">Stempeln</button><button data-t="t2">Aufträge</button><button data-t="t3">Ausdruck</button><button data-t="t4">Daten</button></nav>
@@ -94,7 +105,7 @@ dialog::backdrop{background:#0008}
   <div class="row" style="align-items:center"><h2 style="margin:0">Tag</h2><input type="date" id="dSel"></div>
   <div id="dayInfo" class="mut" style="margin-top:8px"></div>
   <div class="list" id="dayList"></div>
-  <div class="btns"><button id="bAddE">+ Eintrag</button><button id="bEditDay">Kommen / Gehen / Pausen</button></div>
+  <div class="btns"><button id="bFill">Lücke auffüllen</button><button id="bAddE">+ Eintrag</button><button id="bEditDay">Kommen / Gehen / Pausen</button></div>
  </div>
 </section>
 
@@ -110,6 +121,7 @@ dialog::backdrop{background:#0008}
 <section class="tab" id="t3">
  <div class="card">
   <div class="row"><label>Von<input type="date" id="pFrom"></label><label>Bis<input type="date" id="pTo"></label></div>
+  <div class="row"><label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch)</option><option value="A5">A5</option><option value="A4">A4</option></select></label></div>
   <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen / Pause mitdrucken</label>
   <div class="btns"><button id="bWeek">Diese Woche</button><button id="bLastWeek">Letzte Woche</button><button class="primary" id="bPrint">Drucken / PDF</button></div>
  </div>
@@ -120,6 +132,9 @@ dialog::backdrop{background:#0008}
  <div class="card"><h2>Sicherung</h2><div id="bkInfo" class="mut"></div>
   <div class="btns"><button class="primary" id="bExp">Sicherung speichern</button><button id="bCsv">CSV exportieren</button><button id="bImp">Sicherung laden</button></div>
   <input type="file" id="fImp" accept=".json,application/json" hidden>
+  <label>Sicherungs-Passwort (verschlüsselt alle Sicherungsdateien)</label>
+  <div id="pwInfo" class="mut" style="font-size:14px;margin-bottom:6px"></div>
+  <div class="btns" style="justify-content:flex-start;margin-top:0"><button id="bPw">Passwort setzen / ändern</button><button id="bPwOff" class="danger">Verschlüsselung aus</button></div>
  </div>
  <div class="card"><h2>Einstellungen</h2>
   <label>Name auf dem Ausdruck<input id="sName"></label>
@@ -127,7 +142,12 @@ dialog::backdrop{background:#0008}
   <label>Rundung im Stundenbuch<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
   <div class="row"><label>Soll Mo–Do (h)<input id="sSoll" inputmode="decimal"></label><label>Soll Fr (h)<input id="sSollFr" inputmode="decimal"></label></div>
   <div class="row"><label>Frühstück (min)<input id="sFr" inputmode="numeric"></label><label>Mittag (min)<input id="sMi" inputmode="numeric"></label></div>
+  <div class="row"><label>Aufträge archivieren nach (Tage ungenutzt, 0 = nie)<input id="sArch" inputmode="numeric"></label><label>Gedruckte Tage löschen nach (Tage, 0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
+  <label class="chk"><input type="checkbox" id="sRemind"> Erinnern, wenn das Tagessoll erreicht ist (Gehen oder Überstunden)</label>
+  <label class="chk"><input type="checkbox" id="sFill"> Bei „Gehen“ nicht zugeordnete Zeit automatisch auffüllen</label>
+  <label>Auffüll-Auftrag (Nr.)<input id="sFillNr" inputmode="numeric"></label>
   <label class="chk"><input type="checkbox" id="sAuto"> Bei „Gehen“ automatisch Sicherung speichern</label>
+  <div class="row"><label>Überstunden-Startwert (h)<input id="sOt" inputmode="decimal" placeholder="z.B. 12,5 oder -3"></label><label>gilt ab Datum<input type="date" id="sOtD"></label></div>
   <div id="stInfo" class="mut" style="font-size:13px"></div>
  </div>
 </section>
@@ -155,7 +175,7 @@ const dDate=k=>{const d=new Date(k+'T12:00');return pad(d.getDate())+'.'+pad(d.g
 function defaults(){return{v:1,orders:[
  {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false},
  {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false}],
- days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true},lastBackup:null};}
+ days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});
@@ -169,8 +189,15 @@ const openPause=d=>d.pausen.find(p=>!p.e);
 const emin=e=>e.h!=null?e.h*60:Math.max(0,((e.e||Date.now())-e.s)/60000);
 const pmin=d=>d.pausen.reduce((a,p)=>a+Math.max(0,((p.e||Date.now())-p.s)/60000),0);
 const presence=d=>d.kommen?Math.max(0,((d.gehen||Date.now())-d.kommen)/60000-pmin(d)):0;
-const sollOf=k=>{const w=new Date(k+'T12:00').getDay();return w>=1&&w<=4?(+S.settings.soll||0):w===5?(+S.settings.sollFr||0):0;};
+const TYP={urlaub:'Urlaub',krank:'Krank',feiertag:'Feiertag',gleit:'Gleittag (Überstundenabbau)'};
+const typeOf=k=>(S.days[k]&&S.days[k].type)||'';
+const sollOf=k=>{const ty=typeOf(k);if(ty&&ty!=='gleit')return 0;const w=new Date(k+'T12:00').getDay();return w>=1&&w<=4?(+S.settings.soll||0):w===5?(+S.settings.sollFr||0):0;};
 const fmtSig=v=>(v>0.001?'+':v<-0.001?'−':'±')+fmtH(Math.abs(v));
+function counts(k){return !!(summary(k)||typeOf(k)==='gleit');}
+function otBalance(until){
+ const st=S.settings;if(!st.otDate)return null;let b=+st.otStart||0;
+ Object.keys(S.days).forEach(k=>{if(k>=st.otDate&&k<=until&&counts(k)){const sm=summary(k);b+=(sm?sm.total:0)-sollOf(k);}});
+ return b;}
 const normNr=v=>{v=String(v||'').replace(/\s/g,'');return /^\d{4}$/.test(v)?S.settings.prefix+v:v;};
 
 /* Tageszusammenfassung: gleiche Auftrag+Info zusammengefasst, gerundet so,
@@ -178,7 +205,8 @@ const normNr=v=>{v=String(v||'').replace(/\s/g,'');return /^\d{4}$/.test(v)?S.se
 function summary(k){
  const d=S.days[k];if(!d||!d.entries.length)return null;
  const m=new Map();
- d.entries.forEach(e=>{const key=e.o+'|'+(e.info||'');const r=m.get(key)||{o:e.o,info:e.info||'',min:0};r.min+=emin(e);m.set(key,r);});
+ const infoOf=e=>{if(e.kind!=='fahrt')return e.info||'';const w=d.entries.find(x=>x.o===e.o&&x.kind!=='fahrt'&&x.info);return w?w.info:'';};
+ d.entries.forEach(e=>{const key=e.o+'|'+infoOf(e);const r=m.get(key)||{o:e.o,info:infoOf(e),min:0};r.min+=emin(e);m.set(key,r);});
  const rows=[...m.values()].sort((a,b)=>order(a.o).nr.localeCompare(order(b.o).nr)||a.info.localeCompare(b.info));
  const R=+S.settings.round||15;
  const tot=rows.reduce((a,r)=>a+r.min,0);
@@ -196,7 +224,7 @@ function closeEntry(d,oe,t){oe.e=t;if(t-oe.s<30000)d.entries=d.entries.filter(x=
 function resumeAfterGehen(d,t){if(d.gehen){d.pausen.push({s:d.gehen,e:t});d.gehen=null;toast('Weiter – Lücke als Pause gewertet');}}
 function startOrder(id){
  const d=today(),t=Date.now(),oe=openEntry(d);
- if(oe&&oe.o===id)return;
+ if(oe&&oe.o===id&&oe.kind!=='fahrt')return;
  if(!d.kommen)d.kommen=t;
  resumeAfterGehen(d,t);
  const p=openPause(d);if(p)p.e=t;
@@ -205,16 +233,47 @@ function startOrder(id){
  d.entries.push({id:uid(),o:id,info:order(id).info||'',s:t,e:null});
  save();render();
 }
+/* ---------- Fahrten ---------- */
+function hinDur(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.dir==='hin'&&e.o===o&&e.e);return f.length?f[f.length-1].e-f[f.length-1].s:0;}
+function startFahrt(id,dir){
+ const d=today(),t=Date.now(),oe=openEntry(d);
+ if(!d.kommen)d.kommen=t;resumeAfterGehen(d,t);const p=openPause(d);if(p)p.e=t;
+ if(oe)closeEntry(d,oe,t);S.resume=null;
+ d.entries.push({id:uid(),o:id,info:'',s:t,e:null,kind:'fahrt',dir});save();render();
+ toast(dir==='hin'?'Hinfahrt läuft – bei Ankunft den Auftrag antippen':'Rückfahrt läuft – bei Ankunft nächsten Auftrag antippen oder Gehen');
+}
+function rueckPauschal(id){
+ const d=today(),t=Date.now(),oe=openEntry(d),dur=hinDur(d,id);if(!dur)return;
+ if(oe)closeEntry(d,oe,t);S.resume=null;
+ d.entries.push({id:uid(),o:id,info:'',s:t,e:t+dur,kind:'fahrt',dir:'rueck'});save();render();
+ toast('Rückfahrt '+fmtDur(dur/60000)+' h gebucht (bis '+hm(t+dur)+')');
+}
+function doFahrt(){
+ const d=today(),oe=openEntry(d),live=S.orders.filter(o=>!o.arch);
+ if(oe&&oe.kind==='fahrt'&&oe.dir==='hin'){const o=order(oe.o);dlg(`<h3>Angekommen bei ${esc(o.kunde)}?</h3><div class="btns"><button data-x>Nein</button><button class="primary" id="fA">Ja, Arbeit beginnen</button></div>`);$('#fA').onclick=()=>{closeDlg();startOrder(oe.o);};return;}
+ let h='';
+ if(oe&&oe.kind!=='fahrt'){const o=order(oe.o),dur=hinDur(d,oe.o);
+  h+=`<p class="mut" style="margin:0 0 6px">Rückfahrt von ${esc(o.kunde)}</p><div class="tiles">`+
+   (dur?`<button class="tile primary" id="fRP"><b>Wie Hinfahrt</b><small>${fmtDur(dur/60000)} h sofort buchen</small></button>`:'')+
+   `<button class="tile" id="fRL"><b>Rückfahrt stoppen</b><small>läuft bis Ankunft</small></button></div>`;}
+ const fav=live.filter(o=>o.fav||recentIds().includes(o.id)).slice(0,12);
+ h+=`<p class="mut" style="margin:12px 0 6px">Hinfahrt zu …</p><input id="fQ" type="search" placeholder="Auftrag suchen …"><div class="tiles" id="fT">${fav.map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('')}</div>`;
+ dlg(`<h3>🚗 Fahrt</h3>${h}<div class="btns"><button data-x>Abbrechen</button></div>`);
+ if($('#fRP'))$('#fRP').onclick=()=>{closeDlg();rueckPauschal(oe.o);};
+ if($('#fRL'))$('#fRL').onclick=()=>{closeDlg();startFahrt(oe.o,'rueck');};
+ $('#fT').onclick=e=>{const b=e.target.closest('[data-h]');if(b){closeDlg();startFahrt(b.dataset.h,'hin');}};
+ $('#fQ').oninput=()=>{const q=$('#fQ').value.trim().toLowerCase();$('#fT').innerHTML=live.filter(o=>!q||(o.nr+' '+o.kunde).toLowerCase().includes(q)).slice(0,12).map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('');};
+}
 function doKommen(){const d=today();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,Date.now());else{d.kommen=Date.now();toast('Kommen '+hm(d.kommen));}save();render();}
 function startPause(plan){
  const d=today(),t=Date.now();if(!d.kommen||d.gehen||openPause(d))return;
- const oe=openEntry(d);if(oe){closeEntry(d,oe,t);S.resume={o:oe.o,info:oe.info};}else S.resume=null;
+ const oe=openEntry(d);if(oe){closeEntry(d,oe,t);S.resume={o:oe.o,info:oe.info,taet:oe.taet||''};}else S.resume=null;
  d.pausen.push({s:t,e:null,plan:plan||0});save();render();
  toast(plan?'Pause bis '+hm(t+plan*60000):'Pause offen – „Weiter“ zum Beenden');
 }
 function endPause(at){
  const d=today(),p=openPause(d);if(!p)return;const t=at||Date.now();p.e=t;
- if(S.resume){d.entries.push({id:uid(),o:S.resume.o,info:S.resume.info,s:t,e:null});S.resume=null;}
+ if(S.resume){d.entries.push({id:uid(),o:S.resume.o,info:S.resume.info,taet:S.resume.taet||'',s:t,e:null});S.resume=null;}
  save();render();
 }
 function checkPlannedPause(){
@@ -227,11 +286,106 @@ function doPause(){
  dlg(`<h3>Pause</h3><div class="tiles"><button class="tile" data-pl="${st.fruehstueck}"><b>Frühstück</b><small>${st.fruehstueck} min</small></button><button class="tile" data-pl="${st.mittag}"><b>Mittag</b><small>${st.mittag} min</small></button><button class="tile" data-pl="0"><b>Offen</b><small>bis „Weiter“</small></button></div><div class="btns"><button data-x>Abbrechen</button></div>`);
  D.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{closeDlg();startPause(+b.dataset.pl);});
 }
-function backup(){download('stundenbuch-backup-'+dkey()+'.json',JSON.stringify(S,null,1),'application/json');S.lastBackup=Date.now();save();}
+/* Lücke = eingestempelte Zeit ohne Pausen minus gebuchte Zeit */
+function gapMin(d){if(!d||!d.kommen||!d.gehen)return 0;const b=d.entries.reduce((a,e)=>a+emin(e),0);return presence(d)-b;}
+function fillGap(k,silent){
+ const d=S.days[k],g=gapMin(d);if(g<1){if(!silent)toast('Keine Lücke zum Auffüllen');return false;}
+ const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
+ if(!o){o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false};S.orders.push(o);}
+ const ex=d.entries.find(e=>e.auto);
+ if(ex)ex.h=+(ex.h+g/60).toFixed(4);else d.entries.push({id:uid(),o:o.id,info:'',h:+(g/60).toFixed(4),s:null,e:null,auto:true});
+ save();render();if(!silent)toast(fmtDur(g)+' h auf '+o.nr+' aufgefüllt');return true;
+}
+/* Feierabend-Erinnerung: Kommen + Soll + Pausen (mind. Frühstück+Mittag) */
+function sollEnd(d,k){
+ const s=sollOf(k);if(!s||!d.kommen)return null;
+ const pz=Math.max(pmin(d),(+S.settings.fruehstueck||0)+(+S.settings.mittag||0));
+ return d.kommen+(s*60+pz)*60000;
+}
+function checkRemind(){
+ if(!S.settings.remind||D.open)return;const k=dkey(),d=S.days[k];
+ if(!d||!d.kommen||d.gehen||openPause(d))return;
+ const due=d.remindAt||sollEnd(d,k);if(!due||Date.now()<due)return;
+ d.remindAt=9e15;save();
+ try{navigator.vibrate&&navigator.vibrate([300,150,300]);}catch(e){}
+ dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3>
+ <p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter?</p>
+ <div class="tiles"><button class="tile primary" id="rG"><b>Gehen</b><small style="color:inherit">Feierabend stempeln</small></button>
+ <button class="tile" id="rO1"><b>Überstunden</b><small>in 1 h wieder fragen</small></button>
+ <button class="tile" id="rO2"><b>Überstunden</b><small>in 2 h wieder fragen</small></button>
+ <button class="tile" id="rO0"><b>Überstunden</b><small>heute nicht mehr fragen</small></button></div>`);
+ const snooze=m=>{d.remindAt=m?Date.now()+m*60000:Infinity;save();closeDlg();toast(m?'Erinnere wieder um '+hm(d.remindAt):'Heute keine Erinnerung mehr');};
+ $('#rG').onclick=()=>{closeDlg();doGehen();};
+ $('#rO1').onclick=()=>snooze(60);$('#rO2').onclick=()=>snooze(120);$('#rO0').onclick=()=>snooze(0);
+}
+/* ---------- Aufräumen ---------- */
+function lastUse(id){let l='';for(const k in S.days)if(k>l&&S.days[k].entries.some(e=>e.o===id))l=k;return l;}
+function daysAgo(k){return Math.floor((new Date(dkey()+'T12:00')-new Date(k+'T12:00'))/864e5);}
+function housekeeping(){
+ const st=S.settings,today_=dkey();let a=0,del=0;
+ const ad=+st.archDays||0;
+ if(ad)S.orders.forEach(o=>{if(o.arch||o.fav)return;const l=lastUse(o.id);const ref=l||o.created||'';if(ref&&daysAgo(ref)>ad){o.arch=true;a++;}});
+ const kd=+st.keepDays||0;
+ if(kd)Object.keys(S.days).sort().forEach(k=>{const d=S.days[k];if(k===today_||!d.printed||daysAgo(k)<=kd)return;
+  if(st.otDate&&k>=st.otDate&&counts(k)){const sm=summary(k);st.otStart=+(((+st.otStart||0)+(sm?sm.total:0)-sollOf(k)).toFixed(4));}
+  if(st.otDate&&k>=st.otDate){const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);st.otDate=dkey(n);}
+  delete S.days[k];del++;});
+ if(ad){const used=new Set();Object.values(S.days).forEach(d=>d.entries.forEach(e=>used.add(e.o)));
+  S.orders=S.orders.filter(o=>!o.arch||used.has(o.id)||!o.archAt||daysAgo(o.archAt)<=365);}
+ S.orders.forEach(o=>{if(o.arch&&!o.archAt)o.archAt=today_;if(!o.arch)delete o.archAt;});
+ if(a||del){save();toast((a?a+' Aufträge archiviert':'')+(a&&del?' · ':'')+(del?del+' alte Tage gelöscht':''));}
+}
+/* ---------- Jahreswechsel ---------- */
+function checkYear(){
+ const st=S.settings,yy=String(new Date().getFullYear()%100).padStart(2,'0'),pre=String(st.prefix||'');
+ if(!/^\d{4}$/.test(pre)||pre.slice(2)===yy||st.yearAsked===yy||D.open)return;
+ const np=pre.slice(0,2)+yy,old=S.orders.filter(o=>o.fav&&!o.arch&&o.nr.startsWith(pre));
+ dlg(`<h3>Neues Jahr – neue Auftragsnummern?</h3>
+ <p class="mut" style="margin:0 0 8px">Präfix von <b>${pre}</b> auf <b>${np}</b> umstellen.</p>
+ ${old.length?`<p class="mut" style="margin:0 0 4px">Diese Favoriten werden für ${np} neu angelegt, die alten archiviert:</p>`+old.map(o=>`<div class="num">${esc(o.nr)} → ${np+o.nr.slice(4)} · ${esc(o.kunde)}</div>`).join(''):''}
+ <div class="btns"><button id="yLater">Später</button><button id="yNo">Nein, so lassen</button><button class="primary" id="yOk">Umstellen</button></div>`);
+ $('#yLater').onclick=closeDlg;
+ $('#yNo').onclick=()=>{st.yearAsked=yy;save();closeDlg();};
+ $('#yOk').onclick=()=>{
+  old.forEach(o=>{const nr=np+o.nr.slice(4);if(!S.orders.some(x=>x.nr===nr&&!x.arch))S.orders.push({id:uid(),nr,kunde:o.kunde,info:o.info,fav:true,arch:false,created:dkey()});o.fav=false;o.arch=true;o.archAt=dkey();});
+  if(st.fillNr&&String(st.fillNr).startsWith(pre))st.fillNr=np+String(st.fillNr).slice(4);
+  st.prefix=np;st.yearAsked=yy;save();closeDlg();render();toast('Umgestellt auf '+np);};
+}
+/* ---------- Verschlüsselung: PBKDF2-SHA256 (310000) + AES-256-GCM ---------- */
+const b64=u=>{let s='';u=new Uint8Array(u);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s);};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function kdf(pw,salt,it){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+ return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:it,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function encryptText(txt,pw){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),it=310000;
+ const key=await kdf(pw,salt,it),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(txt));
+ return JSON.stringify({stundenbuch:'encrypted',v:1,kdf:'PBKDF2-SHA256',it,salt:b64(salt),iv:b64(iv),data:b64(ct)});}
+async function decryptText(o,pw){const key=await kdf(pw,unb64(o.salt),o.it);
+ const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(o.iv)},key,unb64(o.data));return new TextDecoder().decode(pt);}
+const cryptoOk=()=>!!(window.crypto&&crypto.subtle);
+function plainState(){const c=JSON.parse(JSON.stringify(S));delete c.settings.bkPw;return JSON.stringify(c,null,1);}
+async function backup(){
+ const name='stundenbuch-backup-'+dkey()+'.json',pw=S.settings.bkPw;
+ try{const txt=pw&&cryptoOk()?await encryptText(plainState(),pw):plainState();
+  download(name,txt,'application/json');S.lastBackup=Date.now();save();
+ }catch(e){toast('Sicherung fehlgeschlagen: '+e.message);}
+}
+function renderPw(){const on=!!S.settings.bkPw;
+ $('#pwInfo').innerHTML=!cryptoOk()?'<span class="warn">Verschlüsselung nur über https verfügbar.</span>':on?'🔒 Aktiv – Sicherungen werden mit AES-256 verschlüsselt.':'<span class="warn">Aus – Sicherungen sind lesbar.</span>';
+ $('#bPwOff').style.display=on?'':'none';}
+function setPw(){
+ dlg(`<h3>Sicherungs-Passwort</h3>
+ <p class="mut" style="margin:0 0 8px">Ohne dieses Passwort lässt sich keine Sicherung wiederherstellen – auch nicht von mir. Gut aufschreiben (z. B. Passwortmanager).</p>
+ <label>Passwort (mind. 8 Zeichen)<input type="password" id="p1" autocomplete="new-password"></label>
+ <label>Wiederholen<input type="password" id="p2" autocomplete="new-password"></label>
+ <div class="btns"><button data-x>Abbrechen</button><button class="primary" id="pOk">Speichern</button></div>`);
+ $('#pOk').onclick=()=>{const a=$('#p1').value,b=$('#p2').value;if(a.length<8)return toast('Mindestens 8 Zeichen');if(a!==b)return toast('Passwörter ungleich');
+  S.settings.bkPw=a;save();closeDlg();renderPw();toast('Passwort gesetzt – nächste Sicherung ist verschlüsselt');};
+}
 function doGehen(){
  const d=today(),t=Date.now();if(!d.kommen||d.gehen)return;const snap=JSON.stringify(S);
  const oe=openEntry(d);if(oe)closeEntry(d,oe,t);const p=openPause(d);if(p)p.e=t;S.resume=null;d.gehen=t;save();render();
- toast('Feierabend '+hm(t),()=>{S=JSON.parse(snap);save();render();});
+ let msg='Feierabend '+hm(t);if(S.settings.fill&&gapMin(d)>=1){const g=gapMin(d);fillGap(dkey(),true);msg+=' · '+fmtDur(g)+' h aufgefüllt';}
+ toast(msg,()=>{S=JSON.parse(snap);save();render();});
  if(S.settings.autoBackup)backup();
 }
 /* Aktionen per Link (NFC-Tag/QR-Code): ?a=stempel | kommen | gehen | pause */
@@ -239,14 +393,16 @@ function urlAction(){
  const a=new URLSearchParams(location.search).get('a');if(!a)return;
  history.replaceState(null,'',location.pathname);const d=today();
  if(a==='stempel'){if(!d.kommen||d.gehen)doKommen();else doGehen();}
- else if(a==='kommen')doKommen();else if(a==='gehen')doGehen();
+ else if(a==='fahrt')doFahrt();else if(a==='kommen')doKommen();else if(a==='gehen')doGehen();
  else if(a==='pause'){if(openPause(d))endPause();else startPause(new Date().getHours()<11?S.settings.fruehstueck:S.settings.mittag);}
 }
 function doInfo(){
  const oe=openEntry(today());if(!oe)return;
- dlg(`<h3>Info für ${esc(order(oe.o).nr)}</h3><input id="fI" value="${esc(oe.info)}" placeholder="z.B. EM-3555 tanken/aufräumen"><div class="btns"><button data-x>Abbrechen</button><button class="primary" id="fOk">OK</button></div>`);
- $('#fI').focus();
- $('#fOk').onclick=()=>{oe.info=$('#fI').value.trim();save();closeDlg();render();};
+ dlg(`<h3>${esc(order(oe.o).nr)} · ${esc(order(oe.o).kunde)}</h3>
+ <label>Info (erscheint im Stundenbuch)<input id="fI" value="${esc(oe.info)}" placeholder="z.B. EM-3555 tanken/aufräumen"></label>
+ <label>Tätigkeit (für Nachweis, nicht im Stundenbuch)<textarea id="fTa" placeholder="Was wurde gemacht, Befund, Material …">${esc(oe.taet||'')}</textarea></label>
+ <div class="btns"><button data-x>Abbrechen</button><button class="primary" id="fOk">OK</button></div>`);
+ $('#fOk').onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();save();closeDlg();render();};
 }
 
 /* ---------- UI-Helfer ---------- */
@@ -260,29 +416,31 @@ function download(name,text,type){const a=document.createElement('a');a.href=URL
 function renderHeader(){
  const d=today(),oe=openEntry(d),p=openPause(d);let st,cur='',from=null;
  if(p){st='Pause seit '+hm(p.s)+(p.plan?' · bis '+hm(p.s+p.plan*60000):'');cur=S.resume?'danach: '+order(S.resume.o).nr+' '+order(S.resume.o).kunde:'Pause';from=p.s;}
- else if(oe){const o=order(oe.o);st='Läuft seit '+hm(oe.s);cur=o.nr+' · '+o.kunde+(oe.info?' · '+oe.info:'');from=oe.s;}
+ else if(oe){const o=order(oe.o);st=(oe.kind==='fahrt'?(oe.dir==='hin'?'🚗 Hinfahrt seit ':'🚗 Rückfahrt seit '):'Läuft seit ')+hm(oe.s);cur=o.nr+' · '+o.kunde+(oe.info?' · '+oe.info:'');from=oe.s;}
  else if(d.gehen){st='Feierabend '+hm(d.gehen);cur='Heute '+fmtDur(presence(d))+' h anwesend';}
  else if(d.kommen){st='Eingestempelt seit '+hm(d.kommen);cur='Kein Auftrag gewählt';from=d.kommen;}
  else{st='Nicht eingestempelt';cur='Auftrag antippen oder Kommen';}
+ {const se=d.kommen&&!d.gehen?sollEnd(d,dkey()):null;if(se&&!p)st+=' · Soll bis '+hm(se);}
  $('#state').textContent=st;$('#cur').textContent=cur;
  $('#timer').textContent=p&&p.plan?'−'+fmtClock(p.s+p.plan*60000-Date.now()):from?fmtClock(Date.now()-from):'--:--';
  $('#bK').disabled=!!(d.kommen&&!d.gehen);
  $('#bP').textContent=p?'Weiter':'Pause';$('#bP').classList.toggle('primary',!!p);
- $('#bP').disabled=!d.kommen||!!d.gehen;$('#bG').disabled=!d.kommen||!!d.gehen;$('#bI').disabled=!oe;
+ $('#bP').disabled=!d.kommen||!!d.gehen;$('#bG').disabled=!d.kommen||!!d.gehen;$('#bI').disabled=!oe;$('#bF').disabled=!!d.gehen&&false;$('#bF').classList.toggle('primary',!!(oe&&oe.kind==='fahrt'));
 }
 function recentIds(){const ids=[];Object.keys(S.days).sort().reverse().slice(0,30).forEach(k=>S.days[k].entries.slice().reverse().forEach(e=>{if(!ids.includes(e.o))ids.push(e.o);}));return ids;}
 function renderTiles(){
  const q=$('#q').value.trim().toLowerCase(),act=openEntry(today()),live=S.orders.filter(o=>!o.arch);let list;
- if(q)list=live.filter(o=>(o.nr+' '+o.kunde+' '+o.info).toLowerCase().includes(q));
+ if(q){list=live.filter(o=>(o.nr+' '+o.kunde+' '+o.info).toLowerCase().includes(q));S.orders.filter(o=>o.arch&&(o.nr+' '+o.kunde).toLowerCase().includes(q)).slice(0,6).forEach(o=>list.push(o));}
  else{list=live.filter(o=>o.fav);recentIds().forEach(id=>{const o=live.find(x=>x.id===id);if(o&&!list.includes(o)&&list.length<16)list.push(o);});}
- let h=list.map(o=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b>${o.info?`<small>${esc(o.info)}</small>`:''}</button>`).join('');
+ let h=list.map(o=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}"><small>${esc(o.nr)}${o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b>${o.info?`<small>${esc(o.info)}</small>`:''}</button>`).join('');
  if(q&&!list.length)h=`<button class="tile" id="qNew"><b>+ Neu anlegen</b><small>${esc(q)}</small></button>`;
  $('#tiles').innerHTML=h||'<div class="mut">Noch keine Aufträge – unter „Aufträge“ anlegen.</div>';
 }
 function renderDay(){
  const k=$('#dSel').value||dkey(),d=S.days[k];
- if(!d||(!d.kommen&&!d.entries.length&&!d.pausen.length)){$('#dayList').innerHTML='';$('#dayInfo').textContent='Keine Einträge.';return;}
- const items=d.entries.map(e=>({t:e.s||0,h:`<div class="it" data-e="${e.id}"><div style="min-width:0"><b class="num">${esc(order(e.o).nr)}</b> ${esc(order(e.o).kunde)}${e.info?`<div class="mut">${esc(e.info)}</div>`:''}</div><div class="num">${e.h!=null?fmtH(e.h)+' h manuell':hm(e.s)+'–'+(e.e?hm(e.e):'läuft')+' · '+fmtDur(emin(e))}</div></div>`}))
+ const ob=otBalance(k),obTxt=ob==null?'':`Überstunden-Saldo bis ${dDate(k)}: <b>${fmtSig(ob)} h</b>`;
+ if(!d||(!d.kommen&&!d.entries.length&&!d.pausen.length&&!d.type)){$('#dayList').innerHTML='';$('#dayInfo').innerHTML='Keine Einträge.'+(obTxt?'<br>'+obTxt:'');return;}
+ const items=d.entries.map(e=>({t:e.s||0,h:`<div class="it" data-e="${e.id}"><div style="min-width:0">${e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt · ':'🚗 Rückfahrt · '):''}<b class="num">${esc(order(e.o).nr)}</b> ${esc(order(e.o).kunde)}${e.info?`<div class="mut">${esc(e.info)}</div>`:''}${e.taet?`<div class="mut" style="font-size:13px;white-space:pre-line">📝 ${esc(e.taet)}</div>`:''}</div><div class="num">${e.h!=null?fmtH(Math.round(e.h*100)/100)+(e.auto?' h aufgefüllt':' h manuell'):hm(e.s)+'–'+(e.e?hm(e.e):'läuft')+' · '+fmtDur(emin(e))}</div></div>`}))
   .concat(d.pausen.map(p=>({t:p.s,h:`<div class="it mut" data-pz="1"><div>Pause</div><div class="num">${hm(p.s)}–${p.e?hm(p.e):'läuft'} · ${fmtDur(Math.max(0,((p.e||Date.now())-p.s)/60000))}</div></div>`})))
   .sort((a,b)=>a.t-b.t);
  $('#dayList').innerHTML=items.map(i=>i.h).join('');
@@ -290,6 +448,8 @@ function renderDay(){
  let info=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pause ${Math.round(pmin(d))} min<br>Gebucht ${sm?fmtDur(sm.min):'0:00'} h → Stundenbuch <b>${sm?fmtH(sm.total):'0'} h</b>`;
  if(sm&&sollOf(k))info+=` · Soll ${fmtH(sollOf(k))} h, Differenz ${fmtSig(sm.total-sollOf(k))} h`;
  if(d.kommen&&Math.abs(pres-(sm?sm.min:0))>5)info+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h</span>`;
+ if(d.type)info=`<b>${TYP[d.type]}</b><br>`+info;
+ if(obTxt)info+='<br>'+obTxt+(k===dkey()?' (inkl. heute)':'');
  if(k!==dkey()&&(openEntry(d)||openPause(d)||(d.kommen&&!d.gehen)))info+=`<br><span class="warn">Tag nicht abgeschlossen – Gehen bzw. Ende nachtragen.</span>`;
  $('#dayInfo').innerHTML=info;
 }
@@ -306,20 +466,21 @@ function editEntry(k,id){
  const man=ent&&ent.h!=null;
  dlg(`<h3>${ent?'Eintrag bearbeiten':'Eintrag hinzufügen'} – ${dDate(k)}</h3>
  <label>Auftrag<select id="fO">${opts}</select></label>
- <label>Info<input id="fI" value="${esc(ent?ent.info:'')}"></label>
+ <label>Info (erscheint im Stundenbuch)<input id="fI" value="${esc(ent?ent.info:'')}"></label>
+ <label>Tätigkeit (für Nachweis, nicht im Stundenbuch)<textarea id="fTa">${esc(ent&&ent.taet||'')}</textarea></label>
  <div class="row"><label>Von<input type="time" id="fS" value="${ent&&!man?hm(ent.s):''}"></label><label>Bis<input type="time" id="fE" value="${ent&&!man&&ent.e?hm(ent.e):''}"></label></div>
  <label>oder Stunden direkt<input id="fH" inputmode="decimal" placeholder="z.B. 1,5" value="${man?fmtH(ent.h):''}"></label>
  <div class="btns">${ent?'<button class="danger" id="fDel">Löschen</button>':''}<button data-x>Abbrechen</button><button class="primary" id="fOk">Speichern</button></div>`);
  if(ent)$('#fDel').onclick=()=>{if(!confirm('Eintrag löschen?'))return;d.entries=d.entries.filter(x=>x!==ent);save();closeDlg();render();};
  $('#fOk').onclick=()=>{
   const o=$('#fO').value;if(!o)return toast('Auftrag wählen');
-  const info=$('#fI').value.trim(),hv=$('#fH').value.trim().replace(',','.');let ne;
-  if(hv!==''){const h=parseFloat(hv);if(!(h>=0))return toast('Stunden ungültig');ne={o,info,h,s:null,e:null};}
+  const info=$('#fI').value.trim(),taet=$('#fTa').value.trim(),hv=$('#fH').value.trim().replace(',','.');let ne;
+  if(hv!==''){const h=parseFloat(hv);if(!(h>=0))return toast('Stunden ungültig');ne={o,info,taet,h,s:null,e:null};}
   else{
    const s=tsOf(k,$('#fS').value);if(!s)return toast('Von-Zeit fehlt (oder Stunden angeben)');
    const e=tsOf(k,$('#fE').value);if(e&&e<s)return toast('Bis liegt vor Von');
    const oe=openEntry(d);if(!e&&(k!==dkey()||(oe&&oe!==ent)))return toast('Bis-Zeit fehlt');
-   ne={o,info,s,e,h:null};
+   ne={o,info,taet,s,e,h:null};
   }
   if(ent)Object.assign(ent,ne);else d.entries.push(Object.assign({id:uid()},ne));
   d.entries.sort((a,b)=>(a.s||0)-(b.s||0));save();closeDlg();render();
@@ -329,6 +490,7 @@ function editDay(k){
  const d=day(k);const P=d.pausen.map(p=>({s:hm(p.s),e:hm(p.e)}));
  dlg(`<h3>${WD[new Date(k+'T12:00').getDay()]} ${dDate(k)}</h3>
  <div class="row"><label>Kommen<input type="time" id="fK" value="${hm(d.kommen)}"></label><label>Gehen<input type="time" id="fG" value="${hm(d.gehen)}"></label></div>
+ <label>Tagesart<select id="fT"><option value="">Arbeitstag</option>${Object.keys(TYP).map(t=>`<option value="${t}"${d.type===t?' selected':''}>${TYP[t]}</option>`).join('')}</select></label>
  <label>Pausen (von – bis)</label><div id="pl"></div><button id="pAdd">+ Pause</button>
  <div class="btns"><button data-x>Abbrechen</button><button class="primary" id="fOk">Speichern</button></div>`);
  const draw=()=>{$('#pl').innerHTML=P.map((p,i)=>`<div class="row" style="margin:6px 0"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button data-rm="${i}" style="flex:0 0 48px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
@@ -340,7 +502,7 @@ function editDay(k){
   const K=tsOf(k,$('#fK').value),G=tsOf(k,$('#fG').value);
   if(K&&G&&G<K)return toast('Gehen liegt vor Kommen');
   const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');np.push({s,e});}
-  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);save();closeDlg();render();
+  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=$('#fT').value||undefined;save();closeDlg();render();
  };
 }
 function editOrder(id){
@@ -364,41 +526,45 @@ function printHtml(){
  const from=$('#pFrom').value,to=$('#pTo').value,show=$('#pStamp').checked;if(!from||!to)return '';
  let h='',sum=0,n=0,soll=0;
  for(const d=new Date(from+'T12:00');dkey(d)<=to;d.setDate(d.getDate()+1)){
-  const k=dkey(d),sm=summary(k);if(!sm)continue;const dd=S.days[k];n++;sum+=sm.total;soll+=sollOf(k);
-  h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}</span><span>${dDate(k)}</span></div>`;
+  const k=dkey(d),sm=summary(k),ty=typeOf(k);if(!sm&&!ty)continue;const dd=S.days[k];n++;sum+=sm?sm.total:0;if(counts(k))soll+=sollOf(k);
+  if(!sm){h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}</span><span>${dDate(k)}</span></div><table><tbody><tr><td colspan="3">${TYP[ty]}</td><td class="r">0</td></tr></tbody></table></section>`;continue;}
+  h+=`<section class="pday"><div class="phead"><span>${WD[d.getDay()]}${ty?' · '+TYP[ty]:''}</span><span>${dDate(k)}</span></div>`;
   if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'} · Pause ${Math.round(pmin(dd))} min</div>`;
   h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
    sm.rows.map(r=>{const o=order(r.o);return `<tr><td class="nr">${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td>${esc(r.info)}</td><td class="r">${fmtH(r.h)}</td></tr>`;}).join('')+
    `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${fmtH(sm.total)}</td></tr></tfoot></table></section>`;
  }
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
- return head+(n?h+`<div class="psum">Summe Zeitraum: ${fmtH(sum)} h${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+ return head+(n?h+`<div class="psum">Summe Zeitraum: ${fmtH(sum)} h${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}${otBalance(to)!=null?`<br>Überstunden-Saldo am ${dDate(to)}: ${fmtSig(otBalance(to))} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
-function renderPrint(){$('#pPrev').innerHTML=printHtml();}
+const PAGE={A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 18mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 14mm'};
+function applyPaper(){const p=S.settings.paper||'A4';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className='pdoc p-'+p;}
+function renderPrint(){applyPaper();$('#pPrev').innerHTML=printHtml();}
 
 /* ---------- Daten ---------- */
 function renderData(){
  const lb=S.lastBackup,dd=lb?Math.floor((Date.now()-lb)/864e5):null;
  $('#bkInfo').innerHTML=lb?'Letzte Sicherung: '+new Date(lb).toLocaleString('de-DE')+(dd>=7?` <span class="warn">(${dd} Tage her)</span>`:''):'<span class="warn">Noch keine Sicherung gespeichert.</span>';
- $('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;
+ renderPw();$('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;$('#sFill').checked=!!S.settings.fill;$('#sRemind').checked=!!S.settings.remind;$('#sArch').value=S.settings.archDays;$('#sKeep').value=S.settings.keepDays;$('#sFillNr').value=S.settings.fillNr||'';$('#sOt').value=fmtH(+S.settings.otStart||0);$('#sOtD').value=S.settings.otDate||'';
 }
 
 /* ---------- Events ---------- */
-$('#bK').onclick=doKommen;$('#bP').onclick=doPause;$('#bG').onclick=doGehen;$('#bI').onclick=doInfo;
+$('#bK').onclick=doKommen;$('#bP').onclick=doPause;$('#bG').onclick=doGehen;$('#bI').onclick=doInfo;$('#bF').onclick=doFahrt;
 $('#q').oninput=renderTiles;
 $('#tiles').onclick=e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.id==='qNew'){const q=$('#q').value.trim();showTab('t2');if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;$('#q').value='';return;}
- if(b.dataset.o){startOrder(b.dataset.o);$('#q').value='';renderTiles();}
+ if(b.dataset.o){const o=S.orders.find(x=>x.id===b.dataset.o);if(o&&o.arch){o.arch=false;delete o.archAt;}startOrder(b.dataset.o);$('#q').value='';renderTiles();}
 };
 $('#dSel').onchange=renderDay;
 $('#dayList').onclick=e=>{const it=e.target.closest('.it');if(!it)return;const k=$('#dSel').value||dkey();if(it.dataset.e)editEntry(k,it.dataset.e);else if(it.dataset.pz)editDay(k);};
+$('#bFill').onclick=()=>fillGap($('#dSel').value||dkey());
 $('#bAddE').onclick=()=>editEntry($('#dSel').value||dkey(),null);
 $('#bEditDay').onclick=()=>editDay($('#dSel').value||dkey());
 $('#bAddO').onclick=()=>{
  const nr=normNr($('#nNr').value),ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
  if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
- S.orders.push({id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false});
+ S.orders.push({id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey()});
  $('#nNr').value=$('#nKu').value=$('#nIn').value='';save();render();renderOrders();toast('Angelegt: '+nr);
 };
 $('#showArch').onchange=renderOrders;
@@ -406,26 +572,45 @@ $('#oList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.fav){const o=S.orders.find(x=>x.id===b.dataset.fav);o.fav=!o.fav;save();renderOrders();renderTiles();}
  if(b.dataset.ed)editOrder(b.dataset.ed);};
 $('#pFrom').onchange=$('#pTo').onchange=renderPrint;
+$('#pPaper').onchange=()=>{S.settings.paper=$('#pPaper').value;save();renderPrint();};
 $('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};
 $('#bWeek').onclick=()=>setRange(0);$('#bLastWeek').onclick=()=>setRange(-1);
-$('#bPrint').onclick=()=>{$('#printOut').innerHTML='<div class="pdoc">'+printHtml()+'</div>';window.print();};
-$('#bExp').onclick=()=>{backup();renderData();};
+$('#bPrint').onclick=()=>{{const f=$('#pFrom').value,t=$('#pTo').value;Object.keys(S.days).forEach(k=>{if(k>=f&&k<=t&&k<dkey())S.days[k].printed=true;});save();}applyPaper();$('#printOut').innerHTML='<div class="pdoc p-'+(S.settings.paper||'A4')+'">'+printHtml()+'</div>';window.print();};
+$('#bExp').onclick=async()=>{await backup();renderData();};
+$('#bPw').onclick=setPw;
+$('#bPwOff').onclick=()=>{if(!confirm('Verschlüsselung ausschalten? Neue Sicherungen sind dann lesbar.'))return;delete S.settings.bkPw;save();renderPw();};
 $('#bImp').onclick=()=>$('#fImp').click();
 $('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
- r.onload=()=>{try{const n=JSON.parse(r.result);if(!n.orders||!n.days)throw 0;if(!confirm('Alle aktuellen Daten durch die Sicherung ersetzen?'))return;
-  S=n;S.settings=Object.assign(defaults().settings,S.settings||{});save();render();renderData();toast('Sicherung geladen');}catch(x){toast('Datei ungültig');}};
+ r.onload=()=>{let n;try{n=JSON.parse(r.result);}catch(x){return toast('Datei ungültig');}
+  const apply=n=>{if(!n.orders||!n.days)return toast('Datei ungültig');if(!confirm('Alle aktuellen Daten durch die Sicherung ersetzen?'))return;
+   const pw=S.settings.bkPw;S=n;S.settings=Object.assign(defaults().settings,S.settings||{});if(pw)S.settings.bkPw=pw;save();render();renderData();toast('Sicherung geladen');};
+  if(n.stundenbuch!=='encrypted')return apply(n);
+  dlg(`<h3>Verschlüsselte Sicherung</h3><label>Passwort<input type="password" id="pD"></label><div class="btns"><button data-x>Abbrechen</button><button class="primary" id="pDo">Entschlüsseln</button></div>`);
+  $('#pD').focus();
+  $('#pDo').onclick=async()=>{const pw=$('#pD').value;try{const t=await decryptText(n,pw);closeDlg();const m=JSON.parse(t);apply(m);if(!S.settings.bkPw){S.settings.bkPw=pw;save();renderPw();}}catch(e){toast('Falsches Passwort');}};
+ };
  r.readAsText(f);e.target.value='';};
-$('#bCsv').onclick=()=>{
+$('#bCsv').onclick=()=>{if(S.settings.bkPw&&!confirm('CSV-Dateien sind NICHT verschlüsselt. Trotzdem exportieren?'))return;
  const L=['Datum;Tag;Auftrag;Kunde;Info;Stunden'];
  Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;const wd=WD[new Date(k+'T12:00').getDay()];
   sm.rows.forEach(r=>{const o=order(r.o);L.push([dDate(k),wd,o.nr,o.kunde,r.info,fmtH(r.h)].map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';'));});});
- download('stundenbuch-'+dkey()+'.csv','\ufeff'+L.join('\r\n'),'text/csv');};
+ download('stundenbuch-'+dkey()+'.csv','\ufeff'+L.join('\r\n'),'text/csv');
+ const T=['Datum;Auftrag;Kunde;Von;Bis;Stunden;Info;Tätigkeit'];
+ Object.keys(S.days).sort().forEach(k=>S.days[k].entries.forEach(e=>{if(!e.taet)return;const o=order(e.o);T.push([dDate(k),o.nr,o.kunde,e.s?hm(e.s):'',e.e?hm(e.e):'',fmtH(Math.round(emin(e)/15)/4),e.info||'',e.taet].map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';'));}));
+ if(T.length>1)setTimeout(()=>download('taetigkeiten-'+dkey()+'.csv','\ufeff'+T.join('\r\n'),'text/csv'),800);};
 $('#sName').onchange=()=>{S.settings.name=$('#sName').value.trim();save();};
 $('#sPre').onchange=()=>{S.settings.prefix=$('#sPre').value.trim();save();};
 $('#sSoll').onchange=()=>{const v=parseFloat($('#sSoll').value.replace(',','.'));if(v>=0){S.settings.soll=v;save();render();}};
 $('#sSollFr').onchange=()=>{const v=parseFloat($('#sSollFr').value.replace(',','.'));if(v>=0){S.settings.sollFr=v;save();render();}};
 $('#sFr').onchange=()=>{const v=parseInt($('#sFr').value);if(v>0){S.settings.fruehstueck=v;save();}};
 $('#sMi').onchange=()=>{const v=parseInt($('#sMi').value);if(v>0){S.settings.mittag=v;save();}};
+$('#sOt').onchange=()=>{const v=parseFloat($('#sOt').value.replace(',','.').replace('−','-'));if(!isNaN(v)){S.settings.otStart=v;if(!S.settings.otDate)S.settings.otDate=dkey();save();renderData();render();}};
+$('#sOtD').onchange=()=>{S.settings.otDate=$('#sOtD').value;save();render();};
+$('#sArch').onchange=()=>{const v=parseInt($('#sArch').value);if(v>=0){S.settings.archDays=v;save();}};
+$('#sKeep').onchange=()=>{const v=parseInt($('#sKeep').value);if(v>=0){S.settings.keepDays=v;save();}};
+$('#sRemind').onchange=()=>{S.settings.remind=$('#sRemind').checked;save();};
+$('#sFill').onchange=()=>{S.settings.fill=$('#sFill').checked;save();};
+$('#sFillNr').onchange=()=>{S.settings.fillNr=normNr($('#sFillNr').value);$('#sFillNr').value=S.settings.fillNr;save();};
 $('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};
 $('#sRnd').onchange=()=>{S.settings.round=+$('#sRnd').value;save();render();};
 document.querySelector('nav').onclick=e=>{const t=e.target.dataset.t;if(t)showTab(t);};
@@ -436,9 +621,9 @@ function showTab(t){
 }
 
 /* ---------- Start ---------- */
-$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;setRange(0);checkPlannedPause();render();urlAction();
-let tickN=0;setInterval(()=>{checkPlannedPause();renderHeader();if(++tickN%15===0&&$('#t1').classList.contains('on'))renderDay();},1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();render();}});
+$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A4';setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);
+let tickN=0;setInterval(()=>{checkPlannedPause();checkRemind();renderHeader();if(++tickN%15===0&&$('#t1').classList.contains('on'))renderDay();},1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();}});
 if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – unter „Daten“ sichern'),800);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js');
