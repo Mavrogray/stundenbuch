@@ -11,42 +11,55 @@
 :root{--bg:#f4f5f7;--card:#fff;--fg:#1a1d21;--mut:#666d75;--line:#dde1e6;--pri:#1d4ed8;--priFg:#fff;--warn:#b45309;--bad:#b91c1c;--act:#dbeafe}
 @media (prefers-color-scheme:dark){:root{--bg:#111316;--card:#1b1e22;--fg:#e8eaed;--mut:#9aa1a9;--line:#2c3036;--pri:#3b82f6;--act:#1e3a5f;--warn:#f59e0b}}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+html{font-size:18px}
+@media (min-width:700px){html{font-size:20px}}
+body{margin:0;font:1rem/1.4 system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
 header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:10px 14px}
-#state{font-size:14px;color:var(--mut)}
-#cur{font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#timer{font-variant-numeric:tabular-nums;font-size:28px;font-weight:700}
-.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
-button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:10px;min-height:48px;cursor:pointer}
+#state{font-size:.85rem;color:var(--mut)}
+#cur{font-size:1.35rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#timer{font-variant-numeric:tabular-nums;font-size:2rem;font-weight:700}
+.hrow{display:flex;align-items:center;gap:14px}.hinfo{flex:1;min-width:0}
+.pausebtn{min-height:64px;padding:0 22px;font-size:1.1rem;font-weight:700;border-radius:32px;background:#f59e0b;color:#1a1d21;border-color:#f59e0b}
+#pauseBar{display:none;margin-top:10px;padding:12px 14px;border-radius:12px;background:#fef3c7;color:#78350f}
+#pauseBar.on{display:block}
+.pbtop{display:flex;justify-content:space-between;align-items:baseline;font-weight:700}
+#pbLabel{font-size:1.1rem}#pbTime{font-size:2.4rem;font-variant-numeric:tabular-nums}
+.pbtrack{height:10px;border-radius:5px;background:#fde68a;margin:8px 0;overflow:hidden}#pbFill{height:100%;width:0;background:#d97706;transition:width 1s linear}
+.pbsub{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.9rem}
+#pbGo{background:#78350f;color:#fff;border-color:#78350f;font-weight:700}
+@media (prefers-color-scheme:dark){#pauseBar{background:#451a03;color:#fde68a}.pbtrack{background:#78350f}#pbGo{background:#f59e0b;color:#1a1d21;border-color:#f59e0b}}
+.stamps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:12px;padding:10px;min-height:56px;cursor:pointer}
 button.primary{background:var(--pri);color:var(--priFg);border-color:var(--pri)}
 button.danger{color:var(--bad)}
 button:disabled{opacity:.4}
-.stamps button{padding:10px 4px}
+.stamps button{padding:10px 4px;font-weight:600}
+.stamps .hide{display:none}
 nav{display:flex;background:var(--card);border-bottom:1px solid var(--line)}
 nav button{flex:1;border:0;border-radius:0;border-bottom:3px solid transparent;background:none}
 nav button.on{border-bottom-color:var(--pri);font-weight:600}
 main{padding:12px 14px 40px;max-width:1000px;margin:0 auto}
 section.tab{display:none}section.tab.on{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
-input,select{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:44px}
+input,select{font:inherit;width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:52px}
 input[type=checkbox]{width:auto;min-height:0}
 textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-height:110px;margin-top:4px;resize:vertical}
-label{display:block;font-size:14px;color:var(--mut);margin:8px 0}
+label{display:block;font-size:.8rem;color:var(--mut);margin:8px 0}
 label>input,label>select{margin-top:4px;color:var(--fg)}
 label.chk{display:flex;gap:8px;align-items:center}
 .row{display:flex;gap:8px;align-items:flex-end}.row>*{flex:1;min-width:0}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-top:10px}
-.tile{text-align:left;min-height:72px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:12px}
+.tile{text-align:left;min-height:88px;padding:12px 14px}
 .tile small{display:block;color:var(--mut);font-variant-numeric:tabular-nums}
-.tile b{display:block;font-size:17px;hyphens:auto;overflow-wrap:break-word}
+.tile b{display:block;font-size:1.15rem;hyphens:auto;overflow-wrap:break-word}
 .tile.primary small{color:#dbeafe}
 .tile.on{background:var(--act);border-color:var(--pri)}
 .list .it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}
 .list .it:last-child{border:0}
 .mut{color:var(--mut)}.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .warn{color:var(--warn)}
-h2{font-size:18px;margin:0 0 8px}h3{margin:0 0 8px}
-dialog{border:0;border-radius:14px;padding:16px;width:min(480px,94vw);background:var(--card);color:var(--fg)}
+h2{font-size:1.1rem;margin:0 0 8px}h3{margin:0 0 8px}
+dialog{border:0;border-radius:16px;padding:20px;width:min(620px,94vw);background:var(--card);color:var(--fg)}
 dialog::backdrop{background:#0008}
 .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;display:none;z-index:20;align-items:center;gap:12px;max-width:92vw}
@@ -86,12 +99,18 @@ dialog::backdrop{background:#0008}
 </head>
 <body>
 <header>
- <div class="row" style="align-items:center">
-  <div style="flex:3"><div id="state"></div><div id="cur"></div></div>
-  <div id="timer" style="flex:0 0 auto">--:--</div>
+ <div class="hrow">
+  <div class="hinfo"><div id="state"></div><div id="cur"></div></div>
+  <div id="timer">--:--</div>
+  <button id="bP" class="pausebtn">☕ Pause</button>
+ </div>
+ <div id="pauseBar">
+  <div class="pbtop"><span id="pbLabel">Pause</span><span id="pbTime">00:00</span></div>
+  <div class="pbtrack"><div id="pbFill"></div></div>
+  <div class="pbsub"><span id="pbNext"></span><button id="pbGo">Weiter arbeiten</button></div>
  </div>
  <div class="stamps">
-  <button id="bK">Kommen</button><button id="bP">Pause</button><button id="bF">🚗 Fahrt</button><button id="bG">Gehen</button><button id="bI">Info / Tätigkeit</button>
+  <button id="bK" class="primary">Kommen</button><button id="bG">Gehen</button><button id="bF">🚗 Fahrt</button><button id="bI">Info / Tätigkeit</button>
  </div>
 </header>
 <nav><button data-t="t1" class="on">Stempeln</button><button data-t="t2">Aufträge</button><button data-t="t3">Ausdruck</button><button data-t="t4">Daten</button></nav>
@@ -105,7 +124,7 @@ dialog::backdrop{background:#0008}
   <div class="row" style="align-items:center"><h2 style="margin:0">Tag</h2><input type="date" id="dSel"></div>
   <div id="dayInfo" class="mut" style="margin-top:8px"></div>
   <div class="list" id="dayList"></div>
-  <div class="btns"><button id="bFill">Lücke auffüllen</button><button id="bAddE">+ Eintrag</button><button id="bEditDay">Kommen / Gehen / Pausen</button></div>
+  <div class="btns"><button id="bFill">Lücke auffüllen</button><button id="bAddE">+ Eintrag</button><button id="bEditDay">Tag bearbeiten</button></div>
  </div>
 </section>
 
@@ -139,6 +158,7 @@ dialog::backdrop{background:#0008}
  <div class="card"><h2>Einstellungen</h2>
   <label>Name auf dem Ausdruck<input id="sName"></label>
   <label>Präfix für Kurznummern (Abteilung + Jahr)<input id="sPre" inputmode="numeric"></label>
+  <label>Rundungsart<select id="sRMode"><option value="bal">Aufträge aufrunden, Ausgleich über Betriebsarbeiten (Summe = gestempelte Zeit)</option><option value="up">Je Auftrag aufrunden (jede angefangene Einheit zählt)</option><option value="dist">Tagessumme runden und verteilen (Summe = gestempelte Zeit)</option></select></label>
   <label>Rundung im Stundenbuch<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
   <div class="row"><label>Soll Mo–Do (h)<input id="sSoll" inputmode="decimal"></label><label>Soll Fr (h)<input id="sSollFr" inputmode="decimal"></label></div>
   <div class="row"><label>Frühstück (min)<input id="sFr" inputmode="numeric"></label><label>Mittag (min)<input id="sMi" inputmode="numeric"></label></div>
@@ -175,7 +195,7 @@ const dDate=k=>{const d=new Date(k+'T12:00');return pad(d.getDate())+'.'+pad(d.g
 function defaults(){return{v:1,orders:[
  {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false},
  {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false}],
- days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90},lastBackup:null};}
+ days:{},resume:null,settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal'},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});
@@ -210,6 +230,19 @@ function summary(k){
  const rows=[...m.values()].sort((a,b)=>order(a.o).nr.localeCompare(order(b.o).nr)||a.info.localeCompare(b.info));
  const R=+S.settings.round||15;
  const tot=rows.reduce((a,r)=>a+r.min,0);
+ if(S.settings.roundMode==='bal'){
+  const fnr=normNr(S.settings.fillNr||'21260003'),isBal=r=>order(r.o).nr===fnr&&!r.info;
+  const target=Math.round(tot/R);let other=0;
+  rows.forEach(r=>{if(!isBal(r)){r.u=r.min>0.5?Math.ceil((r.min-0.5)/R):0;other+=r.u;}});
+  let bal=rows.find(isBal),rest=target-other,over=0;
+  if(bal){bal.u=Math.max(0,rest);if(rest<0)over=-rest;}else if(rest<0)over=-rest;else if(rest>0){
+   // Rest (Rundungsdifferenz nach unten) dem größten Auftrag gutschreiben
+   const big=rows.slice().sort((a,b)=>b.min-a.min)[0];if(big)big.u+=rest;}
+  rows.forEach(r=>r.h=r.u*R/60);
+  const vis=rows.filter(r=>r.u>0);
+  return{rows:vis,total:vis.reduce((a,r)=>a+r.h,0),min:tot,over:over*R/60,balUsed:bal?Math.max(0,bal.min/60-bal.h):0};}
+ if(S.settings.roundMode==='up'){rows.forEach(r=>{r.u=r.min>0.5?Math.ceil((r.min-0.5)/R):0;r.h=r.u*R/60;});
+  return{rows:rows.filter(r=>r.u>0),total:rows.reduce((a,r)=>a+r.h,0),min:tot};}
  const units=Math.round(tot/R);
  rows.forEach(r=>{r.u=Math.floor(r.min/R);r.rem=r.min-r.u*R;});
  let left=units-rows.reduce((a,r)=>a+r.u,0);
@@ -415,17 +448,23 @@ function download(name,text,type){const a=document.createElement('a');a.href=URL
 /* ---------- Rendering ---------- */
 function renderHeader(){
  const d=today(),oe=openEntry(d),p=openPause(d);let st,cur='',from=null;
- if(p){st='Pause seit '+hm(p.s)+(p.plan?' · bis '+hm(p.s+p.plan*60000):'');cur=S.resume?'danach: '+order(S.resume.o).nr+' '+order(S.resume.o).kunde:'Pause';from=p.s;}
+ if(p){st='In Pause';cur=S.resume?order(S.resume.o).nr+' · '+order(S.resume.o).kunde:'Pause';from=null;}
  else if(oe){const o=order(oe.o);st=(oe.kind==='fahrt'?(oe.dir==='hin'?'🚗 Hinfahrt seit ':'🚗 Rückfahrt seit '):'Läuft seit ')+hm(oe.s);cur=o.nr+' · '+o.kunde+(oe.info?' · '+oe.info:'');from=oe.s;}
  else if(d.gehen){st='Feierabend '+hm(d.gehen);cur='Heute '+fmtDur(presence(d))+' h anwesend';}
  else if(d.kommen){st='Eingestempelt seit '+hm(d.kommen);cur='Kein Auftrag gewählt';from=d.kommen;}
  else{st='Nicht eingestempelt';cur='Auftrag antippen oder Kommen';}
  {const se=d.kommen&&!d.gehen?sollEnd(d,dkey()):null;if(se&&!p)st+=' · Soll bis '+hm(se);}
  $('#state').textContent=st;$('#cur').textContent=cur;
- $('#timer').textContent=p&&p.plan?'−'+fmtClock(p.s+p.plan*60000-Date.now()):from?fmtClock(Date.now()-from):'--:--';
- $('#bK').disabled=!!(d.kommen&&!d.gehen);
- $('#bP').textContent=p?'Weiter':'Pause';$('#bP').classList.toggle('primary',!!p);
- $('#bP').disabled=!d.kommen||!!d.gehen;$('#bG').disabled=!d.kommen||!!d.gehen;$('#bI').disabled=!oe;$('#bF').disabled=!!d.gehen&&false;$('#bF').classList.toggle('primary',!!(oe&&oe.kind==='fahrt'));
+ $('#timer').textContent=p?'':from?fmtClock(Date.now()-from):'--:--';
+ const inn=!!(d.kommen&&!d.gehen);
+ $('#bK').classList.toggle('hide',inn);$('#bG').classList.toggle('hide',!inn);
+ $('#bP').style.visibility=inn&&!p?'visible':'hidden';
+ const pb=$('#pauseBar');pb.classList.toggle('on',!!p);
+ if(p){const el=Date.now()-p.s,tot=p.plan?p.plan*60000:0;
+  $('#pbLabel').textContent=(p.plan?(p.plan===+S.settings.fruehstueck?'Frühstück':p.plan===+S.settings.mittag?'Mittag':'Pause'):'Pause (offen)')+' · seit '+hm(p.s);
+  $('#pbTime').textContent=tot?fmtClock(tot-el).slice(3):fmtClock(el).slice(3);
+  $('#pbFill').style.width=tot?Math.min(100,el/tot*100)+'%':'0';
+  $('#pbNext').textContent=(tot?'Ende '+hm(p.s+tot):'')+(S.resume?(tot?' · ':'')+'danach '+order(S.resume.o).kunde:'');}$('#bI').disabled=!oe;$('#bF').disabled=!!d.gehen&&false;$('#bF').classList.toggle('primary',!!(oe&&oe.kind==='fahrt'));
 }
 function recentIds(){const ids=[];Object.keys(S.days).sort().reverse().slice(0,30).forEach(k=>S.days[k].entries.slice().reverse().forEach(e=>{if(!ids.includes(e.o))ids.push(e.o);}));return ids;}
 function renderTiles(){
@@ -446,6 +485,7 @@ function renderDay(){
  $('#dayList').innerHTML=items.map(i=>i.h).join('');
  const sm=summary(k),pres=presence(d);
  let info=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pause ${Math.round(pmin(d))} min<br>Gebucht ${sm?fmtDur(sm.min):'0:00'} h → Stundenbuch <b>${sm?fmtH(sm.total):'0'} h</b>`;
+ if(sm&&sm.over)info+=`<br><span class="warn">Aufrundung +${fmtH(sm.over)} h konnte nicht über Betriebsarbeiten ausgeglichen werden</span>`;
  if(sm&&sollOf(k))info+=` · Soll ${fmtH(sollOf(k))} h, Differenz ${fmtSig(sm.total-sollOf(k))} h`;
  if(d.kommen&&Math.abs(pres-(sm?sm.min:0))>5)info+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h</span>`;
  if(d.type)info=`<b>${TYP[d.type]}</b><br>`+info;
@@ -545,11 +585,11 @@ function renderPrint(){applyPaper();$('#pPrev').innerHTML=printHtml();}
 function renderData(){
  const lb=S.lastBackup,dd=lb?Math.floor((Date.now()-lb)/864e5):null;
  $('#bkInfo').innerHTML=lb?'Letzte Sicherung: '+new Date(lb).toLocaleString('de-DE')+(dd>=7?` <span class="warn">(${dd} Tage her)</span>`:''):'<span class="warn">Noch keine Sicherung gespeichert.</span>';
- renderPw();$('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;$('#sFill').checked=!!S.settings.fill;$('#sRemind').checked=!!S.settings.remind;$('#sArch').value=S.settings.archDays;$('#sKeep').value=S.settings.keepDays;$('#sFillNr').value=S.settings.fillNr||'';$('#sOt').value=fmtH(+S.settings.otStart||0);$('#sOtD').value=S.settings.otDate||'';
+ renderPw();$('#sName').value=S.settings.name;$('#sPre').value=S.settings.prefix;$('#sRnd').value=String(S.settings.round);$('#sRMode').value=S.settings.roundMode||'dist';$('#sSoll').value=fmtH(+S.settings.soll||0);$('#sSollFr').value=fmtH(+S.settings.sollFr||0);$('#sFr').value=S.settings.fruehstueck;$('#sMi').value=S.settings.mittag;$('#sAuto').checked=!!S.settings.autoBackup;$('#sFill').checked=!!S.settings.fill;$('#sRemind').checked=!!S.settings.remind;$('#sArch').value=S.settings.archDays;$('#sKeep').value=S.settings.keepDays;$('#sFillNr').value=S.settings.fillNr||'';$('#sOt').value=fmtH(+S.settings.otStart||0);$('#sOtD').value=S.settings.otDate||'';
 }
 
 /* ---------- Events ---------- */
-$('#bK').onclick=doKommen;$('#bP').onclick=doPause;$('#bG').onclick=doGehen;$('#bI').onclick=doInfo;$('#bF').onclick=doFahrt;
+$('#bK').onclick=doKommen;$('#pbGo').onclick=()=>endPause();$('#bP').onclick=doPause;$('#bG').onclick=doGehen;$('#bI').onclick=doInfo;$('#bF').onclick=doFahrt;
 $('#q').oninput=renderTiles;
 $('#tiles').onclick=e=>{
  const b=e.target.closest('button');if(!b)return;
@@ -612,6 +652,7 @@ $('#sRemind').onchange=()=>{S.settings.remind=$('#sRemind').checked;save();};
 $('#sFill').onchange=()=>{S.settings.fill=$('#sFill').checked;save();};
 $('#sFillNr').onchange=()=>{S.settings.fillNr=normNr($('#sFillNr').value);$('#sFillNr').value=S.settings.fillNr;save();};
 $('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};
+$('#sRMode').onchange=()=>{S.settings.roundMode=$('#sRMode').value;save();render();};
 $('#sRnd').onchange=()=>{S.settings.round=+$('#sRnd').value;save();render();};
 document.querySelector('nav').onclick=e=>{const t=e.target.dataset.t;if(t)showTab(t);};
 function showTab(t){
