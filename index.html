@@ -288,7 +288,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.0.0';
+const VERSION='1.0.2';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -397,7 +397,19 @@ function startOrder(id){
  begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
  d.entries.push({id:uid(),o:id,info:order(id).info||'',s:t,e:null});save();render();
 }
-function doKommen(){const d=today();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,Date.now());else{d.kommen=Date.now();toast('Kommen '+hm(d.kommen));}save();render();}
+function doKommen(){
+ const d=today(),t=Date.now();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,t);else d.kommen=t;
+ const b=balOrder(),eid=uid(),oe=openEntry(d);if(oe)closeEntry(d,oe,t);d.entries.push({id:eid,o:b.id,info:'',s:t,e:null});save();render();
+ const rec=recentIds().map(id=>S.orders.find(o=>o.id===id&&!o.arch)).filter(o=>o&&o.id!==b.id).slice(0,6);
+ dlg(`<h3>Kommen ${hm(t)} – womit geht es los?</h3><p class="mut" style="margin:0 0 6px">Betriebsarbeiten läuft bereits. Ein anderer Auftrag wird ab ${hm(t)} umgebucht.</p>
+ <div class="tiles"><button class="tile pri" id="kB" style="grid-column:1/-1"><b>✓ Betriebsarbeiten</b><small>${esc(b.nr)}</small></button>
+ ${rec.map(o=>`<button class="tile" data-k="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('')}</div>
+ <div class="btns" style="justify-content:space-between"><button class="btn drv" id="kF" style="color:var(--drive);border-color:var(--drive)">🚗 Gleich losfahren</button><button class="btn" id="kS">🔍 Anderer Auftrag</button></div>`);
+ $('#kB').onclick=closeDlg;
+ D.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{const e=d.entries.find(y=>y.id===eid);if(e){e.o=x.dataset.k;e.info=order(x.dataset.k).info||'';}save();closeDlg();render();toast('Ab '+hm(t)+': '+order(x.dataset.k).kunde);});
+ $('#kF').onclick=()=>{closeDlg();doFahrt();};
+ $('#kS').onclick=()=>{closeDlg();$('#q').focus();};
+}
 function gapMin(d){if(!d||!d.kommen||!d.gehen)return 0;return presence(d)-d.entries.reduce((a,e)=>a+emin(e),0);}
 function fillGap(k,silent){
  const d=S.days[k],g=gapMin(d);if(g<1){if(!silent)toast('Keine Lücke zum Auffüllen');return false;}
@@ -442,9 +454,12 @@ function rueckPauschal(id){
  d.entries.push({id:uid(),o:balOrder().id,info:'',s:t+dur,e:null});save();render();
  toast('Rückfahrt '+fmtDur(dur/60000)+' h gebucht – ab '+hm(t+dur)+' Betriebsarbeiten');
 }
-function pickTiles(id,list){return list.map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('');}
-function custList(q,ex){const live=S.orders.filter(o=>!o.arch&&!isInternal(o)&&o.id!==ex);const rec=recentIds();
- return(q?live.filter(o=>(o.nr+' '+o.kunde).toLowerCase().includes(q)):live.slice().sort((a,b)=>{const ia=rec.indexOf(a.id),ib=rec.indexOf(b.id);return(ia<0?999:ia)-(ib<0?999:ib);})).slice(0,9);}
+function pickTiles(q,list){if(!list.length)return q?`<button class="tile" data-new="${esc(q)}" style="grid-column:1/-1"><b>+ „${esc(q)}“ als neuen Auftrag anlegen</b><small>danach „Hinfahren“ wählen</small></button>`:'<div class="mut" style="grid-column:1/-1">Noch keine Kunden-Aufträge – über die Suche oder „+ Neuer Auftrag“ anlegen.</div>';
+ return list.map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}${o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');}
+function matchQ(o,q){if(!q)return true;const n=normNr(q);return (o.nr+' '+o.kunde+' '+(o.info||'')).toLowerCase().includes(q)||o.nr===n||(/^\d+$/.test(q)&&o.nr.endsWith(q));}
+function custList(q,ex){const rec=recentIds();
+ if(q)return S.orders.filter(o=>o.id!==ex&&matchQ(o,q)).sort((a,b)=>(a.arch-b.arch)||(isInternal(a)-isInternal(b))).slice(0,9);
+ return S.orders.filter(o=>!o.arch&&!isInternal(o)&&o.id!==ex).sort((a,b)=>{const ia=rec.indexOf(a.id),ib=rec.indexOf(b.id);return(ia<0?999:ia)-(ib<0?999:ib);}).slice(0,9);}
 function doFahrt(){
  const d=today(),oe=openEntry(d);
  if(oe&&oe.kind==='fahrt')return arrive();
@@ -455,13 +470,14 @@ function doFahrt(){
    (dur?`<button class="tile pri" id="fRP"><b>Wie Hinfahrt</b><small>${fmtDur(dur/60000)} h sofort buchen</small></button>`:'')+`</div>`+
    `<p class="mut" style="margin:14px 0 6px">… oder zum nächsten Kunden (Fahrzeit wird halbiert):</p>`;}
  else h+=`<p class="mut" style="margin:0 0 6px">Wohin geht die Fahrt?</p>`;
- h+=`<input id="fQ" type="search" placeholder="🔍 Kunde suchen …"><div class="tiles" id="fT">${pickTiles(0,custList('',from))}</div>
+ h+=`<input id="fQ" type="search" placeholder="🔍 Kunde suchen …"><div class="tiles" id="fT">${pickTiles('',custList('',from))}</div>
  <div class="btns" style="justify-content:space-between"><button class="btn" id="fNew">+ Neuer Auftrag</button><button class="btn" data-x>Abbrechen</button></div>`;
  dlg(`<h3>🚗 Fahrt</h3>${h}`);
  if($('#fFi'))$('#fFi').onclick=()=>{closeDlg();startFahrt(from,'firma');};
  if($('#fRP'))$('#fRP').onclick=()=>{closeDlg();rueckPauschal(from);};
- $('#fT').onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;closeDlg();if(from&&b.dataset.h!==from)startFahrt(b.dataset.h,'next',from);else startFahrt(b.dataset.h,'hin');};
- $('#fQ').oninput=()=>{$('#fT').innerHTML=pickTiles(0,custList($('#fQ').value.trim().toLowerCase(),from));};
+ $('#fT').onclick=e=>{const nw=e.target.closest('[data-new]');if(nw){closeDlg();showView('vOrders');const q=nw.dataset.new;if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;($('#nNr').value?$('#nKu'):$('#nNr')).focus();return;}
+ const b=e.target.closest('[data-h]');if(!b)return;{const o=S.orders.find(x=>x.id===b.dataset.h);if(o&&o.arch){o.arch=false;delete o.archAt;}}closeDlg();if(from&&b.dataset.h!==from)startFahrt(b.dataset.h,'next',from);else startFahrt(b.dataset.h,'hin');};
+ $('#fQ').oninput=()=>{{const q=$('#fQ').value.trim().toLowerCase();$('#fT').innerHTML=pickTiles(q,custList(q,from));}};
  $('#fNew').onclick=()=>{closeDlg();showView('vOrders');$('#nNr').focus();};
 }
 
@@ -644,7 +660,7 @@ function recentIds(){const all=[];Object.keys(S.days).sort().reverse().slice(0,6
  all.sort((a,b)=>(b.s||0)-(a.s||0));const ids=[];all.forEach(e=>{if(!ids.includes(e.o))ids.push(e.o);});return ids;}
 function renderTiles(){
  const q=$('#q').value.trim().toLowerCase(),act=openEntry(today());let list;
- if(q){list=S.orders.filter(o=>!o.arch&&(o.nr+' '+o.kunde+' '+o.info).toLowerCase().includes(q));S.orders.filter(o=>o.arch&&(o.nr+' '+o.kunde).toLowerCase().includes(q)).slice(0,3).forEach(o=>list.push(o));list=list.slice(0,9);}
+ if(q){list=S.orders.filter(o=>matchQ(o,q)).sort((a,b)=>a.arch-b.arch).slice(0,9);}
  else{list=[];recentIds().forEach(id=>{const o=S.orders.find(x=>x.id===id&&!x.arch);if(o&&list.length<3)list.push(o);});
   S.orders.filter(o=>!o.arch&&isInternal(o)).forEach(o=>{if(list.length<3&&!list.includes(o))list.push(o);});}
  let h=list.map((o,i)=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}" style="border-left-color:${TILECOL[i%3]}"><small>${esc(o.nr)}${o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');
