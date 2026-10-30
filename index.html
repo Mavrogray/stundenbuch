@@ -102,6 +102,22 @@ main{padding:16px;max-width:1000px;margin:0 auto}
 .list .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--line)}
 .list .it:last-child{border:0}
 .list .it .btn{min-height:44px;padding:0 12px}
+/* Querformat: zwei Spalten */
+@media (orientation:landscape) and (min-width:900px){
+ main{max-width:none}
+ #vMain.on{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+ #vMain>.card{margin-bottom:0}
+ #vMain .tiles{grid-template-columns:1fr}
+ #vMain .tile{min-height:70px}
+ header{padding:10px 16px}
+ .acts{margin-top:10px}.acts .btn{min-height:50px}
+ #bP{height:56px}#bMenu{width:52px;height:52px}
+ .view:not(#vMain) .card,.view:not(#vMain) .vhead,#pPrev{max-width:1000px;margin-left:auto;margin-right:auto}
+ .view:not(#vMain) .card{margin-bottom:16px}
+}
+/* Sichtschutz */
+#priv{position:fixed;inset:0;background:#000;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#666;cursor:pointer}
+#priv.on{display:flex}#privMsg{font-size:1.6rem;font-weight:800;color:#f59e0b;text-align:center;padding:0 20px}#privClock{font-size:1rem;font-variant-numeric:tabular-nums}
 /* Menü */
 #shade{position:fixed;inset:0;background:#0009;z-index:30;display:none}#shade.on{display:block}
 #drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,88vw);background:var(--card);border-left:2px solid var(--line);z-index:31;padding:16px;display:flex;flex-direction:column;gap:8px;transform:translateX(105%);transition:transform .2s;overflow-y:auto}
@@ -184,7 +200,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card">
   <div class="dtop"><h3 id="dWd">Heute</h3><input type="date" id="dSel"></div>
   <div id="dBadge"></div>
-  <div class="sum"><div><small>Stundenbuch</small><b id="sIst">0 h</b></div><div><small>Soll</small><b id="sSoll">0 h</b></div></div>
+  <div class="sum"><div><small id="sIstL">Stundenbuch</small><b id="sIst">0 h</b></div><div><small>Soll</small><b id="sSoll">0 h</b></div></div>
   <button class="tog" id="dTog"></button>
   <div id="dayDet"></div>
   <div id="dayList"></div>
@@ -245,6 +261,11 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <div id="pwInfo" class="mut" style="font-size:.85rem"></div>
   <div class="btns" style="justify-content:flex-start"><button class="btn" id="bPw">Passwort setzen / ändern</button><button class="btn danger" id="bPwOff">Verschlüsselung aus</button></div>
  </div>
+<div class="card"><h2>Neustart</h2>
+  <p class="mut" style="font-size:.85rem;margin:0 0 6px">Löscht alle Aufträge, Zeiten, Einstellungen und das Passwort auf diesem Gerät. Gedacht für den Start nach der Testphase.</p>
+  <label class="chk"><input type="checkbox" id="rsKeep" checked> Einstellungen behalten (Soll, Pausen, Präfix, Name, Rundung, Ton …)</label>
+  <div class="btns" style="justify-content:flex-start"><button class="btn danger" id="bReset">🗑 Alles zurücksetzen</button></div>
+ </div>
 </section>
 
 <!-- Einstellungen -->
@@ -269,8 +290,16 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Urlaubstage pro Jahr (kommen am 1.1. dazu, Rest wird übertragen)<input id="sUJ" inputmode="numeric"></label>
  </div>
  <div class="card"><h2>Erinnerung & Ton</h2>
-  <label class="chk"><input type="checkbox" id="sRemind"> Erinnern, wenn das Tagessoll erreicht ist</label>
-  <label class="chk"><input type="checkbox" id="sSound"> Ton + Vibration (Display bleibt in Frühstück/Mittag an)</label>
+  <label class="chk"><input type="checkbox" id="sRemind"> Erinnern, wenn das Tagessoll erreicht ist (ohne „Überstunden“ wird nur bis Soll-Ende gebucht, der Rest zählt als Nachlauf)</label>
+  <label class="chk"><input type="checkbox" id="sPRem"> Pausen-Erinnerung 5 Min. vorher und zur Pausenzeit</label>
+  <div class="row"><label>Frühstück um<input type="time" id="sFrT"></label><label>Mittag um<input type="time" id="sMiT"></label></div>
+  <label class="chk"><input type="checkbox" id="sSound"> Ton + Vibration bei Pausenende und Feierabend (nur bei eingeschaltetem Display)</label>
+  <label class="chk"><input type="checkbox" id="sAwake"> Display während Frühstück/Mittag anlassen (damit der Ton sicher kommt – kostet Akku)</label>
+  <div class="mut" style="font-size:.75rem">Die Zeiterfassung läuft auch bei ausgeschaltetem Display weiter. Ist das Display aus, kommt der Ton beim nächsten Einschalten.</div>
+ </div>
+ <div class="card"><h2>Sichtschutz</h2>
+  <label>Bildschirm schwarz nach … Minuten ohne Berührung (0 = aus)<input id="sPriv" inputmode="numeric"></label>
+  <div class="mut" style="font-size:.75rem">Ein Tipp weckt ihn wieder. Die Zeiterfassung läuft im Hintergrund weiter.</div>
  </div>
  <div class="card"><h2>Aufräumen</h2>
   <div class="row"><label>Aufträge archivieren nach … Tagen ohne Nutzung (0 = nie)<input id="sArch" inputmode="numeric"></label><label>Gedruckte Tage löschen nach … Tagen (0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
@@ -285,6 +314,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 </section>
 </main>
 
+<div id="priv"><div id="privMsg"></div><div id="privClock"></div></div>
 <div id="shade"></div>
 <nav id="drawer">
  <div class="dh"><b>Menü</b><button class="btn" id="bClose" style="min-height:48px;width:48px;padding:0">✕</button></div>
@@ -306,7 +336,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.1.1';
+const VERSION='1.2.0';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -335,7 +365,7 @@ function defaults(){return{v:1,orders:[
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
   otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
-  holidays:true,urlStart:0,urlDate:'',urlYear:30},lastBackup:null};}
+  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};
@@ -455,11 +485,15 @@ function fillGap(k,silent){
  save();render();if(!silent)toast(fmtDur(g)+' h auf '+o.nr+' aufgefüllt');return true;
 }
 function doGehen(){
- const d=today(),t=Date.now();if(!d.kommen||d.gehen)return;const snap=JSON.stringify(S);
+ const d=today(),now=Date.now();if(!d.kommen||d.gehen)return;const snap=JSON.stringify(S);
+ // Ohne bestätigte Überstunden: nur bis Soll gebucht; nicht genommene Pause + Nachlauf = geschenkte Zeit
+ const se=sollEnd(d,dkey()),so=sollOf(dkey()),cap=so?d.kommen+(so*60+pmin(d))*60000:0;let t=now,nach=0;
+ if(S.settings.remind&&!d.otOk&&cap&&now>cap+60000&&!openPause(d)){t=cap;nach=Math.max(0,Math.round((now-Math.max(se,cap))/60000));d.nach=nach;d.gehenReal=now;}
  const oe=openEntry(d);if(oe)closeEntry(d,oe,t);const p=openPause(d);if(p)p.e=t;keepAwake(false);
  d.entries.forEach(e=>{if(e.s>t)e.s=t;if(e.e&&e.e>t)e.e=t;});
+ d.entries=d.entries.filter(e=>!(e.s&&e.s>=t&&e.h==null));
  S.resume=null;delete S.askResume;d.gehen=t;save();render();
- let msg='Feierabend '+hm(t);if(S.settings.fill&&gapMin(d)>=1){const g=gapMin(d);fillGap(dkey(),true);msg+=' · '+fmtDur(g)+' h aufgefüllt';}
+ let msg='Feierabend '+hm(t)+(nach?' (Nachlauf '+fmtDur(nach)+' h nicht gebucht)':'');if(S.settings.fill&&gapMin(d)>=1){const g=gapMin(d);fillGap(dkey(),true);msg+=' · '+fmtDur(g)+' h aufgefüllt';}
  toast(msg,()=>{S=JSON.parse(snap);save();render();});
  if(S.settings.autoBackup)backup();
 }
@@ -537,7 +571,7 @@ async function keepAwake(on){try{if(on&&!wake&&navigator.wakeLock){wake=await na
 function startPause(plan){
  const d=today(),t=Date.now();if(!d.kommen||d.gehen||openPause(d))return;
  const oe=openEntry(d);if(oe){closeEntry(d,oe,t);S.resume={o:oe.o,info:oe.info,taet:oe.taet||''};}else S.resume=null;
- d.pausen.push({s:t,e:null,plan:plan||0});save();render();if(plan&&S.settings.sound){primeAudio();keepAwake(true);}
+ d.pausen.push({s:t,e:null,plan:plan||0});save();render();if(plan&&S.settings.sound)primeAudio();if(plan&&S.settings.awake)keepAwake(true);
 }
 function endPause(at){
  const d=today(),p=openPause(d);if(!p)return;const t=at||Date.now();p.e=t;keepAwake(false);
@@ -557,7 +591,7 @@ function checkAskResume(){
 }
 function checkPlannedPause(){
  const d=S.days[dkey()];if(!d)return;const p=openPause(d);
- if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){const fresh=Date.now()-(p.s+p.plan*60000)<5*60000;endPause(p.s+p.plan*60000);if(fresh)alarm();}
+ if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){const fresh=Date.now()-(p.s+p.plan*60000)<30*60000;endPause(p.s+p.plan*60000);if(fresh){alarm();privMsg('☕ Pause vorbei');}}
 }
 function doPause(){
  const d=today();if(openPause(d))return endPause();if(!d.kommen||d.gehen)return;const st=S.settings;
@@ -565,6 +599,35 @@ function doPause(){
  D.querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{closeDlg();startPause(+b.dataset.pl);});
 }
 
+/* ---------- Sichtschutz ---------- */
+let lastTouch=Date.now();
+function privOn(){$('#priv').classList.add('on');}
+function privOff(){$('#priv').classList.remove('on');$('#privMsg').textContent='';lastTouch=Date.now();}
+function privMsg(t){$('#privMsg').textContent=t;}
+function checkPriv(){const m=+S.settings.privMin||0;$('#privClock').textContent=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+ if(m&&!$('#priv').classList.contains('on')&&Date.now()-lastTouch>m*60000)privOn();}
+/* ---------- Pausen-Erinnerung ---------- */
+function pauseSlots(){const st=S.settings;return[{id:'fr',t:st.frTime,n:'Frühstück',len:+st.fruehstueck||15},{id:'mi',t:st.miTime,n:'Mittag',len:+st.mittag||30}].filter(x=>x.t);}
+function checkPauseRemind(){
+ if(!S.settings.pRemind||D.open)return;const k=dkey(),d=S.days[k];
+ if(!d||!d.kommen||d.gehen||openPause(d)||!sollOf(k))return;d.prem=d.prem||{};const now=Date.now();
+ for(const sl of pauseSlots()){const at=tsOf(k,sl.t),st=d.prem[sl.id]||{};
+  if(d.pausen.some(p=>p.s>=at-60*60000&&p.s<=at+120*60000))continue;
+  if(!st.w&&now>=at-5*60000&&now<at){st.w=1;d.prem[sl.id]=st;save();beep();privMsg('☕ In 5 Min. '+sl.n);toast('☕ In 5 Minuten '+sl.n+' ('+sl.t+')');return;}
+  const due=st.snooze||at;
+  if(!st.done&&now>=due&&now<at+120*60000){st.done=1;d.prem[sl.id]=st;save();alarm();privMsg('☕ '+sl.n+'szeit');
+   dlg(`<h3>☕ ${sl.n} (${sl.t})</h3><p class="mut" style="margin:0 0 6px">Jetzt Pause machen?</p>
+   <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="prY" style="grid-column:1/-1"><b>☕ ${sl.n} starten</b><small>${sl.len} min</small></button>
+   <button class="tile" id="prL"><b>Später</b><small>in 10 min wieder fragen</small></button><button class="tile" id="prN"><b>Heute nicht</b><small>keine Erinnerung mehr</small></button></div>`);
+   $('#prY').onclick=()=>{closeDlg();privOff();startPause(sl.len);};
+   $('#prL').onclick=()=>{st.done=0;st.snooze=Date.now()+10*60000;d.prem[sl.id]=st;save();closeDlg();toast('Erinnere wieder um '+hm(st.snooze));};
+   $('#prN').onclick=()=>{closeDlg();};return;}}
+}
+function beep(){if(!S.settings.sound)return;try{navigator.vibrate&&navigator.vibrate(200);primeAudio();if(!actx)return;const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();o.type='square';o.frequency.value=988;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+0.3);}catch(e){}}
+/* ---------- Geschenkte Zeit: nicht genommene Pausen & Nachlauf ---------- */
+function pauseMiss(k){const d=S.days[k];if(!d||!d.kommen||!d.gehen||(typeOf(k)&&typeOf(k)!=='urlaub_halb'))return 0;
+ const st=S.settings,work=presence(d);let exp=+st.fruehstueck||0;if(work+pmin(d)>6*60)exp+=+st.mittag||0;return Math.max(0,exp-pmin(d));}
+function giftSum(from,to){let p=0,n=0;Object.keys(S.days).forEach(k=>{if(k>=from&&k<=to){p+=pauseMiss(k);n+=S.days[k].nach||0;}});return{p,n};}
 /* ---------- Feierabend-Erinnerung ---------- */
 function sollEnd(d,k){const s=sollOf(k);if(!s||!d.kommen)return null;
  const pz=Math.max(pmin(d),(+S.settings.fruehstueck||0)+(+S.settings.mittag||0));return d.kommen+(s*60+pz)*60000;}
@@ -572,13 +635,13 @@ function checkRemind(){
  if(!S.settings.remind||D.open)return;const k=dkey(),d=S.days[k];
  if(!d||!d.kommen||d.gehen||openPause(d))return;
  const due=d.remindAt||sollEnd(d,k);if(!due||Date.now()<due)return;
- d.remindAt=9e15;save();alarm();
- dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3><p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter?</p>
+ d.remindAt=9e15;save();alarm();privMsg('🏁 Feierabend?');
+ dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3><p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter? Ohne „Überstunden“ wird nur bis ${hm(sollEnd(d,k))} gebucht, spätere Zeit zählt als Nachlauf.</p>
  <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="rG"><b>Gehen</b><small>Feierabend stempeln</small></button>
  <button class="tile" id="rO1"><b>Überstunden</b><small>in 1 h wieder fragen</small></button>
  <button class="tile" id="rO2"><b>Überstunden</b><small>in 2 h wieder fragen</small></button>
  <button class="tile" id="rO0"><b>Überstunden</b><small>heute nicht mehr fragen</small></button></div>`);
- const snooze=m=>{d.remindAt=m?Date.now()+m*60000:9e15;save();closeDlg();toast(m?'Erinnere wieder um '+hm(d.remindAt):'Heute keine Erinnerung mehr');};
+ const snooze=m=>{d.otOk=1;d.remindAt=m?Date.now()+m*60000:9e15;save();closeDlg();toast(m?'Erinnere wieder um '+hm(d.remindAt):'Heute keine Erinnerung mehr');};
  $('#rG').onclick=()=>{closeDlg();doGehen();};$('#rO1').onclick=()=>snooze(60);$('#rO2').onclick=()=>snooze(120);$('#rO0').onclick=()=>snooze(0);
 }
 
@@ -661,7 +724,12 @@ function showView(v){VIEW=v;document.querySelectorAll('.view').forEach(s=>s.clas
 function openMenu(){renderKonto();$('#drawer').classList.add('on');$('#shade').classList.add('on');}
 function closeMenu(){$('#drawer').classList.remove('on');$('#shade').classList.remove('on');}
 function renderKonto(){const y=new Date().getFullYear(),ru=resturlaub(),os=otShown(dkey()),ob=os.v;
- $('#konto').innerHTML=`Überstunden${os.live?' (bis gestern)':''}: <b>${ob==null?'– (Startwert fehlt)':fmtSig(ob)+' h'}</b><br>Resturlaub ${y}: <b>${ru?fmtH(ru.r)+' Tage':'– (Startwert fehlt)'}</b>${ru&&ru.plan?` (davon ${fmtH(ru.plan)} geplant)`:''}<br>RV Fit ${y}: <b>${yearCount(y,'rvfit')}</b> · Bildungsurlaub ${y}: <b>${yearCount(y,'bildung')}</b>`;}
+ $('#konto').innerHTML=`Überstunden${os.live?' (bis gestern)':''}: <b>${ob==null?'– (Startwert fehlt)':fmtSig(ob)+' h'}</b><br>Resturlaub ${y}: <b>${ru?fmtH(ru.r)+' Tage':'– (Startwert fehlt)'}</b>${ru&&ru.plan?` (davon ${fmtH(ru.plan)} geplant)`:''}<br>RV Fit ${y}: <b>${yearCount(y,'rvfit')}</b> · Bildungsurlaub ${y}: <b>${yearCount(y,'bildung')}</b>`+giftTable();}
+function giftTable(){const t=dkey(),m=monday(0),w=giftSum(dkey(m),t),mo=giftSum(t.slice(0,8)+'01',t),yr=giftSum(t.slice(0,5)+'01-01',t),c=v=>fmtDur(v);
+ return `<table style="width:100%;margin-top:8px;font-size:.78rem;border-collapse:collapse"><tr><td><b>Geschenkte Zeit</b></td><td style="text-align:right">Woche</td><td style="text-align:right">${MON[new Date().getMonth()]}</td><td style="text-align:right">${t.slice(0,4)}</td></tr>
+ <tr><td>Pausen nicht genommen</td><td style="text-align:right">${c(w.p)}</td><td style="text-align:right">${c(mo.p)}</td><td style="text-align:right">${c(yr.p)}</td></tr>
+ <tr><td>Nachlauf nach Soll</td><td style="text-align:right">${c(w.n)}</td><td style="text-align:right">${c(mo.n)}</td><td style="text-align:right">${c(yr.n)}</td></tr>
+ <tr><td><b>Summe</b></td><td style="text-align:right"><b>${c(w.p+w.n)}</b></td><td style="text-align:right"><b>${c(mo.p+mo.n)}</b></td><td style="text-align:right"><b>${c(yr.p+yr.n)}</b></td></tr></table>`;}
 
 /* ---------- Rendering Kopf ---------- */
 function renderHeader(){
@@ -712,12 +780,13 @@ function renderDay(){
  const badges=[];if(ty)badges.push(TYP[ty]);if(hol)badges.push('Feiertag: '+hol);if(half)badges.push(half+' – halber Tag');
  $('#dBadge').innerHTML=badges.map(b=>`<span class="badge">${esc(b)}</span> `).join('');
  const soll=sollOf(k);
- $('#sIst').textContent=(sm?fmtH(sm.total):'0')+' h';$('#sSoll').textContent=fmtH(soll)+' h';
+ {const lv=k===dkey()&&d&&d.kommen&&!d.gehen;$('#sIstL').textContent=lv?'Gestempelt (läuft)':'Stundenbuch';$('#sIst').textContent=lv?fmtDur(sm?sm.min:0)+' h':(sm?fmtH(sm.total):'0')+' h';}$('#sSoll').textContent=fmtH(soll)+' h';
  
  // Details
  let det='';
  if(d&&(d.kommen||d.pausen.length)){det=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pausen: ${d.pausen.length?d.pausen.map(p=>hm(p.s)+'–'+(p.e?hm(p.e):'läuft')).join(', ')+' ('+Math.round(pmin(d))+' min)':'keine'}`;}
  let warn='';
+{const pm=pauseMiss(k);if(d&&(d.nach||pm))det+=(det?'<br>':'')+(pm?`Pause nicht genommen: ${fmtDur(pm)} h`:'')+(pm&&d.nach?' · ':'')+(d.nach?`Nachlauf: ${fmtDur(d.nach)} h (Gehen real ${hm(d.gehenReal)})`:'');}
  if(sm)det+=(det?'<br>':'')+`Gebucht ${fmtDur(sm.min)} h → Stundenbuch ${fmtH(sm.total)} h`+(soll?` · Differenz ${fmtSig(sm.total-soll)} h`:'');
  if(sm&&sm.over)warn+=`<br><span class="warn">Aufrundung +${fmtH(sm.over)} h nicht über Betriebsarbeiten ausgleichbar</span>`;
  if(d&&d.kommen){const pres=presence(d);if(Math.abs(pres-(sm?sm.min:0))>5)warn+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h → „Lücke auffüllen“</span>`;}
@@ -728,14 +797,16 @@ function renderDay(){
  // Gruppen
  if(!d||!d.entries.length){$('#dayList').innerHTML='';return;}
  const by=new Map();d.entries.slice().sort((a,b)=>(a.s||0)-(b.s||0)).forEach(e=>{if(!by.has(e.o))by.set(e.o,[]);by.get(e.o).push(e);});
- const rowOf=o=>sm?sm.all.find(r=>r.o===o):null;
+ const live=k===dkey()&&!d.gehen,R0=+S.settings.round||15;
+ const rowOf=o=>{const r=sm?sm.all.find(x=>x.o===o):null;if(!r||!live||S.settings.roundMode==='dist')return r;
+  const fnr=normNr(S.settings.fillNr||'21260003'),u=order(o).nr===fnr?Math.round(r.min/R0):(r.min>0.5?Math.ceil((r.min-0.5)/R0):0);return Object.assign({},r,{h:u*R0/60});};
  let h='';by.forEach((es,o)=>{const ord=order(o),r=rowOf(o),infos=r?r.infos.join(', '):'',op=OPEN.has(k+o),run=es.some(e=>e.h==null&&!e.e);
   h+=`<div class="grp"><button class="gh" data-g="${o}"><span class="ch">${op?'▾':'▸'}</span><span class="n"><b>${esc(ord.kunde)}${run?' ●':''}</b><small>${esc(ord.nr)}${infos?' · '+esc(infos):''}</small></span><span class="raw">${fmtDur(r?r.min:0)}</span><span class="v">${r?fmtH(r.h):'0'}</span></button>`;
   if(op)h+=es.map(e=>{const lab=e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt':e.dir==='next'?'🚗 Fahrt (geteilt)':'🚗 Rückfahrt'):e.auto?'aufgefüllt':e.h!=null?'manuell':isInternal(ord)?'Arbeit':'Montage';
    const tm=e.h!=null?fmtH(e.h)+' h':hm(e.s)+'–'+(e.e?hm(e.e):'läuft');
    return `<button class="gi${e.kind==='fahrt'?' dr':''}" data-e="${e.id}"><span class="l">${lab}${e.info&&e.kind!=='fahrt'?` · ${esc(e.info)}`:''}${e.taet?`<small>📝 ${esc(e.taet)}</small>`:''}</span><span class="num">${tm}</span></button>`;}).join('');
   h+='</div>';});
- $('#dayList').innerHTML=h;
+ $('#dayList').innerHTML=h+(live&&S.settings.roundMode==='bal'?'<div class="mut" style="font-size:.75rem;margin-top:8px">Zwischenstand je Auftrag – der Ausgleich über Betriebsarbeiten erfolgt bei „Gehen“.</div>':'');
 }
 function render(){renderHeader();renderTiles();renderDay();if(VIEW==='vOrders')renderOrders();}
 
@@ -900,7 +971,7 @@ function renderBackup(){
 }
 const SETF=[['sName','name','t'],['sPre','prefix','t'],['sSoll','soll','h'],['sSollFr','sollFr','h'],['sFr','fruehstueck','i'],['sMi','mittag','i'],['sRMode','roundMode','t'],['sRnd','round','i'],
  ['sFillNr','fillNr','nr'],['sFill','fill','b'],['sHol','holidays','b'],['sOtS','otStart','h'],['sOtD','otDate','t'],['sUS','urlStart','h'],['sUD','urlDate','t'],['sUJ','urlYear','i'],
- ['sRemind','remind','b'],['sSound','sound','b'],['sArch','archDays','i'],['sKeep','keepDays','i']];
+ ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i']];
 function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});}
 function bindSet(){SETF.forEach(([id,key,ty])=>{$('#'+id).onchange=()=>{const el=$('#'+id);let v;
  if(ty==='b')v=el.checked;else if(ty==='h'){v=parseFloat(el.value.replace(',','.').replace('−','-'));if(isNaN(v))return renderSet();}
@@ -962,19 +1033,31 @@ $('#bCsv').onclick=()=>{if(S.settings.bkPw&&!confirm('CSV-Dateien sind NICHT ver
  Object.keys(S.days).sort().forEach(k=>S.days[k].entries.forEach(e=>{if(!e.taet&&e.kind!=='fahrt')return;const o=order(e.o);T.push([dDate(k),o.nr,o.kunde,e.s?hm(e.s):'',e.e?hm(e.e):'',e.kind==='fahrt'?'Fahrt':'Arbeit',e.info||'',e.taet||''].map(q).join(';'));}));
  if(T.length>1)setTimeout(()=>download('taetigkeiten-'+dkey()+'.csv','﻿'+T.join('\r\n'),'text/csv'),800);};
 bindSet();
+$('#bReset').onclick=()=>{
+ dlg(`<h3>Wirklich alles löschen?</h3><p style="margin:0 0 8px">Alle Aufträge, Zeiten, Urlaube und Konten auf diesem Gerät werden gelöscht. Das lässt sich nicht rückgängig machen – außer mit einer vorher gespeicherten Sicherung.</p>
+ <label>Zur Bestätigung <b>LÖSCHEN</b> eintippen<input id="rsC" autocomplete="off"></label>
+ <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn danger" id="rsGo">Endgültig löschen</button></div>`);
+ $('#rsGo').onclick=()=>{if($('#rsC').value.trim().toUpperCase()!=='LÖSCHEN')return toast('Bitte LÖSCHEN eintippen');
+  const keep=$('#rsKeep').checked,old=S.settings,n=defaults();
+  if(keep){['name','prefix','round','stamp','soll','sollFr','fruehstueck','mittag','autoBackup','paper','fill','fillNr','remind','archDays','keepDays','roundMode','sound','holidays','urlYear'].forEach(k=>{if(k in old)n.settings[k]=old[k];});
+   const pre=n.settings.prefix;n.orders.forEach((o,i)=>{o.nr=pre+(i?'0004':'0003');});}
+  S=n;save();closeDlg();OPEN.clear();$('#q').value='';showView('vMain');render();toast('Alles zurückgesetzt – viel Erfolg mit dem echten Start!');};
+};
 $('#plY').onchange=renderPlan;$('#plMax').onchange=renderPlan;$('#plA').onchange=()=>{if(!$('#plB').value||$('#plB').value<$('#plA').value)$('#plB').value=$('#plA').value;calcPlan();};$('#plB').onchange=calcPlan;$('#plT').onchange=calcPlan;
 $('#plAdd').onclick=()=>{const a=$('#plA').value,b=$('#plB').value||a;if(!a||b<a)return toast('Zeitraum prüfen');const t=$('#plT').value;const x=setRangeType(a,b,t);
  toast(TYP[t]+': '+x.n+' Werktag'+(x.n===1?'':'e')+' eingetragen'+(t==='urlaub'?' ('+fmtH(x.c)+' Urlaubstage)':''));$('#plA').value=$('#plB').value='';renderPlan();render();};
 document.addEventListener('pointerdown',()=>{if(S.settings.sound)primeAudio();},{once:true});
+document.addEventListener('pointerdown',()=>{lastTouch=Date.now();},true);
+$('#priv').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();privOff();},true);
 
 /* ---------- Start ---------- */
 $('#foot').textContent='Stundenbuch v'+VERSION+' · © 2026 grauman';
 $('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A6';
 S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);});save();
 setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);
-let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
+let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();checkPauseRemind();checkPriv();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();
- const p=openPause(today());if(p&&p.plan&&S.settings.sound)keepAwake(true);}});
+ const p=openPause(today());if(p&&p.plan&&S.settings.awake)keepAwake(true);}});
 if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – ☰ → Sicherung'),800);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js');
