@@ -145,18 +145,18 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 .phead{display:flex;justify-content:space-between;font-weight:700;font-size:12pt;border-bottom:1.5pt solid #000;padding-bottom:1mm}
 .pstamp{font-size:8.5pt;color:#444;margin:1mm 0}
 .pdoc table{width:100%;border-collapse:collapse;font-size:10.5pt;table-layout:fixed}
-.pdoc th:nth-child(1){width:26mm}.pdoc th:nth-child(2){width:30%}.pdoc th:nth-child(4){width:18mm}
+.pdoc th:nth-child(1){width:26mm}.pdoc th:nth-child(2){width:30%}.pdoc th:nth-child(4){width:30mm}
 .pdoc th{text-align:left;font-size:8.5pt;color:#444;font-weight:600;border-bottom:.5pt solid #888;padding:1mm}
 .pdoc td{padding:1.2mm 1mm;border-bottom:.3pt solid #ccc;vertical-align:top;overflow-wrap:anywhere}
 .pdoc td.inf{white-space:pre-line}
-.pdoc .r{text-align:right;white-space:nowrap}
+.pdoc .r{text-align:right;white-space:nowrap}.pdoc td.r{white-space:normal;overflow-wrap:normal}
 .pdoc tfoot td{font-weight:700;border-top:1pt solid #000;border-bottom:0}
 .psum{text-align:right;font-weight:700;margin-top:3mm;font-size:11pt}
 .pdoc.p-A5{font-size:90%}
 .pdoc.p-A6 h1{font-size:10pt}.pdoc.p-A6 .pmeta{font-size:7pt;margin:0 0 2mm}
 .pdoc.p-A6 .phead{font-size:8.5pt;border-bottom-width:1pt}.pdoc.p-A6 .pstamp{font-size:6.5pt;margin:.5mm 0}
 .pdoc.p-A6 table{font-size:7.5pt}.pdoc.p-A6 th{font-size:6pt;padding:.5mm}.pdoc.p-A6 td{padding:.6mm .5mm}
-.pdoc.p-A6 th:nth-child(1){width:14mm}.pdoc.p-A6 th:nth-child(2){width:27%}.pdoc.p-A6 th:nth-child(4){width:9mm}
+.pdoc.p-A6 th:nth-child(1){width:14mm}.pdoc.p-A6 th:nth-child(2){width:24%}.pdoc.p-A6 th:nth-child(4){width:18mm}
 .pdoc.p-A6 .pday{margin-bottom:3mm}.pdoc.p-A6 .psum{font-size:7.5pt}
 #pPrev.p-A6{max-width:105mm;margin:0 auto;padding:5mm 5mm 5mm 20mm}#pPrev.p-A5{max-width:148mm;margin:0 auto;padding-left:20mm}
 @media print{
@@ -201,7 +201,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card">
   <div class="dtop"><h3 id="dWd">Heute</h3><input type="date" id="dSel"></div>
   <div id="dBadge"></div>
-  <div class="sum"><div><small id="sIstL">Stundenbuch</small><b id="sIst">0 h</b></div><div><small>Soll</small><b id="sSoll">0 h</b></div></div>
+  <div class="sum"><div><small id="sIstL">Stundenbuch</small><b id="sIst">0 h</b></div><div><small>Soll</small><b id="dSoll">0 h</b></div></div>
   <button class="tog" id="dTog"></button>
   <div id="dayDet"></div>
   <div id="dayList"></div>
@@ -215,6 +215,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card"><h2>Neuer Auftrag</h2>
   <div class="row"><label>Auftrags-Nr.<input id="nNr" inputmode="numeric" placeholder="z. B. 405"></label><label>Kunde<input id="nKu"></label></div>
   <label>Standard-Info (optional)<input id="nIn"></label>
+  <label class="chk"><input type="checkbox" id="nInt"> interner Auftrag (Betriebsarbeiten, Büro …)</label>
   <div class="mut" style="font-size:.75rem">Kurz-Nr. (z. B. 405) wird mit dem Präfix ergänzt.</div>
   <div class="btns"><button class="btn pri" id="bAddO">Anlegen</button></div>
  </div>
@@ -239,7 +240,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card"><div class="row" style="align-items:center"><h2 style="margin:0">Jahr</h2><select id="plY" style="max-width:160px"></select></div><div id="plKonto" class="mut" style="margin-top:8px;font-size:.9rem"></div></div>
  <div class="card"><h2>Zeitraum eintragen</h2>
   <div class="row"><label>Von<input type="date" id="plA"></label><label>Bis<input type="date" id="plB"></label></div>
-  <label>Art<select id="plT"><option value="urlaub">Urlaub</option><option value="krank">Krank</option><option value="bildung">Bildungsurlaub</option><option value="rvfit">RV Fit</option><option value="gleit">Gleittag (Überstundenabbau)</option></select></label>
+  <label>Art<select id="plT"><option value="urlaub">Urlaub</option><option value="krank">Krank</option><option value="bildung">Bildungsurlaub</option><option value="rvfit">RV Fit</option><option value="gleit">Ganzer Tag aus Überstunden</option></select></label>
   <div id="plCalc" class="mut" style="font-size:.85rem"></div>
   <div class="btns"><button class="btn pri" id="plAdd">Eintragen</button></div>
  </div>
@@ -264,7 +265,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  </div>
 <div class="card"><h2>Neustart</h2>
   <p class="mut" style="font-size:.85rem;margin:0 0 6px">Löscht alle Aufträge, Zeiten, Einstellungen und das Passwort auf diesem Gerät. Gedacht für den Start nach der Testphase.</p>
-  <label class="chk"><input type="checkbox" id="rsKeep" checked> Einstellungen behalten (Soll, Pausen, Präfix, Name, Rundung, Ton …)</label>
+  <label class="chk"><input type="checkbox" id="rsKeep" checked> Einstellungen behalten (alles außer den Kontoständen)</label>
   <div class="btns" style="justify-content:flex-start"><button class="btn danger" id="bReset">🗑 Alles zurücksetzen</button></div>
  </div>
 </section>
@@ -272,21 +273,23 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <!-- Einstellungen -->
 <section class="view" id="vSet">
  <div class="vhead"><button class="btn" data-back>←</button><h1>Einstellungen</h1></div>
- <div class="card"><h2>Allgemein</h2>
+ <div class="card" id="admLock"><h2>🔒 Erweiterte Einstellungen</h2><p class="mut" style="font-size:.85rem;margin:0 0 6px">Arbeitszeiten, Konten, Nummern und Zugang sind mit der Admin-PIN geschützt.</p><div class="btns" style="justify-content:flex-start"><button class="btn pri" id="bAdm">Entsperren</button></div></div>
+ <div class="card adm"><h2>Allgemein</h2>
   <label>Name auf dem Ausdruck<input id="sName"></label>
   <label>Präfix für Kurznummern (Abteilung + Jahr)<input id="sPre" inputmode="numeric"></label>
  </div>
- <div class="card"><h2>Arbeitszeit</h2>
+ <div class="card adm"><h2>Arbeitszeit</h2>
   <div class="row"><label>Soll Mo–Do (h)<input id="sSoll" inputmode="decimal"></label><label>Soll Fr (h)<input id="sSollFr" inputmode="decimal"></label></div>
   <div class="row"><label>Frühstück (min)<input id="sFr" inputmode="numeric"></label><label>Mittag (min)<input id="sMi" inputmode="numeric"></label></div>
   <label>Rundungsart<select id="sRMode"><option value="bal">Aufträge aufrunden, Ausgleich über Betriebsarbeiten</option><option value="up">Je Auftrag aufrunden (Summe kann höher sein)</option><option value="dist">Tagessumme runden und verteilen</option></select></label>
   <label>Rundungseinheit<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
   <label>Betriebsarbeiten-Auftrag (Ausgleich, Auffüllen, nach Pause)<input id="sFillNr" inputmode="numeric"></label>
+  <label>Ausgleich-aus-Überstunden-Auftrag<input id="sAusgNr" inputmode="numeric"></label>
   <label>Puffer Rückfahrt (min) – kommt auf die Hinfahrtdauer, ergibt die feste Rückfahrt für Zettel und Stundenbuch<input id="sRPuf" inputmode="numeric"></label>
   <label class="chk"><input type="checkbox" id="sFill"> Bei „Gehen“ nicht zugeordnete Zeit auf Betriebsarbeiten buchen</label>
   <label class="chk"><input type="checkbox" id="sHol"> Feiertage Niedersachsen automatisch, 24.12./31.12. halbe Tage</label>
  </div>
- <div class="card"><h2>Konten</h2>
+ <div class="card adm"><h2>Konten</h2>
   <div class="row"><label>Überstunden-Startwert (h)<input id="sOtS" inputmode="decimal" placeholder="z. B. 12,5"></label><label>gilt ab<input type="date" id="sOtD"></label></div>
   <div class="row"><label>Resturlaub-Startwert (Tage)<input id="sUS" inputmode="decimal" placeholder="z. B. 8,5"></label><label>gilt ab<input type="date" id="sUD"></label></div>
   <label>Urlaubstage pro Jahr (kommen am 1.1. dazu, Rest wird übertragen)<input id="sUJ" inputmode="numeric"></label>
@@ -303,7 +306,17 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Bildschirm schwarz nach … Minuten ohne Berührung (0 = aus)<input id="sPriv" inputmode="numeric"></label>
   <div class="mut" style="font-size:.75rem">Ein Tipp weckt ihn wieder. Die Zeiterfassung läuft im Hintergrund weiter.</div>
  </div>
- <div class="card"><h2>Aufräumen</h2>
+ <div class="card adm"><h2>Kennzeichen (AW, KSB …)</h2>
+  <div class="mut" style="font-size:.75rem">Zeit mit Kennzeichen steht im Ausdruck als „3+2AW“. Gutschein-Schwelle 0 = nur zählen.</div>
+  <div id="mkList"></div><div class="btns" style="justify-content:flex-start"><button class="btn" id="bMkAdd">+ Kennzeichen</button></div>
+ </div>
+ <div class="card adm"><h2>Zugang</h2>
+  <div class="mut" style="font-size:.75rem">Büro-PIN: Tage und Einträge nachträglich bearbeiten. Admin-PIN: diese Einstellungen, Sicherung laden, Zurücksetzen. Ohne PIN ist der Bereich offen. PIN vergessen = nur Zurücksetzen mit Sicherung hilft.</div>
+  <div id="pinInfo" style="margin:8px 0"></div>
+  <div class="btns" style="justify-content:flex-start"><button class="btn" id="bPinB">Büro-PIN</button><button class="btn" id="bPinA">Admin-PIN</button></div>
+  <label>Entsperrt bleiben für … Minuten<input id="sLock" inputmode="numeric"></label>
+ </div>
+ <div class="card adm"><h2>Aufräumen</h2>
   <div class="row"><label>Aufträge archivieren nach … Tagen ohne Nutzung (0 = nie)<input id="sArch" inputmode="numeric"></label><label>Gedruckte Tage löschen nach … Tagen (0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
   <div id="stInfo" class="mut" style="font-size:.75rem"></div>
  </div>
@@ -338,7 +351,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.3.1';
+const VERSION='1.4.0';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -362,12 +375,13 @@ const wdOf=k=>new Date(k+'T12:00').getDay();
 const fmtSig=v=>(v>0.001?'+':v<-0.001?'−':'±')+fmtH(Math.abs(v));
 
 function defaults(){return{v:1,orders:[
- {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false},
- {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false}],
+ {id:uid(),nr:'21260003',kunde:'Betriebsarbeiten',info:'',fav:true,arch:false,int:true},
+ {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false,int:true}],
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
   otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
-  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,rPuf:15},lastBackup:null};}
+  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,rPuf:15,ausgNr:'21260008',lockMin:5,pinB:'',pinA:'',
+  marks:[{k:'AW',n:'Abwasser',ic:'🧪',goal:0,since:'',carry:0},{k:'KSB',n:'KSB-Schulung',ic:'📘',goal:0,since:'',carry:0}]},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};
@@ -382,7 +396,7 @@ const emin=e=>e.h!=null?e.h*60:Math.max(0,((e.e||Date.now())-e.s)/60000);
 const pmin=d=>d.pausen.reduce((a,p)=>a+Math.max(0,((p.e||Date.now())-p.s)/60000),0);
 const presence=d=>d.kommen?Math.max(0,((d.gehen||Date.now())-d.kommen)/60000-pmin(d)):0;
 const normNr=v=>{v=String(v||'').replace(/[\s.\-]/g,'');return /^\d{1,4}$/.test(v)?S.settings.prefix+v.padStart(4,'0'):v;};
-const isInternal=o=>/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;
+const isInternal=o=>!!(o&&o.int);
 
 /* ---------- Feiertage Niedersachsen ---------- */
 function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=(h+l-7*m+114)%31+1;return new Date(y,mo-1,da,12);}
@@ -396,7 +410,8 @@ const holidayOf=k=>S.settings.holidays?holidays(+k.slice(0,4))[k]||'':'';
 const halfDayOf=k=>S.settings.holidays&&(k.slice(5)==='12-24'||k.slice(5)==='12-31')?(k.slice(5)==='12-24'?'Heiligabend':'Silvester'):'';
 
 /* ---------- Tagesarten, Soll, Konten ---------- */
-const TYP={urlaub:'Urlaub',urlaub_halb:'Halber Urlaubstag',krank:'Krank',feiertag:'Feiertag',bildung:'Bildungsurlaub',rvfit:'RV Fit',gleit:'Gleittag (Überstundenabbau)'};
+const TYP={urlaub:'Urlaub',urlaub_halb:'Halber Urlaubstag',krank:'Krank',feiertag:'Feiertag',bildung:'Bildungsurlaub',rvfit:'RV Fit',gleit:'Ganzer Tag aus Überstunden'};
+const tyLabel=(t,k)=>t==='bildung'?((k||dkey())>='2027-01-01'?'Bildungszeit (NBildZG)':'Bildungsurlaub (NBildUG)'):t==='rvfit'?'RV Fit – Entgeltfortzahlung (§ 9 EFZG)':TYP[t];
 const typeOf=k=>(S.days[k]&&S.days[k].type)||'';
 function baseSoll(k){const w=wdOf(k);let s=w>=1&&w<=4?(+S.settings.soll||0):w===5?(+S.settings.sollFr||0):0;if(halfDayOf(k))s/=2;return s;}
 function sollOf(k){const ty=typeOf(k),b=baseSoll(k);
@@ -414,11 +429,42 @@ function resturlaub(){const st=S.settings;if(!st.urlDate)return null;const y=new
 function urlAt(k){const st=S.settings;if(!st.urlDate||k<st.urlDate)return null;let r=+st.urlStart||0;
  for(let yy=+st.urlDate.slice(0,4)+1;yy<=+k.slice(0,4);yy++)r+=+st.urlYear||0;
  Object.keys(S.days).forEach(x=>{if(x>=st.urlDate&&x<=k)r-=urlUse(x);});return r;}
+/* ---------- SHA-256 (synchron, für PIN-Prüfsumme und Siegel) ---------- */
+function sha256(str){const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+ const b=Array.from(new TextEncoder().encode(str)),l=b.length*8;b.push(0x80);while(b.length%64!==56)b.push(0);for(let i=7;i>=0;i--)b.push(i>3?0:(l>>>(i*8))&255);
+ let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];const r=(x,n)=>(x>>>n)|(x<<(32-n));
+ for(let o=0;o<b.length;o+=64){const w=[];for(let i=0;i<16;i++)w[i]=(b[o+i*4]<<24)|(b[o+i*4+1]<<16)|(b[o+i*4+2]<<8)|b[o+i*4+3];
+  for(let i=16;i<64;i++){const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3),s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}
+  let[a,c,d,e,f,g,h,k]=H;for(let i=0;i<64;i++){const S1=r(f,6)^r(f,11)^r(f,25),ch=(f&g)^(~f&h),t1=(k+S1+ch+K[i]+w[i])|0,S0=r(a,2)^r(a,13)^r(a,22),mj=(a&c)^(a&d)^(c&d),t2=(S0+mj)|0;
+   k=h;h=g;g=f;f=(e+t1)|0;e=d;d=c;c=a;a=(t1+t2)|0;}
+  H=[H[0]+a,H[1]+c,H[2]+d,H[3]+e,H[4]+f,H[5]+g,H[6]+h,H[7]+k].map(x=>x|0);}
+ return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');}
 const MON=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 function yearCount(y,t){let n=(S.yStats[y]&&S.yStats[y][t])||0;Object.keys(S.days).forEach(k=>{if(k.startsWith(y+'-')&&typeOf(k)===t)n++;});return n;}
 
 /* ---------- Tageszusammenfassung: eine Zeile pro Auftrag ---------- */
-function summary(k){const sm=summaryBase(k);return sm?otSplit(k,sm):sm;}
+function summary(k){let sm=summaryBase(k);if(!sm){if(typeOf(k)!=='gleit')return null;sm={rows:[],all:[],total:0,min:0,short:0};}
+ otSplit(k,sm);markSplit(k,sm);sm.ausg=ausgH(k,sm);return sm;}
+const marks=()=>(S.settings.marks||[]).filter(m=>m&&m.k);
+/* Überstunden-Beginn: Zeitpunkt, an dem die gebuchte Zeit das Soll erreicht */
+function otStartTs(k){const d=S.days[k],need=sollOf(k)*60;if(!d||!need)return null;let acc=0;
+ for(const e of d.entries.filter(x=>x.s&&x.h==null).sort((a,b)=>a.s-b.s)){const m=emin(e);if(acc+m>=need)return e.s+(need-acc)*60000;acc+=m;}return null;}
+/* Kennzeichen (AW, KSB …) je Zeile: 3+2AW, bei Überstunden 4+2Ü(2AW) */
+function markSplit(k,sm){const d=S.days[k],R=+S.settings.round||15,up=m=>m>0.5?Math.ceil((m-0.5)/R):0;
+ sm.all.forEach(r=>{r.mk={};r.otmk={};r.nn=r.n!=null?r.n:r.h;});if(!d)return sm;const M=marks().map(m=>m.k);if(!M.length)return sm;
+ const T=sm.ot?otStartTs(k):null,after={};
+ d.entries.forEach(e=>{if(!e.mk||!M.includes(e.mk))return;const r=sm.all.find(x=>x.o===e.o);if(!r)return;r.mkMin=r.mkMin||{};r.mkMin[e.mk]=(r.mkMin[e.mk]||0)+emin(e);
+  if(T&&e.s){const a=Math.max(e.s,T),b=e.e||Date.now();if(b>a)after[e.mk]=(after[e.mk]||0)+(b-a)/60000;}});
+ sm.all.forEach(r=>{if(!r.mkMin)return;let nu=Math.round((r.n!=null?r.n:r.h)*60/R),ou=Math.round((r.ot||0)*60/R);
+  M.forEach(m=>{let u=up(r.mkMin[m]||0);if(!u)return;if(ou&&after[m]){const x=Math.min(ou,u,up(after[m]));ou-=x;u-=x;if(x)r.otmk[m]=x*R/60;}
+   u=Math.min(u,nu);nu-=u;if(u)r.mk[m]=u*R/60;});r.nn=nu*R/60;});
+ sm.nn=sm.rows.reduce((a,r)=>a+r.nn,0);sm.mk={};sm.otmk={};sm.rows.forEach(r=>{for(const m in r.mk)sm.mk[m]=(sm.mk[m]||0)+r.mk[m];for(const m in r.otmk)sm.otmk[m]=(sm.otmk[m]||0)+r.otmk[m];});return sm;}
+/* Fehlzeit unter Soll bzw. ganzer Tag → Ausgleich aus Überstunden */
+function ausgH(k,sm){const d=S.days[k],ty=typeOf(k),R=+S.settings.round||15;if(!d||d.noAusg)return 0;
+ if(ty==='gleit')return sollOf(k);if(ty&&ty!=='urlaub_halb')return 0;if(!d.gehen||!sm.rows.length)return 0;
+ const df=Math.round((sollOf(k)-sm.total)*60/R)*R/60;return df>0?df:0;}
+function ausgOrder(){const nr=normNr(S.settings.ausgNr||'21260008');let o=S.orders.find(x=>x.nr===nr);
+ if(!o){o={id:uid(),nr,kunde:'Ausgleich aus Überstunden',info:'',fav:true,arch:false,int:true};S.orders.push(o);save();}else if(o.arch){o.arch=false;}return o;}
 function summaryBase(k){
  const d=S.days[k];if(!d||!d.entries.length)return null;
  const m=new Map(),bnr=normNr(S.settings.fillNr||'21260003');
@@ -446,7 +492,7 @@ function summaryRound(m){
  rows.forEach(r=>r.h=r.u*R/60);return{rows:rows.filter(r=>r.u>0),all:rows,total:units*R/60,min:tot};
 }
 /* Überstunden: Normal+Ü, Ü-Auftrag ganz unten */
-function otSplit(k,sm){const d=S.days[k],R=+S.settings.round||15;sm.ot=0;sm.all.forEach(r=>{r.n=r.h;r.ot=0;});
+function otSplit(k,sm){const d=S.days[k],R=+S.settings.round||15;sm.ot=0;sm.all.forEach(r=>{r.n=r.h;r.ot=0;});if(!sm.all.length)return sm;
  if(!d||!d.otOk||!d.otO)return sm;
  const su=Math.round(sollOf(k)*60/R),tu=Math.round(sm.total*60/R),ou=tu-su;if(ou<=0)return sm;
  let row=sm.all.find(r=>r.o===d.otO);if(!row){row={o:d.otO,infos:[],info:'',min:0,u:0,h:0};sm.all.push(row);}
@@ -455,14 +501,55 @@ function otSplit(k,sm){const d=S.days[k],R=+S.settings.round||15;sm.ot=0;sm.all.
   sm.all.filter(r=>r!==row&&r.u>0).sort((a,b)=>isB(b)-isB(a)||b.u-a.u).forEach(r=>{if(!def)return;const t=Math.min(def,r.u);r.u-=t;r.h=r.n=r.u*R/60;def-=t;});}
  row.u=nu+ou;row.n=nu*R/60;row.ot=ou*R/60;row.h=row.n+row.ot;sm.ot=row.ot;
  sm.rows=sm.all.filter(r=>r!==row&&r.u>0).concat([row]);return sm;}
-const hTxt=r=>r.ot?fmtH(r.n)+'+'+fmtH(r.ot)+'Ü':fmtH(r.h);
-const totTxt=sm=>sm.ot?fmtH(sm.total-sm.ot)+'+'+fmtH(sm.ot)+'Ü':fmtH(sm.total);
+function partTxt(n,mk,ot,otmk){const m=Object.keys(mk||{}).filter(x=>mk[x]),om=Object.keys(otmk||{}).filter(x=>otmk[x]);
+ if(!m.length&&!ot)return fmtH(n);return fmtH(n)+m.map(x=>'+'+fmtH(mk[x])+x).join('')+(ot?'+'+fmtH(ot)+'Ü'+(om.length?'('+om.map(x=>fmtH(otmk[x])+x).join(',')+')':''):'');}
+const hTxt=r=>r.ausgRow?fmtH(r.h):partTxt(r.nn!=null?r.nn:(r.n!=null?r.n:r.h),r.mk,r.ot,r.otmk);
+const totTxt=sm=>partTxt((sm.nn!=null?sm.nn:sm.total-(sm.ot||0)-Object.values(sm.mk||{}).reduce((a,b)=>a+b,0))+(sm.ausg||0),sm.mk,sm.ot,sm.otmk);
+const wb=t=>esc(t).replace(/\+/g,'+<wbr>');
+const printRows=sm=>sm.ausg?sm.rows.concat([{o:ausgOrder().id,h:sm.ausg,info:'',infos:[],ausgRow:true}]):sm.rows;
+
+/* ---------- Siegel: Tagesabschluss, Änderungsprotokoll, Prüfcode ---------- */
+function canon(k){const d=S.days[k];if(!d)return '';const nr=id=>order(id).nr;
+ return JSON.stringify([k,d.kommen||0,d.gehen||0,d.pausen.map(p=>[p.s||0,p.e||0]),d.type||'',d.otOk&&d.otO?nr(d.otO):'',!!d.noAusg,
+  d.entries.map(e=>[nr(e.o),e.s||0,e.e||0,e.h==null?null:+e.h,e.mk||'',e.adj||0,e.info||'',e.kind||'']).sort((a,b)=>(a[1]-b[1])||String(a[0]).localeCompare(b[0]))]);}
+function dayText(k){const d=S.days[k],sm=summary(k);if(!d)return '–';return (d.kommen?'Kommen '+hm(d.kommen)+' · Gehen '+(hm(d.gehen)||'–'):'')+(d.type?' · '+tyLabel(d.type,k):'')+
+ (sm?' · '+printRows(sm).map(r=>order(r.o).nr+' '+hTxt(r)).join(', '):'');}
+function seal(k){const d=S.days[k];if(!d)return;d.seal={h:sha256(canon(k)),t:dayText(k)};}
+function sealAll(){Object.keys(S.days).forEach(k=>{const d=S.days[k];if(k<dkey()&&!d.seal&&(d.gehen||d.type))seal(k);});}
+function logChange(k,alt,g){const d=S.days[k];d.log=d.log||[];d.log.push({t:Date.now(),alt,neu:dayText(k),g});seal(k);save();}
+/* Änderung an einem abgeschlossenen Tag: Grund abfragen, protokollieren, neu versiegeln */
+function commitSealed(k,apply){const d=S.days[k];if(!d||!d.seal){apply();return;}const alt=dayText(k);
+ dlg(`<h3>Abgeschlossener Tag ${dDate(k)}</h3><p class="mut" style="margin:0 0 6px">Die Änderung wird mit Grund protokolliert.</p><label>Grund der Änderung<input id="cgG" placeholder="z. B. Gehen vergessen zu stempeln"></label>
+ <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="cgOk">Ändern</button></div>`);
+ $('#cgOk').onclick=()=>{const g=$('#cgG').value.trim();if(!g)return toast('Bitte Grund angeben');closeDlg();apply();logChange(k,alt,g);render();};}
+function checkSeals(){if(D.open)return;const bad=Object.keys(S.days).sort().filter(k=>{const d=S.days[k];return d.seal&&k<dkey()&&sha256(canon(k))!==d.seal.h;});if(!bad.length)return;
+ dlg(`<h3>⚠ Abweichung gefunden</h3><p class="mut" style="margin:0 0 6px">Diese abgeschlossenen Tage wurden ohne Protokoll geändert:</p>
+ ${bad.map(k=>`<div style="margin:6px 0;font-size:.85rem"><b>${WD[wdOf(k)].slice(0,2)} ${dDate(k)}</b><br><span class="mut">vorher:</span> ${esc(S.days[k].seal.t)}<br><span class="mut">jetzt:</span> ${esc(dayText(k))}</div>`).join('')}
+ <label>Grund / Erklärung<input id="ckG"></label><div class="btns"><button class="btn pri" id="ckOk">Bestätigen und protokollieren</button></div>`);
+ $('#ckOk').onclick=()=>{const g=$('#ckG').value.trim();if(!g)return toast('Bitte Grund angeben');bad.forEach(k=>logChange(k,S.days[k].seal.t,'Nachträglich festgestellt: '+g));closeDlg();render();};}
+function monthCode(ym){const ks=Object.keys(S.days).filter(k=>k.startsWith(ym)).sort();const h=sha256(ks.map(canon).join('|')).toUpperCase();return h.slice(0,4)+'-'+h.slice(4,8);}
+
+/* ---------- Zugang: Büro / Admin per PIN ---------- */
+let LV=0,LVuntil=0;
+const pinHash=p=>sha256('stundenbuch|'+p);
+const level=()=>Date.now()<LVuntil?LV:0;
+const locked=need=>need===2?!!S.settings.pinA:!!S.settings.pinB;
+function gate(need,fn){if(!locked(need)||level()>=need){if(level())LVuntil=Date.now()+(+S.settings.lockMin||5)*60000;return fn();}
+ dlg(`<h3>🔒 ${need===2?'Admin':'Büro'}-Bereich</h3><label>PIN<input id="gPin" type="password" inputmode="numeric" autocomplete="off"></label><div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="gOk">Entsperren</button></div>`);
+ const go=()=>{const h=pinHash($('#gPin').value.trim());let l=0;if(S.settings.pinA&&h===S.settings.pinA)l=2;else if(S.settings.pinB&&h===S.settings.pinB)l=1;
+  if(l<need)return toast('PIN falsch',null,true);LV=l;LVuntil=Date.now()+(+S.settings.lockMin||5)*60000;closeDlg();fn();};
+ $('#gOk').onclick=go;$('#gPin').onkeydown=e=>{if(e.key==='Enter')go();};setTimeout(()=>$('#gPin').focus(),50);}
+function setPin(key){gate(2,()=>{dlg(`<h3>${key==='pinA'?'Admin':'Büro'}-PIN</h3><p class="mut" style="margin:0 0 6px">4–8 Ziffern. Leer lassen = PIN entfernen (Bereich offen).</p>
+ <label>Neue PIN<input id="spA" type="password" inputmode="numeric"></label><label>Wiederholen<input id="spB" type="password" inputmode="numeric"></label>
+ <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="spOk">Speichern</button></div>`);
+ $('#spOk').onclick=()=>{const a=$('#spA').value.trim(),b=$('#spB').value.trim();if(a!==b)return toast('PINs stimmen nicht überein');if(a&&!/^\d{4,8}$/.test(a))return toast('4–8 Ziffern');
+  S.settings[key]=a?pinHash(a):'';if(key==='pinA'&&a){LV=2;LVuntil=Date.now()+(+S.settings.lockMin||5)*60000;}save();closeDlg();renderSet();toast(a?'PIN gesetzt':'PIN entfernt');};});}
 
 /* ---------- Stempeln ---------- */
 function closeEntry(d,oe,t){oe.e=t;finPlan(oe);if(t-oe.s<30000)d.entries=d.entries.filter(x=>x!==oe);}
-function resumeAfterGehen(d,t){if(d.gehen){d.pausen.push({s:d.gehen,e:t});d.gehen=null;toast('Weiter – Lücke als Pause gewertet');}}
+function resumeAfterGehen(d,t){if(d.gehen){if(d.seal){d.log=d.log||[];d.log.push({t,alt:d.seal.t,neu:'',g:'Nach „Gehen“ weitergearbeitet'});delete d.seal;}d.pausen.push({s:d.gehen,e:t});d.gehen=null;toast('Weiter – Lücke als Pause gewertet');}}
 function balOrder(){const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
- if(!o){o=S.orders.find(x=>x.nr===nr);if(o){o.arch=false;delete o.archAt;}else{o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false};S.orders.push(o);}}return o;}
+ if(!o){o=S.orders.find(x=>x.nr===nr);if(o){o.arch=false;delete o.archAt;}else{o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false,int:true};S.orders.push(o);}}return o;}
 function begin(d,t){if(!d.kommen)d.kommen=t;resumeAfterGehen(d,t);const p=openPause(d);if(p){p.e=t;keepAwake(false);}}
 function startOrder(id){
  const d=today(),t=Date.now(),oe=openEntry(d);
@@ -521,7 +608,7 @@ function doGehen(){
  d.entries=d.entries.filter(e=>!(e.s&&e.s>=t&&e.h==null));
  S.resume=null;delete S.askResume;d.gehen=t;save();render();
  let msg='Feierabend '+hm(t)+(nach?' (Nachlauf '+fmtDur(nach)+' h nicht gebucht)':'');if(S.settings.fill&&gapMin(d)>=1){const g=gapMin(d);fillGap(dkey(),true);msg+=' · '+fmtDur(g)+' h aufgefüllt';}
- toast(msg,()=>{S=JSON.parse(snap);save();render();});
+ seal(dkey());save();toast(msg,()=>{S=JSON.parse(snap);save();render();});
  if(S.settings.autoBackup)backup();
 }
 function doInfo(){
@@ -529,8 +616,13 @@ function doInfo(){
  dlg(`<h3>${esc(o.nr)} · ${esc(o.kunde)}</h3>
  <label>Info (erscheint im Stundenbuch)<input id="fI" value="${esc(oe.info)}" placeholder="z. B. EM-3555 tanken/aufräumen"></label>
  <label>Tätigkeit (für Nachweis, nicht im Stundenbuch)<textarea id="fTa" placeholder="Was wurde gemacht, Befund, Material …">${esc(oe.taet||'')}</textarea></label>
+ ${oe.kind!=='fahrt'&&marks().length?`<div class="tiles" style="grid-template-columns:repeat(${Math.min(3,marks().length)},1fr);margin-top:6px">${marks().map(m=>`<button class="tile${oe.mk===m.k?' pri':''}" data-mk="${esc(m.k)}"><b>${esc(m.ic||'🏷')} ${esc(m.k)} ${oe.mk===m.k?'beenden':'starten'}</b><small>${oe.mk===m.k?'läuft seit '+hm(oe.s):esc(m.n||'')}</small></button>`).join('')}</div>`:''}
  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">OK</button></div>`);
  $('#fOk').onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();save();closeDlg();render();};
+ D.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();closeDlg();toggleMk(b.dataset.mk);});
+}
+function toggleMk(k){const d=today(),oe=openEntry(d);if(!oe||oe.kind==='fahrt')return;const t=Date.now(),on=oe.mk!==k;closeEntry(d,oe,t);
+ const e={id:uid(),o:oe.o,info:oe.info||'',s:t,e:null};if(oe.taet)e.taet=oe.taet;if(on)e.mk=k;d.entries.push(e);save();render();toast(on?k+' läuft ab '+hm(t):k+' beendet');
 }
 
 /* ---------- Fahrten ---------- */
@@ -622,12 +714,12 @@ function checkAskResume(){
  dlg(`<h3>Pause vorbei</h3><p style="margin:0 0 6px">Läuft jetzt: <b>Betriebsarbeiten</b>.</p><p class="mut" style="margin:0 0 6px">Vor der Pause: ${esc(o.nr)} · ${esc(o.kunde)}${a.info?' · '+esc(a.info):''}</p>
  <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="arY"><b>Weiter mit ${esc(o.kunde)}</b><small>ab Pausenende umbuchen</small></button><button class="tile" id="arN"><b>Nein</b><small>bei Betriebsarbeiten bleiben</small></button></div>`);
  $('#arY').onclick=()=>{const d=S.days[a.k],e=d&&d.entries.find(x=>x.id===a.eid);if(e){e.o=a.o;e.info=a.info||'';e.taet=a.taet||'';}
-  delete S.askResume;save();closeDlg();render();toast('Weiter mit '+o.kunde);};
- $('#arN').onclick=()=>{delete S.askResume;save();closeDlg();};
+  delete S.askResume;save();closeDlg();render();toast('Weiter mit '+o.kunde);privUntil=Date.now()+60000;};
+ $('#arN').onclick=()=>{delete S.askResume;save();closeDlg();privUntil=Date.now()+60000;};
 }
 function checkPlannedPause(){
  const d=S.days[dkey()];if(!d)return;const p=openPause(d);
- if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){const fresh=Date.now()-(p.s+p.plan*60000)<30*60000;endPause(p.s+p.plan*60000);if(fresh){alarm();privMsg('☕ Pause vorbei');}}
+ if(p&&p.plan&&Date.now()>=p.s+p.plan*60000){const fresh=Date.now()-(p.s+p.plan*60000)<30*60000;endPause(p.s+p.plan*60000);if(fresh){alarm();privMsg('☕ Pause vorbei',S.askResume?0:60000);}}
 }
 function doPause(){
  const d=today();if(openPause(d))return endPause();if(!d.kommen||d.gehen)return;const st=S.settings;
@@ -639,7 +731,8 @@ function doPause(){
 let lastTouch=Date.now();
 function privOn(){$('#priv').classList.add('on');}
 function privOff(){$('#priv').classList.remove('on');$('#privMsg').textContent='';lastTouch=Date.now();}
-function privMsg(t){$('#privMsg').textContent=t;}
+let privUntil=0;
+function privMsg(t,ttl){$('#privMsg').textContent=t;privUntil=ttl?Date.now()+ttl:0;}
 const cdTxt=ms=>{const c=fmtClock(ms);return c.startsWith('00:')?c.slice(3):c.replace(/^0/,'');};
 function nextPauseTxt(){const k=dkey(),d=S.days[k],now=Date.now();if(!d||!d.kommen||d.gehen)return '';
  const p=openPause(d);if(p)return p.plan?'☕ Pause noch '+cdTxt(p.s+p.plan*60000-now):'☕ Pause seit '+cdTxt(now-p.s);
@@ -647,7 +740,7 @@ function nextPauseTxt(){const k=dkey(),d=S.days[k],now=Date.now();if(!d||!d.komm
  for(const sl of pauseSlots()){const at=tsOf(k,sl.t);if(at<=now||d.pausen.some(x=>x.s>=at-60*60000&&x.s<=at+120*60000))continue;return '☕ '+sl.n+' in '+cdTxt(at-now);}
  const se=sollEnd(d,k);return se&&se>now?'🏁 Feierabend in '+cdTxt(se-now):'';}
 function checkPriv(){const m=+S.settings.privMin||0;$('#privClock').textContent=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
- $('#privNext').textContent=nextPauseTxt();
+ $('#privNext').textContent=nextPauseTxt();if(privUntil&&Date.now()>privUntil){privUntil=0;$('#privMsg').textContent='';}
  if(m&&!$('#priv').classList.contains('on')&&Date.now()-lastTouch>m*60000)privOn();}
 /* ---------- Pausen-Erinnerung ---------- */
 function pauseSlots(){const st=S.settings;return[{id:'fr',t:st.frTime,n:'Frühstück',len:+st.fruehstueck||15},{id:'mi',t:st.miTime,n:'Mittag',len:+st.mittag||30}].filter(x=>x.t);}
@@ -699,6 +792,7 @@ function housekeeping(){
   if(st.otDate&&k>=st.otDate&&counts(k)){const sm=summary(k);st.otStart=+(((+st.otStart||0)+(sm?sm.total:0)-sollOf(k)).toFixed(4));}
   if(st.otDate&&k>=st.otDate){const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);st.otDate=dkey(n);}
   if(st.urlDate&&k>=st.urlDate)st.urlStart=+((+st.urlStart||0)-urlUse(k)).toFixed(2);
+  marks().forEach(m=>{if(+m.goal>0&&(!m.since||k>=m.since))m.carry=+((+m.carry||0)+dayMk(k,m.k)).toFixed(2);});
   const ty=typeOf(k),y=k.slice(0,4);if(ty==='rvfit'||ty==='bildung'){S.yStats[y]=S.yStats[y]||{};S.yStats[y][ty]=(S.yStats[y][ty]||0)+1;}
   delete S.days[k];del++;});
  if(ad){const used=new Set();Object.values(S.days).forEach(d=>d.entries.forEach(e=>used.add(e.o)));
@@ -714,8 +808,8 @@ function checkYear(){
  ${old.length?`<p class="mut" style="margin:0 0 4px">Neu angelegt, die alten archiviert:</p>`+old.map(o=>`<div class="num">${esc(o.nr)} → ${np+o.nr.slice(4)} · ${esc(o.kunde)}</div>`).join(''):''}
  <div class="btns"><button class="btn" id="yLater">Später</button><button class="btn" id="yNo">Nein, so lassen</button><button class="btn pri" id="yOk">Umstellen</button></div>`);
  $('#yLater').onclick=closeDlg;$('#yNo').onclick=()=>{st.yearAsked=yy;save();closeDlg();};
- $('#yOk').onclick=()=>{old.forEach(o=>{const nr=np+o.nr.slice(4);if(!S.orders.some(x=>x.nr===nr&&!x.arch))S.orders.push({id:uid(),nr,kunde:o.kunde,info:o.info,fav:true,arch:false,created:dkey()});o.fav=false;o.arch=true;o.archAt=dkey();});
-  if(st.fillNr&&String(st.fillNr).startsWith(pre))st.fillNr=np+String(st.fillNr).slice(4);st.prefix=np;st.yearAsked=yy;save();closeDlg();render();toast('Umgestellt auf '+np);};
+ $('#yOk').onclick=()=>{old.forEach(o=>{const nr=np+o.nr.slice(4);if(!S.orders.some(x=>x.nr===nr&&!x.arch))S.orders.push({id:uid(),nr,kunde:o.kunde,info:o.info,fav:true,arch:false,created:dkey(),int:true});o.fav=false;o.arch=true;o.archAt=dkey();});
+  if(st.fillNr&&String(st.fillNr).startsWith(pre))st.fillNr=np+String(st.fillNr).slice(4);if(st.ausgNr&&String(st.ausgNr).startsWith(pre))st.ausgNr=np+String(st.ausgNr).slice(4);st.prefix=np;st.yearAsked=yy;save();closeDlg();render();toast('Umgestellt auf '+np);};
 }
 
 /* ---------- Verschlüsselung: PBKDF2-SHA256 (310000) + AES-256-GCM ---------- */
@@ -731,7 +825,7 @@ async function decryptText(o,pw){const key=await kdf(pw,unb64(o.salt),o.it);
 const cryptoOk=()=>!!(window.crypto&&crypto.subtle);
 function plainState(){const c=JSON.parse(JSON.stringify(S));delete c.settings.bkPw;return JSON.stringify(c,null,1);}
 async function backup(){
- const name='stundenbuch-backup-'+dkey()+'.json',pw=S.settings.bkPw;
+ const name='stundenbuch-backup-'+dkey()+'_'+new Date().toTimeString().slice(0,5).replace(':','')+'.json',pw=S.settings.bkPw;
  try{const txt=pw&&cryptoOk()?await encryptText(plainState(),pw):plainState();download(name,txt,'application/json');S.lastBackup=Date.now();save();}
  catch(e){toast('Sicherung fehlgeschlagen: '+e.message,null,true);}
 }
@@ -768,7 +862,17 @@ function showView(v){VIEW=v;document.querySelectorAll('.view').forEach(s=>s.clas
 function openMenu(){renderKonto();$('#drawer').classList.add('on');$('#shade').classList.add('on');}
 function closeMenu(){$('#drawer').classList.remove('on');$('#shade').classList.remove('on');}
 function renderKonto(){const y=new Date().getFullYear(),ru=resturlaub(),os=otShown(dkey()),ob=os.v;
- $('#konto').innerHTML=`Überstunden${os.live?' (bis gestern)':''}: <b>${ob==null?'– (Startwert fehlt)':fmtSig(ob)+' h'}</b><br>Resturlaub ${y}: <b>${ru?fmtH(ru.r)+' Tage':'– (Startwert fehlt)'}</b>${ru&&ru.plan?` (davon ${fmtH(ru.plan)} geplant)`:''}<br>RV Fit ${y}: <b>${yearCount(y,'rvfit')}</b> · Bildungsurlaub ${y}: <b>${yearCount(y,'bildung')}</b>`+giftTable();}
+ $('#konto').innerHTML=`Überstunden${os.live?' (bis gestern)':''}: <b>${ob==null?'– (Startwert fehlt)':fmtSig(ob)+' h'}</b><br>Resturlaub ${y}: <b>${ru?fmtH(ru.r)+' Tage':'– (Startwert fehlt)'}</b>${ru&&ru.plan?` (davon ${fmtH(ru.plan)} geplant)`:''}`+markKonto()+lockInfo()+giftTable();
+ D2();}
+function D2(){const g=$('#mkGift');if(g)g.onclick=e=>{const k=e.target.closest('[data-gift]');if(!k)return;const m=marks().find(x=>x.k===k.dataset.gift);if(!m)return;
+  const c=mkCount(m);if(!confirm('Gutschein für '+m.k+' erhalten? Zähler startet neu, Überhang '+fmtH(c-m.goal)+' h wird mitgenommen.'))return;m.carry=+(c-m.goal).toFixed(2);m.since=addD(dkey(),1);save();renderKonto();};
+ const l=$('#lkOff');if(l)l.onclick=()=>{LV=0;LVuntil=0;renderKonto();toast('Gesperrt');};}
+function dayMk(k,m){const sm=summary(k);if(!sm)return 0;return (sm.mk&&sm.mk[m]||0)+(sm.otmk&&sm.otmk[m]||0);}
+function mkSum(m,from,to){let s=0;Object.keys(S.days).forEach(k=>{if(k>=from&&k<=to)s+=dayMk(k,m);});return s;}
+function mkCount(m){return (+m.carry||0)+mkSum(m.k,m.since||'0000',dkey());}
+function markKonto(){const y=dkey().slice(0,4);return '<div id="mkGift">'+marks().map(m=>{if(+m.goal>0){const c=mkCount(m);return `<br>${esc(m.ic||'')} ${esc(m.k)}${m.since?' seit '+dDate(m.since).slice(0,6):''}: <b>${fmtH(c)} / ${fmtH(+m.goal)} h</b>${c>=+m.goal?` <button class="btn" data-gift="${esc(m.k)}" style="min-height:36px;padding:0 10px">🎁 Gutschein erhalten</button>`:''}`;}
+  return `<br>${esc(m.ic||'')} ${esc(m.k)} ${y}: <b>${fmtH(mkSum(m.k,y+'-01-01',y+'-12-31'))} h</b>`;}).join('')+'</div>';}
+function lockInfo(){const l=level();return l?`<br>🔓 ${l===2?'Admin':'Büro'} offen bis ${hm(LVuntil)} <button class="btn" id="lkOff" style="min-height:36px;padding:0 10px">Sperren</button>`:'';}
 function giftTable(){const t=dkey(),m=monday(0),w=giftSum(dkey(m),t),mo=giftSum(t.slice(0,8)+'01',t),yr=giftSum(t.slice(0,5)+'01-01',t),c=v=>fmtDur(v);
  return `<table style="width:100%;margin-top:8px;font-size:.78rem;border-collapse:collapse"><tr><td><b>Geschenkte Zeit</b></td><td style="text-align:right">Woche</td><td style="text-align:right">${MON[new Date().getMonth()]}</td><td style="text-align:right">${t.slice(0,4)}</td></tr>
  <tr><td>Pausen nicht genommen</td><td style="text-align:right">${c(w.p)}</td><td style="text-align:right">${c(mo.p)}</td><td style="text-align:right">${c(yr.p)}</td></tr>
@@ -781,7 +885,9 @@ function renderHeader(){
  let pill='Nicht eingestempelt',pc='',cur='Auftrag antippen oder Kommen',st='',from=null;
  if(p){pill='Pause';pc='pz';cur=S.resume?order(S.resume.o).kunde:'Pause';st=S.resume?order(S.resume.o).nr:'';}
  else if(oe&&oe.kind==='fahrt'){const o=order(oe.o);pill=oe.dir==='firma'||oe.dir==='rueck'?'Rückfahrt':'Fahrt läuft';pc='drv';cur=o.kunde;from=oe.s;st=o.nr+' · seit '+hm(oe.s);}
- else if(oe){const o=order(oe.o);pill=isInternal(o)?'Läuft':'Montage läuft';pc='run';cur=o.kunde+(oe.info?' · '+oe.info:'');from=oe.s>now?null:oe.s;st=o.nr+' · '+(oe.s>now?'ab '+hm(oe.s):'seit '+hm(oe.s));}
+ else if(oe){const o=order(oe.o),mk=oe.mk?marks().find(m=>m.k===oe.mk):null;pill=(isInternal(o)?'Läuft':'Montage läuft')+(mk?' · '+mk.k:'');pc='run';cur=o.kunde+(oe.info?' · '+oe.info:'');
+  if(oe.s<=now){const cum=d.entries.filter(e=>e.o===oe.o).reduce((a,e)=>a+emin(e),0);from=now-cum*60000;}
+  st=o.nr+' · '+(oe.s>now?'ab '+hm(oe.s):'seit '+hm(oe.s))+(mk?' · '+(mk.ic||'')+' '+mk.k+' '+fmtDur((now-oe.s)/60000):'');}
  else if(d.gehen){pill='Feierabend';cur='Heute '+fmtDur(presence(d))+' h anwesend';st='Gehen '+hm(d.gehen);}
  else if(d.kommen){pill='Eingestempelt';pc='run';cur='Kein Auftrag gewählt';from=d.kommen;st='seit '+hm(d.kommen);}
  const se=inn?sollEnd(d,dkey()):null;if(se&&!p)st+=(st?' · ':'')+'Soll bis '+hm(se);
@@ -823,10 +929,10 @@ const OPEN=new Set();
 function renderDay(){
  const k=$('#dSel').value||dkey(),d=S.days[k],sm=summary(k),ty=typeOf(k),hol=holidayOf(k),half=halfDayOf(k);
  $('#dWd').textContent=k===dkey()?WD[wdOf(k)]:WD[wdOf(k)]+(k<dkey()?' (vergangen)':' (geplant)');
- const badges=[];if(ty)badges.push(TYP[ty]);if(hol)badges.push('Feiertag: '+hol);if(half)badges.push(half+' – halber Tag');
+ const badges=[];if(ty)badges.push(tyLabel(ty,k));if(hol)badges.push('Feiertag: '+hol);if(half)badges.push(half+' – halber Tag');
  $('#dBadge').innerHTML=badges.map(b=>`<span class="badge">${esc(b)}</span> `).join('');
  const soll=sollOf(k);
- {const lv=k===dkey()&&d&&d.kommen&&!d.gehen;$('#sIstL').textContent=lv?'Gestempelt (läuft)':'Stundenbuch';$('#sIst').textContent=lv?fmtDur(sm?sm.min:0)+' h':(sm?totTxt(sm):'0')+' h';}$('#sSoll').textContent=fmtH(soll)+' h';
+ {const lv=k===dkey()&&d&&d.kommen&&!d.gehen;$('#sIstL').textContent=lv?'Gestempelt (läuft)':'Stundenbuch';$('#sIst').textContent=lv?fmtDur(sm?sm.min:0)+' h':(sm?totTxt(sm):'0')+' h';}$('#dSoll').textContent=fmtH(soll)+' h';
  
  // Details
  let det='';
@@ -834,6 +940,8 @@ function renderDay(){
  let warn='';
 {const pm=pauseMiss(k);if(d&&(d.nach||pm))det+=(det?'<br>':'')+(pm?`Pause nicht genommen: ${fmtDur(pm)} h`:'')+(pm&&d.nach?' · ':'')+(d.nach?`Nachlauf: ${fmtDur(d.nach)} h (Gehen real ${hm(d.gehenReal)})`:'');}
  if(sm)det+=(det?'<br>':'')+`Gebucht ${fmtDur(sm.min)} h → Stundenbuch ${totTxt(sm)} h`+(d.otO&&d.otOk?` · Ü auf ${esc(order(d.otO).kunde)}`:'')+(soll?` · Differenz ${fmtSig(sm.total-soll)} h`:'');
+ if(d&&d.log&&d.log.length)det+=d.log.map(l=>`<br>✎ ${new Date(l.t).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} – ${esc(l.g)}${l.alt?` <span class="mut">(vorher: ${esc(l.alt)})</span>`:''}`).join('');
+ if(d&&d.seal)det+='<br>🔏 Tag abgeschlossen';
  if(sm&&sm.short>0.5&&d.gehen)warn+=`<br><span class="warn">Feste Rückfahrt: ${fmtDur(sm.short)} h nicht über Betriebsarbeiten ausgleichbar – echte Zeit gebucht</span>`;
  if(sm&&sm.over)warn+=`<br><span class="warn">Aufrundung +${fmtH(sm.over)} h nicht über Betriebsarbeiten ausgleichbar</span>`;
  if(d&&d.kommen){const pres=presence(d);if(Math.abs(pres-(sm?sm.min:0))>5)warn+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h → „Lücke auffüllen“</span>`;}
@@ -842,7 +950,7 @@ function renderDay(){
  $('#dTog').textContent=(open?'▾ ':'▸ ')+(d&&d.kommen?`Kommen ${hm(d.kommen)}${d.gehen?' · Gehen '+hm(d.gehen):''} · ${d.pausen.length} Pause${d.pausen.length===1?'':'n'}`:'Details')+(warn?' ⚠':'');
  $('#dayDet').className=open?'on':'';$('#dayDet').innerHTML=(det||'Keine Stempelzeiten.')+warn;
  // Gruppen
- if(!d||!d.entries.length){$('#dayList').innerHTML='';return;}
+ if(!d||!d.entries.length){$('#dayList').innerHTML=sm&&sm.ausg?`<div class="mut" style="margin-top:8px">${esc(ausgOrder().nr)} Ausgleich aus Überstunden: <b>${fmtH(sm.ausg)}</b></div>`:'';return;}
  const by=new Map();d.entries.slice().sort((a,b)=>(a.s||0)-(b.s||0)).forEach(e=>{if(!by.has(e.o))by.set(e.o,[]);by.get(e.o).push(e);});
  const live=k===dkey()&&!d.gehen,R0=+S.settings.round||15;
  const rowOf=o=>{const r=sm?sm.all.find(x=>x.o===o):null;if(!r||!live||S.settings.roundMode==='dist')return r;
@@ -850,10 +958,10 @@ function renderDay(){
  let h='';by.forEach((es,o)=>{const ord=order(o),r=rowOf(o),infos=r?r.infos.join(', '):'',op=OPEN.has(k+o),run=es.some(e=>e.h==null&&!e.e);
   h+=`<div class="grp"><button class="gh" data-g="${o}"><span class="ch">${op?'▾':'▸'}</span><span class="n"><b>${esc(ord.kunde)}${run?' ●':''}</b><small>${esc(ord.nr)}${infos?' · '+esc(infos):''}${run&&live?(z=>z?' · 📝 Zettel '+fmtH(z.h)+' h':'')(zettel(d,openEntry(d))):''}</small></span><span class="raw">${fmtDur(r?r.min:0)}</span><span class="v">${r?(live?fmtH(r.h):hTxt(r)):'0'}</span></button>`;
   if(op)h+=es.map(e=>{const lab=e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt':e.dir==='next'?'🚗 Fahrt (geteilt)':'🚗 Rückfahrt'+(e.plan?' (fest '+fmtDur(e.plan/60000)+')':'')):e.auto?'aufgefüllt':e.h!=null?'manuell':isInternal(ord)?'Arbeit':'Montage';
-   const tm=e.h!=null?fmtH(e.h)+' h':hm(e.s)+'–'+(e.e?hm(e.e):'läuft');
-   return `<button class="gi${e.kind==='fahrt'?' dr':''}" data-e="${e.id}"><span class="l">${lab}${e.info&&e.kind!=='fahrt'?` · ${esc(e.info)}`:''}${e.taet?`<small>📝 ${esc(e.taet)}</small>`:''}</span><span class="num">${tm}</span></button>`;}).join('');
+   const tm=e.h!=null?fmtH(e.h)+' h':hm(e.s)+'–'+(e.e?hm(e.e):'läuft'),mkL=e.mk?' · '+((marks().find(m=>m.k===e.mk)||{}).ic||'')+' '+e.mk:'';
+   return `<button class="gi${e.kind==='fahrt'?' dr':''}" data-e="${e.id}"><span class="l">${lab}${mkL}${e.info&&e.kind!=='fahrt'?` · ${esc(e.info)}`:''}${e.taet?`<small>📝 ${esc(e.taet)}</small>`:''}</span><span class="num">${tm}</span></button>`;}).join('');
   h+='</div>';});
- $('#dayList').innerHTML=h+(live&&S.settings.roundMode==='bal'?'<div class="mut" style="font-size:.75rem;margin-top:8px">Zwischenstand je Auftrag – der Ausgleich über Betriebsarbeiten erfolgt bei „Gehen“.</div>':'');
+ $('#dayList').innerHTML=h+(live&&S.settings.roundMode==='bal'?'<div class="mut" style="font-size:.75rem;margin-top:8px">Zwischenstand je Auftrag – der Ausgleich über Betriebsarbeiten erfolgt bei „Gehen“.</div>':'')+(sm&&sm.ausg?`<div class="grp"><div class="gh"><span class="ch"></span><span class="n"><b>Ausgleich aus Überstunden</b><small>${esc(ausgOrder().nr)}</small></span><span class="raw"></span><span class="v">${fmtH(sm.ausg)}</span></div></div>`:'');
 }
 function render(){renderHeader();renderTiles();renderDay();if(VIEW==='vOrders')renderOrders();}
 
@@ -866,8 +974,8 @@ function addOrder(){
  const nr=normNr($('#nNr').value),ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
  if(!/^\d{8}$/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
  if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
- const o={id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey()};S.orders.push(o);
- $('#nNr').value=$('#nKu').value=$('#nIn').value='';save();renderOrders();
+ const o={id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey(),int:$('#nInt').checked};S.orders.push(o);
+ $('#nNr').value=$('#nKu').value=$('#nIn').value='';$('#nInt').checked=false;save();renderOrders();
  dlg(`<h3>${esc(nr)} · ${esc(ku)} angelegt</h3><p class="mut" style="margin:0 0 6px">Was jetzt?</p>
  <div class="tiles"><button class="tile pri" id="nS"><b>▶ Jetzt beginnen</b><small>Arbeit startet</small></button><button class="tile drv" id="nF"><b>🚗 Hinfahren</b><small>Fahrt startet</small></button><button class="tile" id="nN"><b>Nur anlegen</b><small>später</small></button></div>`);
  $('#nS').onclick=()=>{closeDlg();showView('vMain');startOrder(o.id);};
@@ -878,11 +986,12 @@ function editOrder(id){
  const o=S.orders.find(x=>x.id===id),used=Object.values(S.days).some(d=>d.entries.some(e=>e.o===id));
  dlg(`<h3>Auftrag bearbeiten</h3><label>Auftrags-Nr.<input id="eNr" inputmode="numeric" value="${esc(o.nr)}"></label>
  <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label><label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
+ <label class="chk"><input type="checkbox" id="eInt"${o.int?' checked':''}> interner Auftrag (Betriebsarbeiten, Büro …)</label>
  <label class="chk"><input type="checkbox" id="eAr"${o.arch?' checked':''}> archiviert (abgeschlossen)</label>
  <div class="btns">${used?'':'<button class="btn danger" id="eDel">Löschen</button>'}<button class="btn" data-x>Abbrechen</button><button class="btn pri" id="eOk">Speichern</button></div>`);
  if(!used)$('#eDel').onclick=()=>{S.orders=S.orders.filter(x=>x!==o);save();closeDlg();render();renderOrders();};
  $('#eOk').onclick=()=>{const nr=normNr($('#eNr').value),ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
-  o.nr=nr;o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;save();closeDlg();render();renderOrders();};
+  o.nr=nr;o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;o.int=$('#eInt').checked;save();closeDlg();render();renderOrders();};
 }
 
 /* ---------- Einträge & Tag bearbeiten ---------- */
@@ -896,8 +1005,9 @@ function editEntry(k,id){
  <label>Tätigkeit (nicht im Stundenbuch)<textarea id="fTa">${esc(ent&&ent.taet||'')}</textarea></label>
  <div class="row"><label>Von<input type="time" id="fS" value="${ent&&!man?hm(ent.s):''}"></label><label>Bis<input type="time" id="fE" value="${ent&&!man&&ent.e?hm(ent.e):''}"></label></div>
  <label>oder Stunden direkt<input id="fH" inputmode="decimal" placeholder="z. B. 1,5" value="${man?fmtH(ent.h):''}"></label>
+ ${marks().length?`<label>Kennzeichen<select id="fMk"><option value="">–</option>${marks().map(m=>`<option${ent&&ent.mk===m.k?' selected':''}>${esc(m.k)}</option>`).join('')}</select></label>`:''}
  <div class="btns">${ent?'<button class="btn danger" id="fDel">Löschen</button>':''}<button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">Speichern</button></div>`);
- if(ent)$('#fDel').onclick=()=>{if(!confirm('Eintrag löschen?'))return;d.entries=d.entries.filter(x=>x!==ent);save();closeDlg();render();};
+ if(ent)$('#fDel').onclick=()=>{if(!confirm('Eintrag löschen?'))return;closeDlg();commitSealed(k,()=>{d.entries=d.entries.filter(x=>x!==ent);save();render();});};
  $('#fOk').onclick=()=>{
   const o=$('#fO').value;if(!o)return toast('Auftrag wählen');
   const info=$('#fI').value.trim(),taet=$('#fTa').value.trim(),hv=$('#fH').value.trim().replace(',','.');let ne;
@@ -905,8 +1015,9 @@ function editEntry(k,id){
   else{const s=tsOf(k,$('#fS').value);if(!s)return toast('Von-Zeit fehlt (oder Stunden angeben)');
    const e=tsOf(k,$('#fE').value);if(e&&e<s)return toast('Bis liegt vor Von');
    const oe=openEntry(d);if(!e&&(k!==dkey()||(oe&&oe!==ent)))return toast('Bis-Zeit fehlt');ne={o,info,taet,s,e,h:null};}
-  if(ent)Object.assign(ent,ne);else d.entries.push(Object.assign({id:uid()},ne));
-  d.entries.sort((a,b)=>(a.s||0)-(b.s||0));save();closeDlg();render();
+  if($('#fMk'))ne.mk=$('#fMk').value||undefined;
+  closeDlg();commitSealed(k,()=>{if(ent)Object.assign(ent,ne);else d.entries.push(Object.assign({id:uid()},ne));
+  d.entries.sort((a,b)=>(a.s||0)-(b.s||0));save();render();});
  };
 }
 function editDay(k){
@@ -915,6 +1026,7 @@ function editDay(k){
  <label>Tagesart<select id="fT"><option value="">Arbeitstag</option>${Object.keys(TYP).map(t=>`<option value="${t}"${d.type===t?' selected':''}>${TYP[t]}</option>`).join('')}</select></label>
  <div class="row"><label>Kommen<input type="time" id="fK" value="${hm(d.kommen)}"></label><label>Gehen<input type="time" id="fG" value="${hm(d.gehen)}"></label></div>
  ${(()=>{const ids=[...new Set(d.entries.map(e=>e.o))];if(d.otO&&!ids.includes(d.otO))ids.push(d.otO);return ids.length?`<label>Überstunden ausweisen auf<select id="fOt"><option value="">– keine (Normal)</option>${ids.map(id=>`<option value="${id}"${d.otOk&&d.otO===id?' selected':''}>${esc(order(id).nr)} ${esc(order(id).kunde)}</option>`).join('')}</select></label>`:'';})()}
+ ${d.kommen||d.entries.length?`<label class="chk"><input type="checkbox" id="fNoA"${d.noAusg?'':' checked'}> Zeit unter Soll als „Ausgleich aus Überstunden“ ausweisen</label>`:''}
  <label>Pausen (von – bis)</label><div id="pl"></div><button class="btn" id="pAdd">+ Pause</button>
  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">Speichern</button></div>`);
  const draw=()=>{$('#pl').innerHTML=P.map((p,i)=>`<div class="row" style="margin:6px 0"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button class="btn" data-rm="${i}" style="flex:0 0 56px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
@@ -925,7 +1037,9 @@ function editDay(k){
  $('#fOk').onclick=()=>{
   const K=tsOf(k,$('#fK').value),G=tsOf(k,$('#fG').value);if(K&&G&&G<K)return toast('Gehen liegt vor Kommen');
   const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');np.push({s,e});}
-  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=$('#fT').value||undefined;if($('#fOt')){const v=$('#fOt').value;if(v){d.otOk=1;d.otO=v;}else{delete d.otO;}}save();closeDlg();render();
+  const ty=$('#fT').value||undefined,ov=$('#fOt')?$('#fOt').value:null,na=$('#fNoA')?!$('#fNoA').checked:d.noAusg;closeDlg();
+  commitSealed(k,()=>{d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=ty;if(ov!==null){if(ov){d.otOk=1;d.otO=ov;}else{delete d.otO;}}if(na)d.noAusg=true;else delete d.noAusg;
+   if(!d.seal&&k<dkey()&&(d.gehen||d.type))seal(k);save();render();});
  };
 }
 
@@ -956,13 +1070,13 @@ function renderPlan(){
  const y=+sel.value,ru=resturlaub();
  const used=Object.keys(S.days).filter(k=>k.startsWith(y+'-')).reduce((a,k)=>a+urlUse(k),0);
  $('#plKonto').innerHTML=`Urlaub ${y} eingetragen: <b>${fmtH(used)} Tage</b>`+(y===y0&&ru?` · Resturlaub: <b>${fmtH(ru.r)} Tage</b>`:'')+(y>y0?` · im neuen Jahr kommen ${S.settings.urlYear} Tage dazu`:'')+
-  `<br>RV Fit: ${yearCount(y,'rvfit')} · Bildungsurlaub: ${yearCount(y,'bildung')} · Krank: ${yearCount(y,'krank')}`;
+  `<br>${tyLabel('rvfit')}: <b>${yearCount(y,'rvfit')}</b><br>${tyLabel('bildung',y+'-12-31')}: <b>${yearCount(y,'bildung')}</b><br>Krank: ${yearCount(y,'krank')}`;
  const sg=suggestions(y,+$('#plMax').value);
  $('#plSug').innerHTML=sg.map((r,i)=>{const hs=[];for(let k=r.a;k<=r.b;k=addD(k,1))if(holidayOf(k)&&!hs.includes(holidayOf(k)))hs.push(holidayOf(k));
   return `<div class="it"><div style="min-width:0"><b>${fmtR(r.a,r.b)}</b><div class="mut" style="font-size:.8rem">${fmtH(r.cost)} Urlaubstag${r.cost===1?'':'e'} → <b>${r.len} Tage frei</b>${hs.length?' · '+esc(hs.join(', ')):''}<br>Urlaub: ${fmtR(r.from,r.to)}</div></div><button class="btn" data-sg="${i}">Eintragen</button></div>`;}).join('')||'<div class="mut">Keine Vorschläge im Rest des Jahres.</div>';
  $('#plSug').onclick=e=>{const b=e.target.closest('[data-sg]');if(!b)return;const r=sg[+b.dataset.sg];const x=setRangeType(r.from,r.to,'urlaub');toast(fmtH(x.c)+' Urlaubstage eingetragen');renderPlan();render();};
  const rg=absRanges(y);
- $('#plList').innerHTML=rg.map((r,i)=>`<div class="it"><div style="min-width:0"><b>${TYP[r.t]}</b> · ${fmtR(r.a,r.b)}<div class="mut" style="font-size:.8rem">${r.n} Werktag${r.n===1?'':'e'}${r.c?` · ${fmtH(r.c)} Urlaubstage`:''}${r.b<dkey()?' · vergangen':''}</div></div><button class="btn danger" data-rm="${i}">✕</button></div>`).join('')||'<div class="mut">Nichts eingetragen.</div>';
+ $('#plList').innerHTML=rg.map((r,i)=>`<div class="it"><div style="min-width:0"><b>${esc(tyLabel(r.t,r.a))}</b> · ${fmtR(r.a,r.b)}<div class="mut" style="font-size:.8rem">${r.n} Werktag${r.n===1?'':'e'}${r.c?` · ${fmtH(r.c)} Urlaubstage`:''}${r.b<dkey()?' · vergangen':''}</div></div><button class="btn danger" data-rm="${i}">✕</button></div>`).join('')||'<div class="mut">Nichts eingetragen.</div>';
  $('#plList').onclick=e=>{const b=e.target.closest('[data-rm]');if(!b)return;const r=rg[+b.dataset.rm];if(!confirm(TYP[r.t]+' '+fmtR(r.a,r.b)+' entfernen?'))return;
   for(let k=r.a;k<=r.b;k=addD(k,1))if(S.days[k]&&S.days[k].type===r.t){delete S.days[k].type;const d=S.days[k];if(!d.kommen&&!d.entries.length&&!d.pausen.length)delete S.days[k];}save();renderPlan();render();};
  calcPlan();
@@ -977,33 +1091,38 @@ function monday(off){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate
 function setRange(off){const m=monday(off),e=new Date(m);e.setDate(m.getDate()+6);$('#pFrom').value=dkey(m);$('#pTo').value=dkey(e);renderPrint();}
 function printHtml(){
  const from=$('#pFrom').value,to=$('#pTo').value,show=$('#pStamp').checked;if(!from||!to)return '';
- let h='',sum=0,n=0,soll=0,sOt=0;
+ let h='',sum=0,n=0,soll=0,sOt=0,sAu=0;
  const monthEnd=k=>{const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);return n.getDate()===1;};
- const mBlock=k=>{const ob=otBalance(k),ur=urlAt(k);if(ob==null&&ur==null)return '';const m=new Date(k+'T12:00');
+ const mBlock=k=>{const ob=otBalance(k),ur=urlAt(k),m=new Date(k+'T12:00'),ym=k.slice(0,8);let ot=0,au=0,ch=0;const mk={};
+  Object.keys(S.days).forEach(x=>{if(!x.startsWith(ym))return;const sm=summary(x);const dd=S.days[x];ch+=(dd.log||[]).length;if(!sm)return;if(counts(x))ot+=Math.max(0,sm.total-sollOf(x));au+=sm.ausg||0;
+   marks().forEach(q=>{const v=(sm.mk&&sm.mk[q.k]||0)+(sm.otmk&&sm.otmk[q.k]||0);if(v)mk[q.k]=(mk[q.k]||0)+v;});});
+  const tr=(a,b)=>`<tr><td colspan="3">${a}</td><td class="r">${b}</td></tr>`;
   return `<section class="pday"><div class="phead"><span>Monatsabschluss ${MON[m.getMonth()]} ${m.getFullYear()}</span><span>${dDate(k)}</span></div><table><tbody>`+
-   (ob!=null?`<tr><td colspan="3">Überstunden-Stand</td><td class="r">${fmtSig(ob)}</td></tr>`:'')+(ur!=null?`<tr><td colspan="3">Resturlaub (Tage)</td><td class="r">${fmtH(ur)}</td></tr>`:'')+`</tbody></table></section>`;};
+   (ot?tr('Überstunden im Monat','+'+fmtH(ot)):'')+(au?tr('Ausgleich aus Überstunden','−'+fmtH(au)):'')+(ob!=null?tr('Überstunden-Stand',fmtSig(ob)):'')+
+   Object.keys(mk).map(q=>tr(esc(q)+'-Stunden im Monat',fmtH(mk[q]))).join('')+(ur!=null?tr('Resturlaub (Tage)',fmtH(ur)):'')+
+   (ch?tr('Nachträgliche Änderungen (protokolliert)',ch):'')+tr('Prüfcode',monthCode(ym))+`</tbody></table></section>`;};
  for(const dt=new Date(from+'T12:00');dkey(dt)<=to;dt.setDate(dt.getDate()+1)){
   const k=dkey(dt),sm=summary(k),ty=typeOf(k),w=dt.getDay(),hol=holidayOf(k)&&w>0&&w<6?holidayOf(k):'';
   if(!sm&&!ty&&!hol){if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
-  if(!sm&&ty&&ABS.includes(ty)){ // Abwesenheit als Block von–bis, ohne Stunden
+  if(!sm&&ty&&ABS.includes(ty)&&ty!=='gleit'){ // Abwesenheit als Block von–bis, ohne Stunden
    let end=k,x=addD(k,1);while(x<=to){if(typeOf(x)===ty&&!summary(x)){end=x;x=addD(x,1);continue;}if(isFree(x)&&!typeOf(x)&&!summary(x)){x=addD(x,1);continue;}break;}
    let wd=0;for(let z=k;z<=end;z=addD(z,1))if(typeOf(z)===ty)wd++;n++;
-   h+=`<section class="pday"><div class="phead"><span>${esc(TYP[ty])}</span><span>${end===k?dDate(k):dDate(k).slice(0,6)+'–'+dDate(end)}</span></div><table><tbody><tr><td colspan="3">${wd} Werktag${wd===1?'':'e'}</td><td class="r"></td></tr></tbody></table></section>`;
+   h+=`<section class="pday"><div class="phead"><span>${esc(tyLabel(ty,k))}</span><span>${end===k?dDate(k):dDate(k).slice(0,6)+'–'+dDate(end)}</span></div><table><tbody><tr><td colspan="3">${wd} Werktag${wd===1?'':'e'}</td><td class="r"></td></tr></tbody></table></section>`;
    let z=k;while(z<end){z=addD(z,1);if(monthEnd(addD(z,-1))&&addD(z,-1)<=dkey())h+=mBlock(addD(z,-1));}
    if(monthEnd(end)&&end<=dkey())h+=mBlock(end);
    dt.setTime(new Date(end+'T12:00').getTime());continue;}
-  const dd=S.days[k];n++;sum+=sm?sm.total:0;sOt+=sm&&sm.ot||0;if(counts(k))soll+=sollOf(k);
-  const lab=ty?TYP[ty]:hol?'Feiertag – '+hol:'';
+  const dd=S.days[k];n++;sum+=sm?sm.total:0;sOt+=sm&&sm.ot||0;sAu+=sm&&sm.ausg||0;if(counts(k))soll+=sollOf(k);
+  const lab=ty?tyLabel(ty,k):hol?'Feiertag – '+hol:'';
   h+=`<section class="pday"><div class="phead"><span>${WD[w]}${lab&&sm?' · '+esc(lab):''}</span><span>${dDate(k)}</span></div>`;
   if(!sm){h+=`<table><tbody><tr><td colspan="3">${esc(lab)}</td><td class="r"></td></tr></tbody></table></section>`;if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
   if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'}</div>`;
   h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
-   sm.rows.map(r=>{const o=order(r.o);return `<tr><td>${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td class="inf">${esc(r.info)}</td><td class="r">${hTxt(r)}</td></tr>`;}).join('')+
-   `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${totTxt(sm)}</td></tr></tfoot></table></section>`;
+   printRows(sm).map(r=>{const o=order(r.o);return `<tr><td>${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td class="inf">${esc(r.info)}</td><td class="r">${wb(hTxt(r))}</td></tr>`;}).join('')+
+   `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${wb(totTxt(sm))}</td></tr></tfoot></table></section>`;
   if(monthEnd(k)&&k<=dkey())h+=mBlock(k);
  }
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
- return head+(n?h+`<div class="psum">Summe: ${fmtH(sum)} h${sOt?` (davon ${fmtH(sOt)} Ü)`:''}${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+ return head+(n?h+`<div class="psum">Summe: ${fmtH(sum+sAu)} h${sOt||sAu?` (davon ${[sOt?fmtH(sOt)+' Ü':'',sAu?fmtH(sAu)+' Ausgleich':''].filter(Boolean).join(', ')})`:''}${soll?` · Soll ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
 const PAGE={A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
 function applyPaper(){const p=S.settings.paper||'A6';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className='pdoc p-'+p;}
@@ -1019,8 +1138,11 @@ function renderBackup(){
 }
 const SETF=[['sName','name','t'],['sPre','prefix','t'],['sSoll','soll','h'],['sSollFr','sollFr','h'],['sFr','fruehstueck','i'],['sMi','mittag','i'],['sRMode','roundMode','t'],['sRnd','round','i'],
  ['sFillNr','fillNr','nr'],['sFill','fill','b'],['sHol','holidays','b'],['sOtS','otStart','h'],['sOtD','otDate','t'],['sUS','urlStart','h'],['sUD','urlDate','t'],['sUJ','urlYear','i'],
- ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i']];
-function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});}
+ ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i'],['sAusgNr','ausgNr','nr'],['sLock','lockMin','i']];
+function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});
+ const open=!locked(2)||level()>=2;document.querySelectorAll('#vSet .adm').forEach(c=>c.style.display=open?'':'none');$('#admLock').style.display=open?'none':'';
+ $('#pinInfo').innerHTML=`Büro-PIN: <b>${S.settings.pinB?'gesetzt':'keine (offen)'}</b> · Admin-PIN: <b>${S.settings.pinA?'gesetzt':'keine (offen)'}</b>`;
+ $('#mkList').innerHTML=marks().map((m,i)=>`<div class="row" style="align-items:flex-end"><label style="flex:0 0 70px">Symbol<input data-mi="${i}" data-mf="ic" value="${esc(m.ic||'')}"></label><label style="flex:0 0 90px">Kürzel<input data-mi="${i}" data-mf="k" value="${esc(m.k)}"></label><label>Bezeichnung<input data-mi="${i}" data-mf="n" value="${esc(m.n||'')}"></label><label style="flex:0 0 120px">Gutschein ab h<input data-mi="${i}" data-mf="goal" inputmode="decimal" value="${fmtH(+m.goal||0)}"></label><button class="btn danger" data-mrm="${i}" style="flex:0 0 52px">✕</button></div>`).join('')||'<div class="mut">Keine Kennzeichen.</div>';}
 function bindSet(){SETF.forEach(([id,key,ty])=>{$('#'+id).onchange=()=>{const el=$('#'+id);let v;
  if(ty==='b')v=el.checked;else if(ty==='h'){v=parseFloat(el.value.replace(',','.').replace('−','-'));if(isNaN(v))return renderSet();}
  else if(ty==='i'){v=parseInt(el.value);if(isNaN(v)||v<0)return renderSet();}else if(ty==='nr')v=normNr(el.value);else v=el.value.trim();
@@ -1030,7 +1152,7 @@ function renderInfo(){
  const ua=navigator.userAgent,cv=(ua.match(/Chrome\/([\d.]+)/)||[])[1]||'?';
  $('#infoBox').innerHTML=`<h2>Stundenbuch</h2><p style="margin:0 0 10px">Version <b>${VERSION}</b> · © 2026 grauman</p>
  <p class="mut" style="font-size:.85rem;margin:0 0 10px">Browser: Chrome ${esc(cv)}<br>${esc(ua)}</p>
- <h2>Bedienung kurz</h2><p style="font-size:.9rem;margin:0 0 10px">Auftrag antippen = Arbeit startet. 🚗 Fahrt: Ziel wählen, bei Ankunft „Angekommen“. Beim Kunden zeigt 📝 Zettel die Zeit inkl. Rückfahrt (Hinfahrt + Puffer). Fertig: 🚗 → Firma (Rückfahrt fest wie Zettel) oder nächster Kunde (Fahrzeit wird geteilt). Überstunden: Auftrag wird bei Wechsel abgefragt, im Buch „8,25+2Ü“. ☕ Pause endet automatisch mit Ton, danach läuft Betriebsarbeiten.</p>
+ <h2>Bedienung kurz</h2><p style="font-size:.9rem;margin:0 0 10px">Auftrag antippen = Arbeit startet. 🚗 Fahrt: Ziel wählen, bei Ankunft „Angekommen“. Beim Kunden zeigt 📝 Zettel die Zeit inkl. Rückfahrt (Hinfahrt + Puffer). Fertig: 🚗 → Firma (Rückfahrt fest wie Zettel) oder nächster Kunde (Fahrzeit wird geteilt). Überstunden: Auftrag wird bei Wechsel abgefragt, im Buch „8,25+2Ü“. ✎ Info: Kennzeichen AW/KSB starten/beenden („3+2AW“). Unter Soll: Zeile „Ausgleich aus Überstunden“. Abgeschlossene Tage sind versiegelt – Änderungen nur mit Grund (Büro-PIN). ☕ Pause endet automatisch mit Ton, danach läuft Betriebsarbeiten.</p>
  <h2>Fehlerprotokoll</h2>${ERR.length?'<pre style="white-space:pre-wrap;font-size:.75rem">'+esc(ERR.join('\n'))+'</pre>':'<p class="mut">Keine Fehler seit dem Start.</p>'}`;
 }
 
@@ -1038,7 +1160,7 @@ function renderInfo(){
 $('#bK').onclick=()=>guardAbs(doKommen);$('#bG').onclick=doGehen;$('#bP').onclick=doPause;$('#bI').onclick=doInfo;$('#bF').onclick=()=>guardAbs(doFahrt);
 $('#pbGo').onclick=()=>endPause();$('#dbGo').onclick=arrive;
 $('#bMenu').onclick=openMenu;$('#bClose').onclick=closeMenu;$('#shade').onclick=closeMenu;
-$('#drawer').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;if(b.dataset.v==='day'){closeMenu();editDay($('#dSel').value||dkey());}else showView(b.dataset.v);};
+$('#drawer').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;if(b.dataset.v==='day'){closeMenu();gate(1,()=>editDay($('#dSel').value||dkey()));}else showView(b.dataset.v);};
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{showView('vMain');render();});
 $('#q').oninput=renderTiles;
 $('#tiles').onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -1047,10 +1169,10 @@ $('#tiles').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('#dSel').onchange=renderDay;
 $('#dTog').onclick=()=>{S.ui.dayOpen=!S.ui.dayOpen;save();renderDay();};
 $('#dayList').onclick=e=>{const k=$('#dSel').value||dkey(),g=e.target.closest('[data-g]'),it=e.target.closest('[data-e]');
- if(g){const key=k+g.dataset.g;OPEN.has(key)?OPEN.delete(key):OPEN.add(key);renderDay();}else if(it)editEntry(k,it.dataset.e);};
-$('#bFill').onclick=()=>fillGap($('#dSel').value||dkey());
-$('#bAddE').onclick=()=>editEntry($('#dSel').value||dkey(),null);
-$('#bEditDay').onclick=()=>editDay($('#dSel').value||dkey());
+ if(g){const key=k+g.dataset.g;OPEN.has(key)?OPEN.delete(key):OPEN.add(key);renderDay();}else if(it)gate(1,()=>editEntry(k,it.dataset.e));};
+$('#bFill').onclick=()=>gate(1,()=>{const k=$('#dSel').value||dkey();commitSealed(k,()=>fillGap(k));});
+$('#bAddE').onclick=()=>gate(1,()=>editEntry($('#dSel').value||dkey(),null));
+$('#bEditDay').onclick=()=>gate(1,()=>editDay($('#dSel').value||dkey()));
 $('#bAddO').onclick=addOrder;
 $('#showArch').onchange=renderOrders;
 $('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)editOrder(b.dataset.ed);};
@@ -1064,7 +1186,7 @@ $('#bExp').onclick=async()=>{await backup();renderBackup();};
 $('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};
 $('#bPw').onclick=setPw;
 $('#bPwOff').onclick=()=>{if(!confirm('Verschlüsselung ausschalten? Neue Sicherungen sind dann lesbar.'))return;delete S.settings.bkPw;save();renderBackup();};
-$('#bImp').onclick=()=>$('#fImp').click();
+$('#bImp').onclick=()=>gate(2,()=>$('#fImp').click());
 $('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{let n;try{n=JSON.parse(r.result);}catch(x){return toast('Datei ungültig',null,true);}
   const apply=n=>{if(!n.orders||!n.days)return toast('Datei ungültig',null,true);if(!confirm('Alle aktuellen Daten durch die Sicherung ersetzen?'))return;
@@ -1074,23 +1196,29 @@ $('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileR
   $('#pDo').onclick=async()=>{const pw=$('#pD').value;try{const t=await decryptText(n,pw);closeDlg();apply(JSON.parse(t));if(!S.settings.bkPw){S.settings.bkPw=pw;save();renderBackup();}}catch(x){toast('Falsches Passwort',null,true);}};};
  r.readAsText(f);e.target.value='';};
 $('#bCsv').onclick=()=>{if(S.settings.bkPw&&!confirm('CSV-Dateien sind NICHT verschlüsselt. Trotzdem exportieren?'))return;
- const q=c=>'"'+String(c).replace(/"/g,'""')+'"',L=['Datum;Tag;Auftrag;Kunde;Info;Stunden;davon Überstunden'];
- Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;sm.rows.forEach(r=>{const o=order(r.o);L.push([dDate(k),WD[wdOf(k)],o.nr,o.kunde,r.infos.join(' / '),fmtH(r.h),r.ot?fmtH(r.ot):''].map(q).join(';'));});});
+ const q=c=>'"'+String(c).replace(/"/g,'""')+'"',L=['Datum;Tag;Auftrag;Kunde;Info;Stunden;Stundenbuch'];
+ Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;printRows(sm).forEach(r=>{const o=order(r.o);L.push([dDate(k),WD[wdOf(k)],o.nr,o.kunde,(r.infos||[]).join(' / '),fmtH(r.h),hTxt(r)].map(q).join(';'));});});
  download('stundenbuch-'+dkey()+'.csv','﻿'+L.join('\r\n'),'text/csv');
  const T=['Datum;Auftrag;Kunde;Von;Bis;Art;Info;Tätigkeit'];
  Object.keys(S.days).sort().forEach(k=>S.days[k].entries.forEach(e=>{if(!e.taet&&e.kind!=='fahrt')return;const o=order(e.o);T.push([dDate(k),o.nr,o.kunde,e.s?hm(e.s):'',e.e?hm(e.e):'',e.kind==='fahrt'?'Fahrt':'Arbeit',e.info||'',e.taet||''].map(q).join(';'));}));
  if(T.length>1)setTimeout(()=>download('taetigkeiten-'+dkey()+'.csv','﻿'+T.join('\r\n'),'text/csv'),800);};
 bindSet();
-$('#bReset').onclick=()=>{
+$('#bAdm').onclick=()=>gate(2,renderSet);$('#bPinB').onclick=()=>setPin('pinB');$('#bPinA').onclick=()=>setPin('pinA');
+$('#mkList').onchange=e=>{const i=e.target.dataset.mi,f=e.target.dataset.mf;if(i==null)return;const m=S.settings.marks[+i];let v=e.target.value.trim();
+ if(f==='goal'){v=parseFloat(v.replace(',','.'));if(isNaN(v)||v<0)v=0;}if(f==='k'){v=v.toUpperCase().replace(/[^A-ZÄÖÜ0-9]/g,'');if(!v)return renderSet();}m[f]=v;save();renderSet();};
+$('#mkList').onclick=e=>{const b=e.target.closest('[data-mrm]');if(!b)return;const m=S.settings.marks[+b.dataset.mrm];if(!confirm('Kennzeichen '+m.k+' entfernen? Bereits gebuchte Zeiten bleiben als normale Zeit.'))return;S.settings.marks.splice(+b.dataset.mrm,1);save();renderSet();};
+$('#bMkAdd').onclick=()=>{S.settings.marks=S.settings.marks||[];S.settings.marks.push({k:'NEU',n:'',ic:'🏷',goal:0,since:'',carry:0});save();renderSet();};
+$('#bReset').onclick=()=>gate(2,()=>{
  dlg(`<h3>Wirklich alles löschen?</h3><p style="margin:0 0 8px">Alle Aufträge, Zeiten, Urlaube und Konten auf diesem Gerät werden gelöscht. Das lässt sich nicht rückgängig machen – außer mit einer vorher gespeicherten Sicherung.</p>
  <label>Zur Bestätigung <b>LÖSCHEN</b> eintippen<input id="rsC" autocomplete="off"></label>
  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn danger" id="rsGo">Endgültig löschen</button></div>`);
  $('#rsGo').onclick=()=>{if($('#rsC').value.trim().toUpperCase()!=='LÖSCHEN')return toast('Bitte LÖSCHEN eintippen');
   const keep=$('#rsKeep').checked,old=S.settings,n=defaults();
-  if(keep){['name','prefix','round','stamp','soll','sollFr','fruehstueck','mittag','autoBackup','paper','fill','fillNr','remind','archDays','keepDays','roundMode','sound','holidays','urlYear'].forEach(k=>{if(k in old)n.settings[k]=old[k];});
+  if(keep){Object.keys(old).forEach(k=>{if(!['otStart','otDate','urlStart','urlDate','yearAsked'].includes(k))n.settings[k]=old[k];});
+   (n.settings.marks||[]).forEach(m=>{m.since='';m.carry=0;});
    const pre=n.settings.prefix;n.orders.forEach((o,i)=>{o.nr=pre+(i?'0004':'0003');});}
   S=n;save();closeDlg();OPEN.clear();$('#q').value='';showView('vMain');render();toast('Alles zurückgesetzt – viel Erfolg mit dem echten Start!');};
-};
+});
 $('#plY').onchange=renderPlan;$('#plMax').onchange=renderPlan;$('#plA').onchange=()=>{if(!$('#plB').value||$('#plB').value<$('#plA').value)$('#plB').value=$('#plA').value;calcPlan();};$('#plB').onchange=calcPlan;$('#plT').onchange=calcPlan;
 $('#plAdd').onclick=()=>{const a=$('#plA').value,b=$('#plB').value||a;if(!a||b<a)return toast('Zeitraum prüfen');const t=$('#plT').value;const x=setRangeType(a,b,t);
  toast(TYP[t]+': '+x.n+' Werktag'+(x.n===1?'':'e')+' eingetragen'+(t==='urlaub'?' ('+fmtH(x.c)+' Urlaubstage)':''));$('#plA').value=$('#plB').value='';renderPlan();render();};
@@ -1101,10 +1229,10 @@ $('#priv').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagati
 /* ---------- Start ---------- */
 $('#foot').textContent='Stundenbuch v'+VERSION+' · © 2026 grauman';
 $('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A6';
-S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);});save();
-setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);
+S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);if(o.int===undefined)o.int=!!o.fav&&/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;});sealAll();save();
+setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);
 let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();checkPauseRemind();checkPriv();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();sealAll();checkSeals();
  const p=openPause(today());if(p&&p.plan&&S.settings.awake)keepAwake(true);}});
 if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – ☰ → Sicherung'),800);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});

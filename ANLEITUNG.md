@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.3.0)
+# Stundenbuch – Einrichtung (v1.4.0)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -94,3 +94,12 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - **Feiertage Niedersachsen** werden automatisch berücksichtigt, 24.12./31.12. sind halbe Tage.
 - **Konten:** Unter Einstellungen einmal Überstunden- und Resturlaub-Startwert mit Datum eintragen. Am 1.1. kommen die Jahres-Urlaubstage dazu.
 - **Ausdruck:** A6 mit 20 mm Lochrand (Heftstreifen), eine Zeile pro Auftrag.
+
+## 6. Neu in v1.4.0
+
+- **Kennzeichen AW / KSB:** ✎ Info → „AW starten/beenden“. Im Buch „3+2AW“, mit Überstunden „4+2Ü(2AW)“. Zähler im Menü, Gutschein-Schwelle im Admin-Bereich.
+- **Ausgleich aus Überstunden:** Tag unter Soll → Zeile „21260008 Ausgleich aus Überstunden“, Tagessumme = Soll. Ganzer Tag aus Überstunden genauso. Abschaltbar je Tag in „Tag bearbeiten“.
+- **Siegel:** Bei „Gehen“ wird der Tag versiegelt. Spätere Änderungen nur mit Grund, sie stehen im Tag und im Monatsabschluss. Ungeklärte Änderungen meldet die App beim Start. Der Monatsabschluss trägt einen Prüfcode.
+- **Zugang:** Einstellungen → Zugang: Büro-PIN (Tage bearbeiten) und Admin-PIN (Einstellungen, Sicherung laden, Zurücksetzen). Ohne PIN offen.
+- **Interne Aufträge** per Haken beim Auftrag, nicht mehr über die Nummer.
+- **Display:** Die App kann das Display nicht abschalten → Android: Display → Ruhezustand 2–5 Minuten.
