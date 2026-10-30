@@ -117,7 +117,8 @@ main{padding:16px;max-width:1000px;margin:0 auto}
 }
 /* Sichtschutz */
 #priv{position:fixed;inset:0;background:#000;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#666;cursor:pointer}
-#priv.on{display:flex}#privMsg{font-size:1.6rem;font-weight:800;color:#f59e0b;text-align:center;padding:0 20px}#privClock{font-size:1rem;font-variant-numeric:tabular-nums}
+#priv.on{display:flex}#privMsg{font-size:min(7vw,7vh);font-weight:800;color:#f59e0b;text-align:center;padding:0 20px}#privMsg:empty{display:none}#privClock{font-size:min(30vw,36vh);font-weight:800;line-height:1;letter-spacing:-.03em;color:#5a5f68;font-variant-numeric:tabular-nums}#privNext{font-size:min(8vw,8vh);font-weight:700;color:#80868f;font-variant-numeric:tabular-nums;text-align:center}#privNext:empty{display:none}
+#zettel{font-size:.95rem;font-weight:700;color:var(--drive);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#zettel:empty{display:none}#zettel small{font-weight:500;color:var(--mut)}
 /* Menü */
 #shade{position:fixed;inset:0;background:#0009;z-index:30;display:none}#shade.on{display:block}
 #drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,88vw);background:var(--card);border-left:2px solid var(--line);z-index:31;padding:16px;display:flex;flex-direction:column;gap:8px;transform:translateX(105%);transition:transform .2s;overflow-y:auto}
@@ -170,7 +171,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <body>
 <header>
  <div class="hrow">
-  <div style="min-width:0"><span class="pill" id="pill"><i></i><span id="pillT">Nicht eingestempelt</span></span><div id="cur"></div><div id="state"></div></div>
+  <div style="min-width:0"><span class="pill" id="pill"><i></i><span id="pillT">Nicht eingestempelt</span></span><div id="cur"></div><div id="state"></div><div id="zettel"></div></div>
   <div id="timer"></div>
   <button id="bP">☕ Pause</button>
   <button id="bMenu" aria-label="Menü">☰</button>
@@ -226,7 +227,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card">
   <div class="row"><label>Von<input type="date" id="pFrom"></label><label>Bis<input type="date" id="pTo"></label></div>
   <label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch, 20 mm Lochrand)</option><option value="A5">A5</option><option value="A4">A4</option></select></label>
-  <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen / Pausen mitdrucken</label>
+  <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen mitdrucken</label>
   <div class="btns"><button class="btn" id="bWeek">Diese Woche</button><button class="btn" id="bLastWeek">Letzte Woche</button><button class="btn pri" id="bPrint">🖨 Drucken / PDF</button></div>
  </div>
  <div class="pdoc" id="pPrev"></div>
@@ -281,6 +282,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Rundungsart<select id="sRMode"><option value="bal">Aufträge aufrunden, Ausgleich über Betriebsarbeiten</option><option value="up">Je Auftrag aufrunden (Summe kann höher sein)</option><option value="dist">Tagessumme runden und verteilen</option></select></label>
   <label>Rundungseinheit<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
   <label>Betriebsarbeiten-Auftrag (Ausgleich, Auffüllen, nach Pause)<input id="sFillNr" inputmode="numeric"></label>
+  <label>Puffer Rückfahrt (min) – kommt auf die Hinfahrtdauer, ergibt die feste Rückfahrt für Zettel und Stundenbuch<input id="sRPuf" inputmode="numeric"></label>
   <label class="chk"><input type="checkbox" id="sFill"> Bei „Gehen“ nicht zugeordnete Zeit auf Betriebsarbeiten buchen</label>
   <label class="chk"><input type="checkbox" id="sHol"> Feiertage Niedersachsen automatisch, 24.12./31.12. halbe Tage</label>
  </div>
@@ -314,7 +316,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 </section>
 </main>
 
-<div id="priv"><div id="privMsg"></div><div id="privClock"></div></div>
+<div id="priv"><div id="privMsg"></div><div id="privClock"></div><div id="privNext"></div></div>
 <div id="shade"></div>
 <nav id="drawer">
  <div class="dh"><b>Menü</b><button class="btn" id="bClose" style="min-height:48px;width:48px;padding:0">✕</button></div>
@@ -336,7 +338,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.2.0';
+const VERSION='1.3.0';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -365,7 +367,7 @@ function defaults(){return{v:1,orders:[
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
   otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
-  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1},lastBackup:null};}
+  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,rPuf:15},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};
@@ -416,10 +418,18 @@ const MON=['Januar','Februar','März','April','Mai','Juni','Juli','August','Sept
 function yearCount(y,t){let n=(S.yStats[y]&&S.yStats[y][t])||0;Object.keys(S.days).forEach(k=>{if(k.startsWith(y+'-')&&typeOf(k)===t)n++;});return n;}
 
 /* ---------- Tageszusammenfassung: eine Zeile pro Auftrag ---------- */
-function summary(k){
+function summary(k){const sm=summaryBase(k);return sm?otSplit(k,sm):sm;}
+function summaryBase(k){
  const d=S.days[k];if(!d||!d.entries.length)return null;
- const m=new Map();
+ const m=new Map(),bnr=normNr(S.settings.fillNr||'21260003');
  d.entries.forEach(e=>{const r=m.get(e.o)||{o:e.o,infos:[],min:0};r.min+=emin(e);if(e.kind!=='fahrt'&&e.info&&!r.infos.includes(e.info))r.infos.push(e.info);m.set(e.o,r);});
+ // feste Rückfahrt (Zettel): Differenz geplant/echt über Betriebsarbeiten
+ let short=0;
+ d.entries.forEach(e=>{if(!e.adj||!e.e)return;const rc=m.get(e.o);if(!rc)return;let rb=[...m.values()].find(r=>order(r.o).nr===bnr);
+  if(e.adj>0){const x=Math.min(e.adj,rb?Math.max(0,rb.min):0);rc.min+=x;if(rb)rb.min-=x;short+=e.adj-x;}
+  else{if(!rb){const b=balOrder();rb={o:b.id,infos:[],min:0};m.set(b.id,rb);}rc.min+=e.adj;rb.min-=e.adj;}});
+ const res=summaryRound(m);res.short=short;return res;}
+function summaryRound(m){
  const rows=[...m.values()].sort((a,b)=>order(a.o).nr.localeCompare(order(b.o).nr));
  rows.forEach(r=>r.info=r.infos.join('\n'));
  const R=+S.settings.round||15,tot=rows.reduce((a,r)=>a+r.min,0),up=r=>r.min>0.5?Math.ceil((r.min-0.5)/R):0;
@@ -435,9 +445,21 @@ function summary(k){
  let left=units-rows.reduce((a,r)=>a+r.u,0);rows.slice().sort((a,b)=>b.rem-a.rem).forEach(r=>{if(left>0){r.u++;left--;}});
  rows.forEach(r=>r.h=r.u*R/60);return{rows:rows.filter(r=>r.u>0),all:rows,total:units*R/60,min:tot};
 }
+/* Überstunden: Normal+Ü, Ü-Auftrag ganz unten */
+function otSplit(k,sm){const d=S.days[k],R=+S.settings.round||15;sm.ot=0;sm.all.forEach(r=>{r.n=r.h;r.ot=0;});
+ if(!d||!d.otOk||!d.otO)return sm;
+ const su=Math.round(sollOf(k)*60/R),tu=Math.round(sm.total*60/R),ou=tu-su;if(ou<=0)return sm;
+ let row=sm.all.find(r=>r.o===d.otO);if(!row){row={o:d.otO,infos:[],info:'',min:0,u:0,h:0};sm.all.push(row);}
+ let nu=row.u-ou;
+ if(nu<0){let def=-nu;nu=0;const bnr=normNr(S.settings.fillNr||'21260003'),isB=r=>order(r.o).nr===bnr?1:0;
+  sm.all.filter(r=>r!==row&&r.u>0).sort((a,b)=>isB(b)-isB(a)||b.u-a.u).forEach(r=>{if(!def)return;const t=Math.min(def,r.u);r.u-=t;r.h=r.n=r.u*R/60;def-=t;});}
+ row.u=nu+ou;row.n=nu*R/60;row.ot=ou*R/60;row.h=row.n+row.ot;sm.ot=row.ot;
+ sm.rows=sm.all.filter(r=>r!==row&&r.u>0).concat([row]);return sm;}
+const hTxt=r=>r.ot?fmtH(r.n)+'+'+fmtH(r.ot)+'Ü':fmtH(r.h);
+const totTxt=sm=>sm.ot?fmtH(sm.total-sm.ot)+'+'+fmtH(sm.ot)+'Ü':fmtH(sm.total);
 
 /* ---------- Stempeln ---------- */
-function closeEntry(d,oe,t){oe.e=t;if(t-oe.s<30000)d.entries=d.entries.filter(x=>x!==oe);}
+function closeEntry(d,oe,t){oe.e=t;finPlan(oe);if(t-oe.s<30000)d.entries=d.entries.filter(x=>x!==oe);}
 function resumeAfterGehen(d,t){if(d.gehen){d.pausen.push({s:d.gehen,e:t});d.gehen=null;toast('Weiter – Lücke als Pause gewertet');}}
 function balOrder(){const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
  if(!o){o=S.orders.find(x=>x.nr===nr);if(o){o.arch=false;delete o.archAt;}else{o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false};S.orders.push(o);}}return o;}
@@ -447,8 +469,13 @@ function startOrder(id){
  if(oe&&oe.kind==='fahrt'&&oe.o===id)return arrive();
  if(oe&&oe.o===id&&oe.kind!=='fahrt')return;
  begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
- d.entries.push({id:uid(),o:id,info:order(id).info||'',s:t,e:null});save();render();
+ d.entries.push({id:uid(),o:id,info:order(id).info||'',s:t,e:null});save();render();askOt(id);
 }
+function otActive(d){const so=sollOf(dkey());return !!(d.otOk&&d.otO&&so&&d.kommen&&!d.gehen&&Date.now()>d.kommen+(so*60+pmin(d))*60000);}
+function askOt(id){const d=today();if(!otActive(d)||id===d.otO)return;const n=order(id),a=order(d.otO);
+ dlg(`<h3>Überstunden ab jetzt auf ${esc(n.kunde)}?</h3><p class="mut" style="margin:0 0 6px">Bisher laufen die Überstunden auf ${esc(a.nr)} · ${esc(a.kunde)}. Im Stundenbuch steht nur ein Auftrag mit „+Ü“, ganz unten im Tag.</p>
+ <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="oY"><b>Ja, auf ${esc(n.kunde)}</b><small>${esc(n.nr)}</small></button><button class="tile" id="oN"><b>Nein</b><small>bleibt auf ${esc(a.kunde)}</small></button></div>`);
+ $('#oY').onclick=()=>{d.otO=id;save();closeDlg();render();toast('Überstunden auf '+n.kunde);};$('#oN').onclick=closeDlg;}
 /* Schutz: Stempeln an einem Abwesenheitstag */
 function guardAbs(go){
  const k=dkey(),d=S.days[k],ty=typeOf(k);
@@ -508,12 +535,20 @@ function doInfo(){
 
 /* ---------- Fahrten ---------- */
 function hinDur(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.dir==='hin'&&e.o===o&&e.e);return f.length?f[f.length-1].e-f[f.length-1].s:0;}
-function startFahrt(id,dir,prev){
+function startFahrt(id,dir,prev,plan){
  const d=today(),t=Date.now(),oe=openEntry(d);begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
- const e={id:uid(),o:id,info:'',s:t,e:null,kind:'fahrt',dir};if(prev)e.prev=prev;d.entries.push(e);save();render();
+ const e={id:uid(),o:id,info:'',s:t,e:null,kind:'fahrt',dir};if(prev)e.prev=prev;if(plan)e.plan=plan;d.entries.push(e);save();render();
+ if(dir==='hin'||dir==='next')askOt(id);
 }
+/* Zettel-Zeit: bisher + Rückfahrt (Hinfahrt + Puffer), aufgerundet */
+const rPlan=(d,o)=>{const hd=hinDur(d,o);return hd?hd+(+S.settings.rPuf||0)*60000:0;};
+function zettel(d,oe){if(!oe||oe.kind==='fahrt'||oe.h!=null)return null;if(isInternal(order(oe.o)))return null;const rp=rPlan(d,oe.o);if(!rp)return null;
+ const so=d.entries.filter(e=>e.o===oe.o).reduce((a,e)=>a+emin(e),0),R=+S.settings.round||15,tot=so+rp/60000;
+ return{so,hd:hinDur(d,oe.o)/60000,puf:+S.settings.rPuf||0,h:Math.ceil((tot-0.5)/R)*R/60};}
+function finPlan(oe){if(oe&&oe.plan&&oe.e&&oe.adj==null)oe.adj=(oe.plan-(oe.e-oe.s))/60000;}
 function arrive(){
- const d=today(),oe=openEntry(d);if(!oe||oe.kind!=='fahrt')return;const t=Date.now();oe.e=t;
+ const d=today(),oe=openEntry(d);if(!oe||oe.kind!=='fahrt')return;const t=Date.now();oe.e=t;finPlan(oe);
+ if(oe.plan)toast('Rückfahrt echt '+fmtDur((t-oe.s)/60000)+' h · auf '+order(oe.o).nr+' fest '+fmtDur(oe.plan/60000)+' h (Zettel)');
  if(oe.dir==='next'&&oe.prev){const half=Math.round((t-oe.s)/2);d.entries.push({id:uid(),o:oe.prev,info:'',s:oe.s,e:oe.s+half,kind:'fahrt',dir:'next'});oe.s+=half;
   d.entries.sort((a,b)=>(a.s||0)-(b.s||0));toast('Fahrzeit '+fmtDur((t-oe.s)/60000*2)+' h auf beide Kunden aufgeteilt');}
  const next=oe.dir==='firma'||oe.dir==='rueck'?balOrder().id:oe.o;
@@ -536,16 +571,15 @@ function doFahrt(){
  if(oe&&oe.kind==='fahrt')return arrive();
  let h='',from=null;
  if(oe&&!isInternal(order(oe.o))){from=oe.o;const o=order(oe.o),dur=hinDur(d,oe.o);
+  const rp=rPlan(d,oe.o);
   h+=`<p class="mut" style="margin:0 0 6px">Fertig bei <b>${esc(o.kunde)}</b>? Wohin geht es?</p><div class="tiles" style="margin-top:6px">`+
-   `<button class="tile drv" id="fFi"><b>🏭 Zurück in die Firma</b><small>Fahrt läuft bis „Angekommen“</small></button>`+
-   (dur?`<button class="tile pri" id="fRP"><b>Wie Hinfahrt</b><small>${fmtDur(dur/60000)} h sofort buchen</small></button>`:'')+`</div>`+
+   `<button class="tile drv" id="fFi" style="grid-column:1/-1"><b>🏭 Zurück in die Firma</b><small>${rp?`fest ${fmtDur(rp/60000)} h auf ${esc(o.nr)} (Hinfahrt ${fmtDur(dur/60000)} + Puffer ${+S.settings.rPuf||0} min) – wie Zettel`:'Fahrt läuft bis „Angekommen“'}</small></button></div>`+
    `<p class="mut" style="margin:14px 0 6px">… oder zum nächsten Kunden (Fahrzeit wird halbiert):</p>`;}
  else h+=`<p class="mut" style="margin:0 0 6px">Wohin geht die Fahrt?</p>`;
  h+=`<input id="fQ" type="search" placeholder="🔍 Kunde suchen …"><div class="tiles" id="fT">${pickTiles('',custList('',from))}</div>
  <div class="btns" style="justify-content:space-between"><button class="btn" id="fNew">+ Neuer Auftrag</button><button class="btn" data-x>Abbrechen</button></div>`;
  dlg(`<h3>🚗 Fahrt</h3>${h}`);
- if($('#fFi'))$('#fFi').onclick=()=>{closeDlg();startFahrt(from,'firma');};
- if($('#fRP'))$('#fRP').onclick=()=>{closeDlg();rueckPauschal(from);};
+ if($('#fFi'))$('#fFi').onclick=()=>{closeDlg();startFahrt(from,'firma',null,rPlan(d,from));};
  $('#fT').onclick=e=>{const nw=e.target.closest('[data-new]');if(nw){closeDlg();showView('vOrders');const q=nw.dataset.new;if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;($('#nNr').value?$('#nKu'):$('#nNr')).focus();return;}
  const b=e.target.closest('[data-h]');if(!b)return;{const o=S.orders.find(x=>x.id===b.dataset.h);if(o&&o.arch){o.arch=false;delete o.archAt;}}closeDlg();if(from&&b.dataset.h!==from)startFahrt(b.dataset.h,'next',from);else startFahrt(b.dataset.h,'hin');};
  $('#fQ').oninput=()=>{{const q=$('#fQ').value.trim().toLowerCase();$('#fT').innerHTML=pickTiles(q,custList(q,from));}};
@@ -604,7 +638,14 @@ let lastTouch=Date.now();
 function privOn(){$('#priv').classList.add('on');}
 function privOff(){$('#priv').classList.remove('on');$('#privMsg').textContent='';lastTouch=Date.now();}
 function privMsg(t){$('#privMsg').textContent=t;}
+const cdTxt=ms=>{const c=fmtClock(ms);return c.startsWith('00:')?c.slice(3):c.replace(/^0/,'');};
+function nextPauseTxt(){const k=dkey(),d=S.days[k],now=Date.now();if(!d||!d.kommen||d.gehen)return '';
+ const p=openPause(d);if(p)return p.plan?'☕ Pause noch '+cdTxt(p.s+p.plan*60000-now):'☕ Pause seit '+cdTxt(now-p.s);
+ if(!sollOf(k))return '';
+ for(const sl of pauseSlots()){const at=tsOf(k,sl.t);if(at<=now||d.pausen.some(x=>x.s>=at-60*60000&&x.s<=at+120*60000))continue;return '☕ '+sl.n+' in '+cdTxt(at-now);}
+ const se=sollEnd(d,k);return se&&se>now?'🏁 Feierabend in '+cdTxt(se-now):'';}
 function checkPriv(){const m=+S.settings.privMin||0;$('#privClock').textContent=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+ $('#privNext').textContent=nextPauseTxt();
  if(m&&!$('#priv').classList.contains('on')&&Date.now()-lastTouch>m*60000)privOn();}
 /* ---------- Pausen-Erinnerung ---------- */
 function pauseSlots(){const st=S.settings;return[{id:'fr',t:st.frTime,n:'Frühstück',len:+st.fruehstueck||15},{id:'mi',t:st.miTime,n:'Mittag',len:+st.mittag||30}].filter(x=>x.t);}
@@ -625,7 +666,8 @@ function checkPauseRemind(){
 }
 function beep(){if(!S.settings.sound)return;try{navigator.vibrate&&navigator.vibrate(200);primeAudio();if(!actx)return;const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();o.type='square';o.frequency.value=988;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+0.3);}catch(e){}}
 /* ---------- Geschenkte Zeit: nicht genommene Pausen & Nachlauf ---------- */
-function pauseMiss(k){const d=S.days[k];if(!d||!d.kommen||!d.gehen||(typeOf(k)&&typeOf(k)!=='urlaub_halb'))return 0;
+function pauseMiss(k){const d=S.days[k];if(!d||!d.kommen||!d.gehen||d.otOk||(typeOf(k)&&typeOf(k)!=='urlaub_halb'))return 0; // mit Überstunden ist die Zeit gebucht, nicht geschenkt
+
  const st=S.settings,work=presence(d);let exp=+st.fruehstueck||0;if(work+pmin(d)>6*60)exp+=+st.mittag||0;return Math.max(0,exp-pmin(d));}
 function giftSum(from,to){let p=0,n=0;Object.keys(S.days).forEach(k=>{if(k>=from&&k<=to){p+=pauseMiss(k);n+=S.days[k].nach||0;}});return{p,n};}
 /* ---------- Feierabend-Erinnerung ---------- */
@@ -636,12 +678,12 @@ function checkRemind(){
  if(!d||!d.kommen||d.gehen||openPause(d))return;
  const due=d.remindAt||sollEnd(d,k);if(!due||Date.now()<due)return;
  d.remindAt=9e15;save();alarm();privMsg('🏁 Feierabend?');
- dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3><p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter? Ohne „Überstunden“ wird nur bis ${hm(sollEnd(d,k))} gebucht, spätere Zeit zählt als Nachlauf.</p>
+ dlg(`<h3>Soll erreicht (${hm(sollEnd(d,k))})</h3><p class="mut" style="margin:0 0 6px">Heute ${fmtDur(presence(d))} h anwesend. Wie geht es weiter? Ohne „Überstunden“ wird nur bis ${hm(sollEnd(d,k))} gebucht, spätere Zeit zählt als Nachlauf. Überstunden laufen auf <b>${esc(order(d.otO||(openEntry(d)||{}).o||balOrder().id).kunde)}</b>, bei Auftragswechsel kommt eine Frage.</p>
  <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="rG"><b>Gehen</b><small>Feierabend stempeln</small></button>
  <button class="tile" id="rO1"><b>Überstunden</b><small>in 1 h wieder fragen</small></button>
  <button class="tile" id="rO2"><b>Überstunden</b><small>in 2 h wieder fragen</small></button>
  <button class="tile" id="rO0"><b>Überstunden</b><small>heute nicht mehr fragen</small></button></div>`);
- const snooze=m=>{d.otOk=1;d.remindAt=m?Date.now()+m*60000:9e15;save();closeDlg();toast(m?'Erinnere wieder um '+hm(d.remindAt):'Heute keine Erinnerung mehr');};
+ const snooze=m=>{d.otOk=1;if(!d.otO){const oe=openEntry(d);d.otO=oe?oe.o:balOrder().id;}d.remindAt=m?Date.now()+m*60000:9e15;save();closeDlg();toast('Überstunden auf '+order(d.otO).kunde+(m?' · erinnere wieder um '+hm(d.remindAt):''));};
  $('#rG').onclick=()=>{closeDlg();doGehen();};$('#rO1').onclick=()=>snooze(60);$('#rO2').onclick=()=>snooze(120);$('#rO0').onclick=()=>snooze(0);
 }
 
@@ -741,6 +783,7 @@ function renderHeader(){
  else if(d.gehen){pill='Feierabend';cur='Heute '+fmtDur(presence(d))+' h anwesend';st='Gehen '+hm(d.gehen);}
  else if(d.kommen){pill='Eingestempelt';pc='run';cur='Kein Auftrag gewählt';from=d.kommen;st='seit '+hm(d.kommen);}
  const se=inn?sollEnd(d,dkey()):null;if(se&&!p)st+=(st?' · ':'')+'Soll bis '+hm(se);
+ {const z=zettel(d,oe);$('#zettel').innerHTML=z?`📝 Zettel ${fmtH(z.h)} h <small>· bisher ${fmtDur(z.so)} + Rückfahrt ${fmtDur(z.hd)} + ${z.puf} min</small>`:'';}
  $('#pill').className='pill '+pc;$('#pillT').textContent=pill;$('#cur').textContent=cur;$('#state').textContent=st;
  $('#timer').textContent=p||(oe&&oe.kind==='fahrt')?'':from?fmtClock(now-from):'';
  $('#bK').classList.toggle('hide',inn);$('#bG').classList.toggle('hide',!inn);
@@ -758,7 +801,8 @@ function renderHeader(){
  if(dr){const o=order(oe.o);
   $('#dbLabel').textContent=oe.dir==='hin'?'🚗 Fahrt zu '+o.kunde:oe.dir==='next'?'🚗 '+order(oe.prev).kunde+' → '+o.kunde:'🚗 Rückfahrt in die Firma';
   $('#dbTime').textContent=fmtClock(now-oe.s);
-  $('#dbSub').textContent=oe.dir==='hin'?'wird auf '+o.nr+' gebucht':oe.dir==='next'?'Fahrzeit wird auf beide Kunden halbiert':'wird auf '+o.nr+' gebucht, danach Betriebsarbeiten';}
+  $('#dbSub').textContent=oe.dir==='hin'?'wird auf '+o.nr+' gebucht':oe.dir==='next'?'Fahrzeit wird auf beide Kunden halbiert':'wird auf '+o.nr+' gebucht, danach Betriebsarbeiten';
+  if(oe.plan)$('#dbSub').textContent='auf '+o.nr+' fest '+fmtDur(oe.plan/60000)+' h (Zettel) · Abweichung über Betriebsarbeiten';}
 }
 const TILECOL=['#3b82f6','#a78bfa','#34d399'];
 function recentIds(){const all=[];Object.keys(S.days).sort().reverse().slice(0,60).forEach(k=>S.days[k].entries.forEach(e=>all.push(e)));
@@ -780,14 +824,15 @@ function renderDay(){
  const badges=[];if(ty)badges.push(TYP[ty]);if(hol)badges.push('Feiertag: '+hol);if(half)badges.push(half+' – halber Tag');
  $('#dBadge').innerHTML=badges.map(b=>`<span class="badge">${esc(b)}</span> `).join('');
  const soll=sollOf(k);
- {const lv=k===dkey()&&d&&d.kommen&&!d.gehen;$('#sIstL').textContent=lv?'Gestempelt (läuft)':'Stundenbuch';$('#sIst').textContent=lv?fmtDur(sm?sm.min:0)+' h':(sm?fmtH(sm.total):'0')+' h';}$('#sSoll').textContent=fmtH(soll)+' h';
+ {const lv=k===dkey()&&d&&d.kommen&&!d.gehen;$('#sIstL').textContent=lv?'Gestempelt (läuft)':'Stundenbuch';$('#sIst').textContent=lv?fmtDur(sm?sm.min:0)+' h':(sm?totTxt(sm):'0')+' h';}$('#sSoll').textContent=fmtH(soll)+' h';
  
  // Details
  let det='';
  if(d&&(d.kommen||d.pausen.length)){det=`Kommen ${hm(d.kommen)||'–'} · Gehen ${hm(d.gehen)||'–'} · Pausen: ${d.pausen.length?d.pausen.map(p=>hm(p.s)+'–'+(p.e?hm(p.e):'läuft')).join(', ')+' ('+Math.round(pmin(d))+' min)':'keine'}`;}
  let warn='';
 {const pm=pauseMiss(k);if(d&&(d.nach||pm))det+=(det?'<br>':'')+(pm?`Pause nicht genommen: ${fmtDur(pm)} h`:'')+(pm&&d.nach?' · ':'')+(d.nach?`Nachlauf: ${fmtDur(d.nach)} h (Gehen real ${hm(d.gehenReal)})`:'');}
- if(sm)det+=(det?'<br>':'')+`Gebucht ${fmtDur(sm.min)} h → Stundenbuch ${fmtH(sm.total)} h`+(soll?` · Differenz ${fmtSig(sm.total-soll)} h`:'');
+ if(sm)det+=(det?'<br>':'')+`Gebucht ${fmtDur(sm.min)} h → Stundenbuch ${totTxt(sm)} h`+(d.otO&&d.otOk?` · Ü auf ${esc(order(d.otO).kunde)}`:'')+(soll?` · Differenz ${fmtSig(sm.total-soll)} h`:'');
+ if(sm&&sm.short>0.5&&d.gehen)warn+=`<br><span class="warn">Feste Rückfahrt: ${fmtDur(sm.short)} h nicht über Betriebsarbeiten ausgleichbar – echte Zeit gebucht</span>`;
  if(sm&&sm.over)warn+=`<br><span class="warn">Aufrundung +${fmtH(sm.over)} h nicht über Betriebsarbeiten ausgleichbar</span>`;
  if(d&&d.kommen){const pres=presence(d);if(Math.abs(pres-(sm?sm.min:0))>5)warn+=`<br><span class="warn">Abweichung zur Stempelzeit (${fmtDur(pres)} h): ${fmtDur(Math.abs(pres-(sm?sm.min:0)))} h → „Lücke auffüllen“</span>`;}
  if(d&&k!==dkey()&&(openEntry(d)||openPause(d)||(d.kommen&&!d.gehen)))warn+=`<br><span class="warn">Tag nicht abgeschlossen – Gehen nachtragen („Tag bearbeiten“).</span>`;
@@ -801,8 +846,8 @@ function renderDay(){
  const rowOf=o=>{const r=sm?sm.all.find(x=>x.o===o):null;if(!r||!live||S.settings.roundMode==='dist')return r;
   const fnr=normNr(S.settings.fillNr||'21260003'),u=order(o).nr===fnr?Math.round(r.min/R0):(r.min>0.5?Math.ceil((r.min-0.5)/R0):0);return Object.assign({},r,{h:u*R0/60});};
  let h='';by.forEach((es,o)=>{const ord=order(o),r=rowOf(o),infos=r?r.infos.join(', '):'',op=OPEN.has(k+o),run=es.some(e=>e.h==null&&!e.e);
-  h+=`<div class="grp"><button class="gh" data-g="${o}"><span class="ch">${op?'▾':'▸'}</span><span class="n"><b>${esc(ord.kunde)}${run?' ●':''}</b><small>${esc(ord.nr)}${infos?' · '+esc(infos):''}</small></span><span class="raw">${fmtDur(r?r.min:0)}</span><span class="v">${r?fmtH(r.h):'0'}</span></button>`;
-  if(op)h+=es.map(e=>{const lab=e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt':e.dir==='next'?'🚗 Fahrt (geteilt)':'🚗 Rückfahrt'):e.auto?'aufgefüllt':e.h!=null?'manuell':isInternal(ord)?'Arbeit':'Montage';
+  h+=`<div class="grp"><button class="gh" data-g="${o}"><span class="ch">${op?'▾':'▸'}</span><span class="n"><b>${esc(ord.kunde)}${run?' ●':''}</b><small>${esc(ord.nr)}${infos?' · '+esc(infos):''}${run&&live?(z=>z?' · 📝 Zettel '+fmtH(z.h)+' h':'')(zettel(d,openEntry(d))):''}</small></span><span class="raw">${fmtDur(r?r.min:0)}</span><span class="v">${r?(live?fmtH(r.h):hTxt(r)):'0'}</span></button>`;
+  if(op)h+=es.map(e=>{const lab=e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt':e.dir==='next'?'🚗 Fahrt (geteilt)':'🚗 Rückfahrt'+(e.plan?' (fest '+fmtDur(e.plan/60000)+')':'')):e.auto?'aufgefüllt':e.h!=null?'manuell':isInternal(ord)?'Arbeit':'Montage';
    const tm=e.h!=null?fmtH(e.h)+' h':hm(e.s)+'–'+(e.e?hm(e.e):'läuft');
    return `<button class="gi${e.kind==='fahrt'?' dr':''}" data-e="${e.id}"><span class="l">${lab}${e.info&&e.kind!=='fahrt'?` · ${esc(e.info)}`:''}${e.taet?`<small>📝 ${esc(e.taet)}</small>`:''}</span><span class="num">${tm}</span></button>`;}).join('');
   h+='</div>';});
@@ -867,6 +912,7 @@ function editDay(k){
  dlg(`<h3>${WD[wdOf(k)]} ${dDate(k)}</h3>${hol?`<span class="badge">Feiertag: ${esc(hol)}</span>`:''}${half?`<span class="badge">${half} – halber Tag</span>`:''}
  <label>Tagesart<select id="fT"><option value="">Arbeitstag</option>${Object.keys(TYP).map(t=>`<option value="${t}"${d.type===t?' selected':''}>${TYP[t]}</option>`).join('')}</select></label>
  <div class="row"><label>Kommen<input type="time" id="fK" value="${hm(d.kommen)}"></label><label>Gehen<input type="time" id="fG" value="${hm(d.gehen)}"></label></div>
+ ${(()=>{const ids=[...new Set(d.entries.map(e=>e.o))];if(d.otO&&!ids.includes(d.otO))ids.push(d.otO);return ids.length?`<label>Überstunden ausweisen auf<select id="fOt"><option value="">– keine (Normal)</option>${ids.map(id=>`<option value="${id}"${d.otOk&&d.otO===id?' selected':''}>${esc(order(id).nr)} ${esc(order(id).kunde)}</option>`).join('')}</select></label>`:'';})()}
  <label>Pausen (von – bis)</label><div id="pl"></div><button class="btn" id="pAdd">+ Pause</button>
  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">Speichern</button></div>`);
  const draw=()=>{$('#pl').innerHTML=P.map((p,i)=>`<div class="row" style="margin:6px 0"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button class="btn" data-rm="${i}" style="flex:0 0 56px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
@@ -877,7 +923,7 @@ function editDay(k){
  $('#fOk').onclick=()=>{
   const K=tsOf(k,$('#fK').value),G=tsOf(k,$('#fG').value);if(K&&G&&G<K)return toast('Gehen liegt vor Kommen');
   const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');np.push({s,e});}
-  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=$('#fT').value||undefined;save();closeDlg();render();
+  d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=$('#fT').value||undefined;if($('#fOt')){const v=$('#fOt').value;if(v){d.otOk=1;d.otO=v;}else{delete d.otO;}}save();closeDlg();render();
  };
 }
 
@@ -929,7 +975,7 @@ function monday(off){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate
 function setRange(off){const m=monday(off),e=new Date(m);e.setDate(m.getDate()+6);$('#pFrom').value=dkey(m);$('#pTo').value=dkey(e);renderPrint();}
 function printHtml(){
  const from=$('#pFrom').value,to=$('#pTo').value,show=$('#pStamp').checked;if(!from||!to)return '';
- let h='',sum=0,n=0,soll=0;
+ let h='',sum=0,n=0,soll=0,sOt=0;
  const monthEnd=k=>{const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);return n.getDate()===1;};
  const mBlock=k=>{const ob=otBalance(k),ur=urlAt(k);if(ob==null&&ur==null)return '';const m=new Date(k+'T12:00');
   return `<section class="pday"><div class="phead"><span>Monatsabschluss ${MON[m.getMonth()]} ${m.getFullYear()}</span><span>${dDate(k)}</span></div><table><tbody>`+
@@ -944,18 +990,18 @@ function printHtml(){
    let z=k;while(z<end){z=addD(z,1);if(monthEnd(addD(z,-1))&&addD(z,-1)<=dkey())h+=mBlock(addD(z,-1));}
    if(monthEnd(end)&&end<=dkey())h+=mBlock(end);
    dt.setTime(new Date(end+'T12:00').getTime());continue;}
-  const dd=S.days[k];n++;sum+=sm?sm.total:0;if(counts(k))soll+=sollOf(k);
+  const dd=S.days[k];n++;sum+=sm?sm.total:0;sOt+=sm&&sm.ot||0;if(counts(k))soll+=sollOf(k);
   const lab=ty?TYP[ty]:hol?'Feiertag – '+hol:'';
   h+=`<section class="pday"><div class="phead"><span>${WD[w]}${lab&&sm?' · '+esc(lab):''}</span><span>${dDate(k)}</span></div>`;
   if(!sm){h+=`<table><tbody><tr><td colspan="3">${esc(lab)}</td><td class="r"></td></tr></tbody></table></section>`;if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
-  if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'}${dd.pausen.length?' · Pause '+dd.pausen.map(p=>hm(p.s)+'–'+(p.e?hm(p.e):'')).join(', '):''}</div>`;
+  if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'}</div>`;
   h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
-   sm.rows.map(r=>{const o=order(r.o);return `<tr><td>${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td class="inf">${esc(r.info)}</td><td class="r">${fmtH(r.h)}</td></tr>`;}).join('')+
-   `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${fmtH(sm.total)}</td></tr></tfoot></table></section>`;
+   sm.rows.map(r=>{const o=order(r.o);return `<tr><td>${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td class="inf">${esc(r.info)}</td><td class="r">${hTxt(r)}</td></tr>`;}).join('')+
+   `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${totTxt(sm)}</td></tr></tfoot></table></section>`;
   if(monthEnd(k)&&k<=dkey())h+=mBlock(k);
  }
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
- return head+(n?h+`<div class="psum">Summe: ${fmtH(sum)} h${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+ return head+(n?h+`<div class="psum">Summe: ${fmtH(sum)} h${sOt?` (davon ${fmtH(sOt)} Ü)`:''}${soll?` · Soll ${fmtH(soll)} h · Differenz ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
 const PAGE={A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
 function applyPaper(){const p=S.settings.paper||'A6';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className='pdoc p-'+p;}
@@ -971,7 +1017,7 @@ function renderBackup(){
 }
 const SETF=[['sName','name','t'],['sPre','prefix','t'],['sSoll','soll','h'],['sSollFr','sollFr','h'],['sFr','fruehstueck','i'],['sMi','mittag','i'],['sRMode','roundMode','t'],['sRnd','round','i'],
  ['sFillNr','fillNr','nr'],['sFill','fill','b'],['sHol','holidays','b'],['sOtS','otStart','h'],['sOtD','otDate','t'],['sUS','urlStart','h'],['sUD','urlDate','t'],['sUJ','urlYear','i'],
- ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i']];
+ ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i']];
 function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});}
 function bindSet(){SETF.forEach(([id,key,ty])=>{$('#'+id).onchange=()=>{const el=$('#'+id);let v;
  if(ty==='b')v=el.checked;else if(ty==='h'){v=parseFloat(el.value.replace(',','.').replace('−','-'));if(isNaN(v))return renderSet();}
@@ -982,7 +1028,7 @@ function renderInfo(){
  const ua=navigator.userAgent,cv=(ua.match(/Chrome\/([\d.]+)/)||[])[1]||'?';
  $('#infoBox').innerHTML=`<h2>Stundenbuch</h2><p style="margin:0 0 10px">Version <b>${VERSION}</b> · © 2026 grauman</p>
  <p class="mut" style="font-size:.85rem;margin:0 0 10px">Browser: Chrome ${esc(cv)}<br>${esc(ua)}</p>
- <h2>Bedienung kurz</h2><p style="font-size:.9rem;margin:0 0 10px">Auftrag antippen = Arbeit startet. 🚗 Fahrt: Ziel wählen, bei Ankunft „Angekommen“. Beim Kunden fertig: 🚗 → Firma, „wie Hinfahrt“ oder nächster Kunde (Fahrzeit wird geteilt). ☕ Pause endet automatisch mit Ton, danach läuft Betriebsarbeiten.</p>
+ <h2>Bedienung kurz</h2><p style="font-size:.9rem;margin:0 0 10px">Auftrag antippen = Arbeit startet. 🚗 Fahrt: Ziel wählen, bei Ankunft „Angekommen“. Beim Kunden zeigt 📝 Zettel die Zeit inkl. Rückfahrt (Hinfahrt + Puffer). Fertig: 🚗 → Firma (Rückfahrt fest wie Zettel) oder nächster Kunde (Fahrzeit wird geteilt). Überstunden: Auftrag wird bei Wechsel abgefragt, im Buch „8,25+2Ü“. ☕ Pause endet automatisch mit Ton, danach läuft Betriebsarbeiten.</p>
  <h2>Fehlerprotokoll</h2>${ERR.length?'<pre style="white-space:pre-wrap;font-size:.75rem">'+esc(ERR.join('\n'))+'</pre>':'<p class="mut">Keine Fehler seit dem Start.</p>'}`;
 }
 
@@ -1026,8 +1072,8 @@ $('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileR
   $('#pDo').onclick=async()=>{const pw=$('#pD').value;try{const t=await decryptText(n,pw);closeDlg();apply(JSON.parse(t));if(!S.settings.bkPw){S.settings.bkPw=pw;save();renderBackup();}}catch(x){toast('Falsches Passwort',null,true);}};};
  r.readAsText(f);e.target.value='';};
 $('#bCsv').onclick=()=>{if(S.settings.bkPw&&!confirm('CSV-Dateien sind NICHT verschlüsselt. Trotzdem exportieren?'))return;
- const q=c=>'"'+String(c).replace(/"/g,'""')+'"',L=['Datum;Tag;Auftrag;Kunde;Info;Stunden'];
- Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;sm.rows.forEach(r=>{const o=order(r.o);L.push([dDate(k),WD[wdOf(k)],o.nr,o.kunde,r.infos.join(' / '),fmtH(r.h)].map(q).join(';'));});});
+ const q=c=>'"'+String(c).replace(/"/g,'""')+'"',L=['Datum;Tag;Auftrag;Kunde;Info;Stunden;davon Überstunden'];
+ Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;sm.rows.forEach(r=>{const o=order(r.o);L.push([dDate(k),WD[wdOf(k)],o.nr,o.kunde,r.infos.join(' / '),fmtH(r.h),r.ot?fmtH(r.ot):''].map(q).join(';'));});});
  download('stundenbuch-'+dkey()+'.csv','﻿'+L.join('\r\n'),'text/csv');
  const T=['Datum;Auftrag;Kunde;Von;Bis;Art;Info;Tätigkeit'];
  Object.keys(S.days).sort().forEach(k=>S.days[k].entries.forEach(e=>{if(!e.taet&&e.kind!=='fahrt')return;const o=order(e.o);T.push([dDate(k),o.nr,o.kunde,e.s?hm(e.s):'',e.e?hm(e.e):'',e.kind==='fahrt'?'Fahrt':'Arbeit',e.info||'',e.taet||''].map(q).join(';'));}));

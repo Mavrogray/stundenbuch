@@ -1,5 +1,5 @@
 // Offline-Cache. Bei Änderungen an index.html die Versionsnummer erhöhen.
-const C = 'stundenbuch-1.2.0';
+const C = 'stundenbuch-1.3.0';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

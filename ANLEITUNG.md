@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung
+# Stundenbuch – Einrichtung (v1.3.0)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -84,7 +84,10 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 ## 5. Bedienung v1.0
 
 - **Auftrag antippen** = Arbeit startet (die 3 zuletzt genutzten stehen oben, alles andere über die Suche).
-- **🚗 Fahrt:** Ziel wählen → blauer Fahrtbalken → bei Ankunft „Angekommen“. Fertig beim Kunden: 🚗 → „Zurück in die Firma“, „Wie Hinfahrt“ oder nächster Kunde (Fahrzeit wird auf beide Kunden halbiert).
+- **🚗 Fahrt:** Ziel wählen → blauer Fahrtbalken → bei Ankunft „Angekommen“. Fertig beim Kunden: 🚗 → „Zurück in die Firma“ oder nächster Kunde (Fahrzeit wird auf beide Kunden halbiert).
+- **📝 Zettel:** Beim Kunden zeigt der Kopf die Zeit für den Auftragszettel: bisher + Rückfahrt (Hinfahrtdauer + Puffer, Standard 15 min), aufgerundet. „Zurück in die Firma“ bucht genau diese Rückfahrt fest auf den Kunden; die Abweichung zur echten Fahrt wird über Betriebsarbeiten ausgeglichen.
+- **Überstunden:** Bei der Soll-Erinnerung „Überstunden“ wählen → sie laufen auf den aktuellen Auftrag. Bei einem Auftragswechsel fragt die App, ob die Überstunden mitwandern. Im Stundenbuch steht dieser Auftrag ganz unten als „Normal+Ü“ (z. B. „0+1,5Ü“), die Tagessumme als „8,25+1,5Ü“. Korrektur über „Tag bearbeiten“.
+- **Sichtschutz:** große Uhr, darunter Countdown bis zur nächsten Pause bzw. zum Feierabend.
 - **☕ Pause:** Frühstück/Mittag enden automatisch mit Ton. Danach läuft Betriebsarbeiten, die App fragt „Weiter mit Kunde?“.
 - **🏖 Urlaubsplanung (☰):** Zeitraum von–bis eintragen (Urlaub, Krank, Bildungsurlaub, RV Fit, Gleittag – nur Werktage zählen). Der Brückentag-Finder zeigt die Zeiträume mit den meisten freien Tagen pro Urlaubstag, „Eintragen“ übernimmt sie. Im Ausdruck erscheinen Abwesenheiten als ein Block ohne Stunden.
 - **☰ Menü:** Aufträge, Ausdruck, Tag bearbeiten (Urlaub, halber Urlaubstag, Krank, RV Fit, Bildungsurlaub, Gleittag), Sicherung, Einstellungen, Über/Hilfe (Version, Fehlerprotokoll).
