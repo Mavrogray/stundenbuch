@@ -338,7 +338,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.3.0';
+const VERSION='1.3.1';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -534,6 +534,8 @@ function doInfo(){
 }
 
 /* ---------- Fahrten ---------- */
+/* beim Kunden = letzte Fahrt heute ging zu diesem Auftrag (sonst in der Firma, z. B. Werkstattarbeit) */
+function atCust(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.s).sort((a,b)=>a.s-b.s).pop();return !!(f&&f.o===o&&(f.dir==='hin'||f.dir==='next')&&f.e);}
 function hinDur(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.dir==='hin'&&e.o===o&&e.e);return f.length?f[f.length-1].e-f[f.length-1].s:0;}
 function startFahrt(id,dir,prev,plan){
  const d=today(),t=Date.now(),oe=openEntry(d);begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
@@ -570,7 +572,7 @@ function doFahrt(){
  const d=today(),oe=openEntry(d);
  if(oe&&oe.kind==='fahrt')return arrive();
  let h='',from=null;
- if(oe&&!isInternal(order(oe.o))){from=oe.o;const o=order(oe.o),dur=hinDur(d,oe.o);
+ if(oe&&!isInternal(order(oe.o))&&atCust(d,oe.o)){from=oe.o;const o=order(oe.o),dur=hinDur(d,oe.o);
   const rp=rPlan(d,oe.o);
   h+=`<p class="mut" style="margin:0 0 6px">Fertig bei <b>${esc(o.kunde)}</b>? Wohin geht es?</p><div class="tiles" style="margin-top:6px">`+
    `<button class="tile drv" id="fFi" style="grid-column:1/-1"><b>🏭 Zurück in die Firma</b><small>${rp?`fest ${fmtDur(rp/60000)} h auf ${esc(o.nr)} (Hinfahrt ${fmtDur(dur/60000)} + Puffer ${+S.settings.rPuf||0} min) – wie Zettel`:'Fahrt läuft bis „Angekommen“'}</small></button></div>`+
@@ -869,7 +871,7 @@ function addOrder(){
  dlg(`<h3>${esc(nr)} · ${esc(ku)} angelegt</h3><p class="mut" style="margin:0 0 6px">Was jetzt?</p>
  <div class="tiles"><button class="tile pri" id="nS"><b>▶ Jetzt beginnen</b><small>Arbeit startet</small></button><button class="tile drv" id="nF"><b>🚗 Hinfahren</b><small>Fahrt startet</small></button><button class="tile" id="nN"><b>Nur anlegen</b><small>später</small></button></div>`);
  $('#nS').onclick=()=>{closeDlg();showView('vMain');startOrder(o.id);};
- $('#nF').onclick=()=>{closeDlg();showView('vMain');const oe=openEntry(today());if(oe&&oe.kind!=='fahrt'&&!isInternal(order(oe.o)))startFahrt(o.id,'next',oe.o);else startFahrt(o.id,'hin');};
+ $('#nF').onclick=()=>{closeDlg();showView('vMain');const oe=openEntry(today());if(oe&&oe.kind!=='fahrt'&&!isInternal(order(oe.o))&&atCust(today(),oe.o))startFahrt(o.id,'next',oe.o);else startFahrt(o.id,'hin');};
  $('#nN').onclick=()=>{closeDlg();render();};
 }
 function editOrder(id){
