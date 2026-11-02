@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.4.0)
+# Stundenbuch – Einrichtung (v1.5.1)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -103,3 +103,17 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - **Zugang:** Einstellungen → Zugang: Büro-PIN (Tage bearbeiten) und Admin-PIN (Einstellungen, Sicherung laden, Zurücksetzen). Ohne PIN offen.
 - **Interne Aufträge** per Haken beim Auftrag, nicht mehr über die Nummer.
 - **Display:** Die App kann das Display nicht abschalten → Android: Display → Ruhezustand 2–5 Minuten.
+
+## 7. Neu in v1.5.0
+
+- **Einrichtung beim ersten Start:** Name, Präfix, Sollzeiten, Arbeitsbeginn, Pausen und eigene Admin-PIN. Erscheint nur auf einem leeren Gerät oder nach „Zurücksetzen“ ohne „Einstellungen behalten“.
+- **Später Kommen:** Nach Arbeitsbeginn (Standard 07:00, bis 10:00) fragt die App „Seit 07:00?“, „Jetzt“ oder eine andere Zeit (bis 60 Min. zurück ohne PIN). Danach: was seitdem gemacht wurde, auch „Fahrt seit …“ mit Ankunftszeit.
+- **Auftrag fertig:** ✎ Info → „✓ Auftrag fertig“ oder in der Auftragsliste. Liste mit Filter Offen / Fertig / Alle, Stunden gesamt, zuletzt benutzt. Nach einem halben Jahr ohne Nutzung fragt die App, ob es den Auftrag noch gibt.
+- **Jahreskalender** in der Urlaubsplanung: Tag antippen zum Eintragen. „Urlaubsantrag drucken“ (A6 quer, Name aus den Einstellungen, Änderungen seit dem letzten Antrag umrahmt) und „Leer drucken“. Jahre bis 2 Jahre voraus.
+- **Urlaubs-Lotse 🧭:** je Feiertag kurz / 2 Wochen+ / lang, Budget bis 15 Tage, Vorschlag per Auswahlmenü übernehmen.
+- Zeitraum nur Wochenende/Feiertag → deutlicher Hinweis.
+
+## 8. Neu in v1.5.1
+
+- **Eingangsnummer:** Neuer Auftrag ohne Kommissionsnummer → nur Eingangs-Nr. eintragen, der Auftrag heißt dann „E-1234“. Später beim Auftrag (✎) die Kommissionsnummer eintragen – überall nachgezogen, abgeschlossene Tage protokollieren das automatisch („Kommissionsnummer nachgetragen“), kein Abweichungs-Alarm.
+- **Druck:** Fehlt im Zeitraum noch eine Kommissionsnummer, fragt die App vorher und lässt sie direkt eintragen.

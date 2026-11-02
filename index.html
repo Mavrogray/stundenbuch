@@ -138,6 +138,26 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 #toast .tbtn{min-height:40px;padding:6px 12px;background:#444;color:#fff;border:1px solid #666;border-radius:10px}
 /* Druck */
 #printOut{display:none}
+/* Jahreskalender (App) */
+.acal{display:grid;grid-template-columns:40px repeat(31,minmax(0,1fr));gap:2px;font-size:.62rem;font-variant-numeric:tabular-nums;margin-top:10px}
+.acal>*{height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:var(--card2);border:0;padding:0;font:inherit;color:var(--fg)}
+.acal .h{background:none;color:var(--mut);font-size:.58rem}.acal .m{background:none;justify-content:flex-start;font-weight:700;color:var(--mut);font-size:.7rem}
+.acal .we{background:color-mix(in srgb,var(--fg) 14%,var(--card2))}.acal .ho{background:#a16207;color:#fff;font-weight:800}.acal .ho.we{background:color-mix(in srgb,#f5c542 25%,var(--card2));color:#a16207}
+.acal .na{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 5px)}
+.acal .tx{background:var(--acc);color:#fff;font-weight:800}.acal .th{background:linear-gradient(135deg,var(--acc) 50%,var(--card2) 50%);color:#fff;font-weight:800}
+.acal .tb{background:#7c3aed;color:#fff;font-weight:800}.acal .tr{background:#0d9488;color:#fff;font-weight:800}.acal .tk{background:color-mix(in srgb,var(--bad) 35%,var(--card2));font-weight:800}.acal .tg{background:#64748b;color:#fff;font-weight:800}
+.acal .nw{box-shadow:inset 0 0 0 2px #fbbf24}.acal .td{box-shadow:inset 0 0 0 2px var(--ok)}
+.cleg{display:flex;flex-wrap:wrap;gap:10px;font-size:.75rem;color:var(--mut);margin-top:10px}.cleg i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+/* Urlaubsantrag (Druck A6 quer) */
+.ys{width:148mm;height:105mm;background:#fff;color:#000;padding:4mm 5mm;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box;overflow:hidden}
+.ys .top{display:flex;justify-content:space-between}.ys .tit,.ys .yr{background:#e8ebef;font-weight:700;font-size:10pt;padding:.8mm 2mm}
+.ys .meta{font-size:6.5pt;margin:2mm 0 1.5mm;display:flex;gap:1.5mm;align-items:flex-end;width:62%}.ys .meta i{flex:1;border-bottom:.3pt solid #000;font-style:normal;font-size:7.5pt;padding-left:1mm}
+.ys table{border-collapse:collapse;width:100%;table-layout:fixed}.ys th,.ys td{border:.3pt solid #333;height:5.4mm;padding:0;text-align:center;font-size:6.2pt;line-height:1}
+.ys th{font-weight:400;font-size:4.8pt}.ys .m{width:7mm;text-align:left;padding-left:.6mm;font-size:5.8pt}
+.ys .we{background:#b9bec5}.ys .ho{background:#f5c542;font-weight:700}.ys .ho.we{background:#b9bec5}
+.ys .na{background:repeating-linear-gradient(135deg,#fff 0 .5mm,#555 .5mm .7mm)}.ys .x{color:#1c3d9c;font-weight:700;font-size:7pt}
+.ys .nw{outline:.7pt solid #1c3d9c;outline-offset:-.7pt;background:#e8f0ff}.ys .leg{font-size:5pt;color:#444;margin-top:1.2mm}
+.ysw{overflow:auto;margin-top:10px}.ysw .ys{border:1px solid var(--line);transform-origin:top left}
 .pdoc{background:#fff;color:#000;padding:8mm;border:2px solid var(--line);border-radius:6px;overflow:auto;font-family:Arial,Helvetica,sans-serif}
 .pdoc h1{font-size:15pt;margin:0}
 .pmeta{font-size:9.5pt;margin:1mm 0 5mm}
@@ -164,6 +184,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  body>*:not(#printOut){display:none!important}
  #printOut{display:block}
  #printOut .pdoc{border:0;padding:0}
+ #printOut .ys{border:0}
 }
 </style>
 <style id="pageStyle">@page{size:105mm 148mm;margin:5mm 5mm 5mm 20mm}</style>
@@ -213,13 +234,14 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <section class="view" id="vOrders">
  <div class="vhead"><button class="btn" data-back>←</button><h1>Aufträge</h1></div>
  <div class="card"><h2>Neuer Auftrag</h2>
-  <div class="row"><label>Auftrags-Nr.<input id="nNr" inputmode="numeric" placeholder="z. B. 405"></label><label>Kunde<input id="nKu"></label></div>
+  <div class="row"><label>Kommissions-Nr.<input id="nNr" inputmode="numeric" placeholder="z. B. 405 – leer, wenn noch keine"></label><label>Eingangs-Nr.<input id="nEin" inputmode="numeric" placeholder="vom Eingangszettel"></label></div>
+  <label>Kunde<input id="nKu"></label>
   <label>Standard-Info (optional)<input id="nIn"></label>
   <label class="chk"><input type="checkbox" id="nInt"> interner Auftrag (Betriebsarbeiten, Büro …)</label>
   <div class="mut" style="font-size:.75rem">Kurz-Nr. (z. B. 405) wird mit dem Präfix ergänzt.</div>
   <div class="btns"><button class="btn pri" id="bAddO">Anlegen</button></div>
  </div>
- <div class="card"><h2>Alle Aufträge</h2><label class="chk"><input type="checkbox" id="showArch"> archivierte zeigen</label><div class="list" id="oList"></div></div>
+ <div class="card"><h2>Aufträge</h2><select id="oFilt" style="max-width:260px"><option value="open">Offen</option><option value="done">Fertig</option><option value="all">Alle</option></select><div class="list" id="oList" style="margin-top:10px"></div></div>
 </section>
 
 <!-- Ausdruck -->
@@ -238,14 +260,21 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <section class="view" id="vPlan">
  <div class="vhead"><button class="btn" data-back>←</button><h1>Urlaubsplanung</h1></div>
  <div class="card"><div class="row" style="align-items:center"><h2 style="margin:0">Jahr</h2><select id="plY" style="max-width:160px"></select></div><div id="plKonto" class="mut" style="margin-top:8px;font-size:.9rem"></div></div>
+ <div class="card"><h2>Jahreskalender</h2><div class="mut" style="font-size:.8rem">Tag antippen zum Eintragen oder Entfernen.</div>
+  <div id="plCal"></div>
+  <div class="cleg"><span><i style="background:var(--acc)"></i>Urlaub</span><span><i style="background:linear-gradient(135deg,var(--acc) 50%,var(--card2) 50%)"></i>halber Tag</span><span><i style="background:#7c3aed"></i>Bildung</span><span><i style="background:#0d9488"></i>RV Fit</span><span><i style="background:color-mix(in srgb,var(--bad) 35%,var(--card2))"></i>Krank</span><span><i style="background:#a16207"></i>Feiertag</span><span><i style="box-shadow:inset 0 0 0 2px #fbbf24"></i>neu seit Antrag</span></div>
+  <div id="plNote"></div>
+  <div class="btns" style="justify-content:flex-start"><button class="btn pri" id="plPrint">🖨 Urlaubsantrag drucken</button><button class="btn" id="plBlank">Leer drucken</button></div>
+ </div>
  <div class="card"><h2>Zeitraum eintragen</h2>
   <div class="row"><label>Von<input type="date" id="plA"></label><label>Bis<input type="date" id="plB"></label></div>
   <label>Art<select id="plT"><option value="urlaub">Urlaub</option><option value="krank">Krank</option><option value="bildung">Bildungsurlaub</option><option value="rvfit">RV Fit</option><option value="gleit">Ganzer Tag aus Überstunden</option></select></label>
+  <label>Vorschlag vom Urlaubs-Lotsen übernehmen<select id="plPick"><option value="">–</option></select></label>
   <div id="plCalc" class="mut" style="font-size:.85rem"></div>
   <div class="btns"><button class="btn pri" id="plAdd">Eintragen</button></div>
  </div>
- <div class="card"><h2>Brückentag-Finder</h2>
-  <div class="row" style="align-items:center"><span class="mut" style="font-size:.85rem">höchstens</span><select id="plMax" style="max-width:230px"><option value="1">1 Urlaubstag</option><option value="2">2 Urlaubstage</option><option value="3">3 Urlaubstage</option><option value="4" selected>4 Urlaubstage</option><option value="5">5 Urlaubstage</option><option value="9">9 Urlaubstage</option></select></div>
+ <div class="card"><h2>Urlaubs-Lotse 🧭</h2>
+  <div class="row" style="align-items:center"><span class="mut" style="font-size:.85rem">höchstens</span><select id="plMax" style="max-width:230px"><option value="1">1 Urlaubstag</option><option value="2">2 Urlaubstage</option><option value="3">3 Urlaubstage</option><option value="4" selected>4 Urlaubstage</option><option value="5">5 Urlaubstage</option><option value="9">9 Urlaubstage</option><option value="13">13 Urlaubstage</option><option value="15">15 Urlaubstage</option></select></div>
   <div class="list" id="plSug"></div>
  </div>
  <div class="card"><h2>Geplant & genommen</h2><div class="list" id="plList"></div></div>
@@ -285,6 +314,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Rundungseinheit<select id="sRnd"><option value="15">Viertelstunde (0,25 h)</option><option value="30">Halbe Stunde (0,5 h)</option><option value="6">6 Minuten (0,1 h)</option></select></label>
   <label>Betriebsarbeiten-Auftrag (Ausgleich, Auffüllen, nach Pause)<input id="sFillNr" inputmode="numeric"></label>
   <label>Ausgleich-aus-Überstunden-Auftrag<input id="sAusgNr" inputmode="numeric"></label>
+  <div class="row"><label>Arbeitsbeginn (Nachfrage bei späterem Kommen)<input type="time" id="sStart"></label><label>Kommen nachtragen ohne PIN bis … Minuten<input id="sBack" inputmode="numeric"></label></div>
   <label>Puffer Rückfahrt (min) – kommt auf die Hinfahrtdauer, ergibt die feste Rückfahrt für Zettel und Stundenbuch<input id="sRPuf" inputmode="numeric"></label>
   <label class="chk"><input type="checkbox" id="sFill"> Bei „Gehen“ nicht zugeordnete Zeit auf Betriebsarbeiten buchen</label>
   <label class="chk"><input type="checkbox" id="sHol"> Feiertage Niedersachsen automatisch, 24.12./31.12. halbe Tage</label>
@@ -351,7 +381,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.4.0';
+const VERSION='1.5.1';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -380,7 +410,7 @@ function defaults(){return{v:1,orders:[
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
   otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
-  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,rPuf:15,ausgNr:'21260008',lockMin:5,pinB:'',pinA:'',
+  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,rPuf:15,ausgNr:'21260008',lockMin:5,startTime:'07:00',backMin:60,setupDone:false,pinB:'',pinA:'',
   marks:[{k:'AW',n:'Abwasser',ic:'🧪',goal:0,since:'',carry:0},{k:'KSB',n:'KSB-Schulung',ic:'📘',goal:0,since:'',carry:0}]},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
@@ -579,18 +609,43 @@ function guardAbs(go){
  if($('#gHalf'))$('#gHalf').onclick=()=>{S.days[k].type='urlaub_halb';save();closeDlg();toast('Halber Urlaubstag');go();};
 }
 function doKommen(){
- const d=today(),t=Date.now();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,t);else d.kommen=t;
+ const d=today(),now=Date.now(),k=dkey();if(d.kommen&&!d.gehen)return;
+ const st=tsOf(k,S.settings.startTime||'07:00');
+ if(!d.gehen&&st&&sollOf(k)&&now>st+60000&&now<tsOf(k,'10:00')){
+  const back=+S.settings.backMin||60;
+  dlg(`<h3>Kommen ${hm(now)} – seit wann bist du da?</h3>
+  <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="ksA"><b>Seit ${hm(st)}</b><small>Arbeitsbeginn</small></button><button class="tile" id="ksN"><b>Jetzt (${hm(now)})</b><small>später angefangen</small></button></div>
+  <div class="row" style="align-items:flex-end;margin-top:6px"><label>Andere Zeit<input type="time" id="ksT" value="${hm(Math.max(now-back*60000,st))}"></label><button class="btn" id="ksO" style="flex:0 0 auto">Übernehmen</button></div>
+  <div class="mut" style="font-size:.75rem">Bis ${back} Minuten zurück ohne PIN, früher mit Büro-PIN.</div>`);
+  const take=T=>{closeDlg();if(T<now-back*60000-60000&&T!==st)return gate(1,()=>startDay(T,now));startDay(T,now);};
+  $('#ksA').onclick=()=>{closeDlg();if(st<now-back*60000-60000&&locked(1)&&level()<1){/* Arbeitsbeginn ist immer erlaubt */}startDay(st,now);};
+  $('#ksN').onclick=()=>{closeDlg();startDay(now,now);};
+  $('#ksO').onclick=()=>{const T=tsOf(k,$('#ksT').value);if(!T||T>now)return toast('Zeit prüfen');take(T);};return;}
+ startDay(now,now);}
+function startDay(t,now){
+ const d=today();if(d.kommen&&!d.gehen)return;if(d.gehen)resumeAfterGehen(d,t);else d.kommen=t;const late=now-t>60000;
  const b=balOrder(),eid=uid(),oe=openEntry(d);if(oe)closeEntry(d,oe,t);d.entries.push({id:eid,o:b.id,info:'',s:t,e:null});save();render();
- const rec=recentIds().map(id=>S.orders.find(o=>o.id===id&&!o.arch)).filter(o=>o&&o.id!==b.id).slice(0,6);
- dlg(`<h3>Kommen ${hm(t)} – womit geht es los?</h3><p class="mut" style="margin:0 0 6px">Betriebsarbeiten läuft bereits. Ein anderer Auftrag wird ab ${hm(t)} umgebucht.</p>
+ const rec=recentIds().map(id=>S.orders.find(o=>o.id===id&&!o.arch&&!o.done)).filter(o=>o&&o.id!==b.id).slice(0,6);
+ dlg(`<h3>${late?`Seit ${hm(t)} – was hast du gemacht?`:`Kommen ${hm(t)} – womit geht es los?`}</h3><p class="mut" style="margin:0 0 6px">Betriebsarbeiten läuft bereits. Ein anderer Auftrag wird ab ${hm(t)} umgebucht.</p>
  <div class="tiles"><button class="tile pri" id="kB" style="grid-column:1/-1"><b>✓ Betriebsarbeiten</b><small>${esc(b.nr)}</small></button>
  ${rec.map(o=>`<button class="tile" data-k="${o.id}"><small>${esc(o.nr)}</small><b>${esc(o.kunde)}</b></button>`).join('')}</div>
- <div class="btns" style="justify-content:space-between"><button class="btn drv" id="kF" style="color:var(--drive);border-color:var(--drive)">🚗 Gleich losfahren</button><button class="btn" id="kS">🔍 Anderer Auftrag</button></div>`);
+ <div class="btns" style="justify-content:space-between"><button class="btn drv" id="kF" style="color:var(--drive);border-color:var(--drive)">🚗 ${late?'Fahrt seit '+hm(t):'Gleich losfahren'}</button><button class="btn" id="kS">🔍 Anderer Auftrag</button></div>`);
  $('#kB').onclick=closeDlg;
  D.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{const e=d.entries.find(y=>y.id===eid);if(e){e.o=x.dataset.k;e.info=order(x.dataset.k).info||'';}save();closeDlg();render();toast('Ab '+hm(t)+': '+order(x.dataset.k).kunde);});
- $('#kF').onclick=()=>{closeDlg();doFahrt();};
+ $('#kF').onclick=()=>{closeDlg();if(late)fahrtBack(t,eid);else doFahrt();};
  $('#kS').onclick=()=>{closeDlg();$('#q').focus();};
 }
+/* Fahrt nachtragen: seit t unterwegs, evtl. schon angekommen */
+function fahrtBack(t,eid){const d=today();
+ dlg(`<h3>🚗 Fahrt seit ${hm(t)} – wohin?</h3><input id="fbQ" type="search" placeholder="🔍 Kunde suchen …"><div class="tiles" id="fbT">${pickTiles('',custList('',null))}</div><div class="btns"><button class="btn" data-x>Abbrechen</button></div>`);
+ $('#fbQ').oninput=()=>{const q=$('#fbQ').value.trim().toLowerCase();$('#fbT').innerHTML=pickTiles(q,custList(q,null));};
+ $('#fbT').onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;const id=b.dataset.h,o=order(id),now=Date.now();
+  dlg(`<h3>${esc(o.kunde)} – schon angekommen?</h3><div class="row" style="align-items:flex-end"><label>Angekommen um<input type="time" id="fbA" value="${hm(now)}"></label><button class="btn pri" id="fbY" style="flex:0 0 auto">Ja, angekommen</button></div>
+  <div class="btns"><button class="btn" id="fbN">Nein, fahre noch</button></div>`);
+  const fix=A=>{d.entries=d.entries.filter(x=>x.id!==eid);if(o.arch){o.arch=false;}if(o.done)delete o.done;
+   if(A){d.entries.push({id:uid(),o:id,info:'',s:t,e:A,kind:'fahrt',dir:'hin'});d.entries.push({id:uid(),o:id,info:o.info||'',s:A,e:null});}
+   else d.entries.push({id:uid(),o:id,info:'',s:t,e:null,kind:'fahrt',dir:'hin'});save();closeDlg();render();};
+  $('#fbY').onclick=()=>{const A=tsOf(dkey(),$('#fbA').value);if(!A||A<t||A>now)return toast('Ankunft prüfen');fix(A);};$('#fbN').onclick=()=>fix(null);};}
 function gapMin(d){if(!d||!d.kommen||!d.gehen)return 0;return presence(d)-d.entries.reduce((a,e)=>a+emin(e),0);}
 function fillGap(k,silent){
  const d=S.days[k],g=gapMin(d);if(g<1){if(!silent)toast('Keine Lücke zum Auffüllen');return false;}
@@ -617,10 +672,19 @@ function doInfo(){
  <label>Info (erscheint im Stundenbuch)<input id="fI" value="${esc(oe.info)}" placeholder="z. B. EM-3555 tanken/aufräumen"></label>
  <label>Tätigkeit (für Nachweis, nicht im Stundenbuch)<textarea id="fTa" placeholder="Was wurde gemacht, Befund, Material …">${esc(oe.taet||'')}</textarea></label>
  ${oe.kind!=='fahrt'&&marks().length?`<div class="tiles" style="grid-template-columns:repeat(${Math.min(3,marks().length)},1fr);margin-top:6px">${marks().map(m=>`<button class="tile${oe.mk===m.k?' pri':''}" data-mk="${esc(m.k)}"><b>${esc(m.ic||'🏷')} ${esc(m.k)} ${oe.mk===m.k?'beenden':'starten'}</b><small>${oe.mk===m.k?'läuft seit '+hm(oe.s):esc(m.n||'')}</small></button>`).join('')}</div>`:''}
- <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">OK</button></div>`);
+ <div class="btns" style="justify-content:space-between">${isInternal(o)?'<span></span>':'<button class="btn" id="fDone">✓ Auftrag fertig</button>'}<span style="display:flex;gap:10px"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">OK</button></span></div>`);
  $('#fOk').onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();save();closeDlg();render();};
+ if($('#fDone'))$('#fDone').onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();save();closeDlg();doneOrder(oe.o);};
  D.querySelectorAll('[data-mk]').forEach(b=>b.onclick=()=>{oe.info=$('#fI').value.trim();oe.taet=$('#fTa').value.trim();closeDlg();toggleMk(b.dataset.mk);});
 }
+function doneOrder(id){const o=S.orders.find(x=>x.id===id);if(!o)return;
+ dlg(`<h3>Auftrag fertig?</h3><p style="margin:0 0 8px"><b>${esc(o.nr)} · ${esc(o.kunde)}</b> abschließen? Er verschwindet aus den Schnellkacheln und liegt unter Aufträge → Fertig. Zurückholen geht jederzeit.</p>
+ <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="dnOk">✓ Fertig</button></div>`);
+ $('#dnOk').onclick=()=>{o.done=dkey();delete o.ask;save();closeDlg();render();if(VIEW==='vOrders')renderOrders();toast(o.kunde+' abgeschlossen');};}
+function checkOldOrders(){if(D.open)return;const o=S.orders.find(o=>!o.done&&!isInternal(o)&&(()=>{const l=lastUse(o.id)||o.created||'';return l&&daysAgo(l)>182&&(!o.ask||daysAgo(o.ask)>182);})());if(!o)return;
+ dlg(`<h3>Gibt es den Auftrag noch?</h3><p style="margin:0 0 8px"><b>${esc(o.nr)} · ${esc(o.kunde)}</b> wurde seit über einem halben Jahr nicht benutzt (zuletzt ${dDate(lastUse(o.id)||o.created)}).</p>
+ <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="aoD"><b>✓ Fertig</b><small>abschließen</small></button><button class="tile" id="aoL"><b>Läuft noch</b><small>in einem halben Jahr wieder fragen</small></button></div>`);
+ $('#aoD').onclick=()=>{o.done=dkey();save();closeDlg();setTimeout(checkOldOrders,300);};$('#aoL').onclick=()=>{o.ask=dkey();save();closeDlg();setTimeout(checkOldOrders,300);};}
 function toggleMk(k){const d=today(),oe=openEntry(d);if(!oe||oe.kind==='fahrt')return;const t=Date.now(),on=oe.mk!==k;closeEntry(d,oe,t);
  const e={id:uid(),o:oe.o,info:oe.info||'',s:t,e:null};if(oe.taet)e.taet=oe.taet;if(on)e.mk=k;d.entries.push(e);save();render();toast(on?k+' läuft ab '+hm(t):k+' beendet');
 }
@@ -655,11 +719,11 @@ function rueckPauschal(id){
  toast('Rückfahrt '+fmtDur(dur/60000)+' h gebucht – ab '+hm(t+dur)+' Betriebsarbeiten');
 }
 function pickTiles(q,list){if(!list.length)return q?`<button class="tile" data-new="${esc(q)}" style="grid-column:1/-1"><b>+ „${esc(q)}“ als neuen Auftrag anlegen</b><small>danach „Hinfahren“ wählen</small></button>`:'<div class="mut" style="grid-column:1/-1">Noch keine Kunden-Aufträge – über die Suche oder „+ Neuer Auftrag“ anlegen.</div>';
- return list.map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}${o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');}
+ return list.map(o=>`<button class="tile" data-h="${o.id}"><small>${esc(o.nr)}${o.done?' · fertig':o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');}
 function matchQ(o,q){if(!q)return true;const n=normNr(q);return (o.nr+' '+o.kunde+' '+(o.info||'')).toLowerCase().includes(q)||o.nr===n||(/^\d+$/.test(q)&&o.nr.endsWith(q));}
 function custList(q,ex){const rec=recentIds();
- if(q)return S.orders.filter(o=>o.id!==ex&&matchQ(o,q)).sort((a,b)=>(a.arch-b.arch)||(isInternal(a)-isInternal(b))).slice(0,9);
- return S.orders.filter(o=>!o.arch&&!isInternal(o)&&o.id!==ex).sort((a,b)=>{const ia=rec.indexOf(a.id),ib=rec.indexOf(b.id);return(ia<0?999:ia)-(ib<0?999:ib);}).slice(0,9);}
+ if(q)return S.orders.filter(o=>o.id!==ex&&matchQ(o,q)).sort((a,b)=>(!!a.done-!!b.done)||(a.arch-b.arch)||(isInternal(a)-isInternal(b))).slice(0,9);
+ return S.orders.filter(o=>!o.arch&&!o.done&&!isInternal(o)&&o.id!==ex).sort((a,b)=>{const ia=rec.indexOf(a.id),ib=rec.indexOf(b.id);return(ia<0?999:ia)-(ib<0?999:ib);}).slice(0,9);}
 function doFahrt(){
  const d=today(),oe=openEntry(d);
  if(oe&&oe.kind==='fahrt')return arrive();
@@ -675,7 +739,7 @@ function doFahrt(){
  dlg(`<h3>🚗 Fahrt</h3>${h}`);
  if($('#fFi'))$('#fFi').onclick=()=>{closeDlg();startFahrt(from,'firma',null,rPlan(d,from));};
  $('#fT').onclick=e=>{const nw=e.target.closest('[data-new]');if(nw){closeDlg();showView('vOrders');const q=nw.dataset.new;if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;($('#nNr').value?$('#nKu'):$('#nNr')).focus();return;}
- const b=e.target.closest('[data-h]');if(!b)return;{const o=S.orders.find(x=>x.id===b.dataset.h);if(o&&o.arch){o.arch=false;delete o.archAt;}}closeDlg();if(from&&b.dataset.h!==from)startFahrt(b.dataset.h,'next',from);else startFahrt(b.dataset.h,'hin');};
+ const b=e.target.closest('[data-h]');if(!b)return;{const o=S.orders.find(x=>x.id===b.dataset.h);if(o&&o.arch){o.arch=false;delete o.archAt;}if(o&&o.done)delete o.done;}closeDlg();if(from&&b.dataset.h!==from)startFahrt(b.dataset.h,'next',from);else startFahrt(b.dataset.h,'hin');};
  $('#fQ').oninput=()=>{{const q=$('#fQ').value.trim().toLowerCase();$('#fT').innerHTML=pickTiles(q,custList(q,from));}};
  $('#fNew').onclick=()=>{closeDlg();showView('vOrders');$('#nNr').focus();};
 }
@@ -783,12 +847,15 @@ function checkRemind(){
 }
 
 /* ---------- Aufräumen & Jahreswechsel ---------- */
-function lastUse(id){let l='';for(const k in S.days)if(k>l&&S.days[k].entries.some(e=>e.o===id))l=k;return l;}
+function lastUse(id){const o=S.orders.find(x=>x.id===id);let l=(o&&o.lastK)||'';for(const k in S.days)if(k>l&&S.days[k].entries.some(e=>e.o===id))l=k;return l;}
+function orderHours(){const m={};S.orders.forEach(o=>m[o.id]=+o.hrs||0);Object.keys(S.days).forEach(k=>{const sm=summary(k);if(sm)printRows(sm).forEach(r=>{m[r.o]=(m[r.o]||0)+r.h;});});return m;}
 function daysAgo(k){return Math.floor((new Date(dkey()+'T12:00')-new Date(k+'T12:00'))/864e5);}
 function housekeeping(){
  const st=S.settings,td=dkey();let a=0,del=0;const ad=+st.archDays||0,kd=+st.keepDays||0;
  if(ad)S.orders.forEach(o=>{if(o.arch||o.fav||isInternal(o))return;const ref=lastUse(o.id)||o.created||'';if(ref&&daysAgo(ref)>ad){o.arch=true;a++;}});
- if(kd)Object.keys(S.days).sort().forEach(k=>{const d=S.days[k];if(k===td||!d.printed||daysAgo(k)<=kd)return;
+ const keepY=String(new Date().getFullYear()-1);
+ if(kd)Object.keys(S.days).sort().forEach(k=>{const d=S.days[k];if(k===td||!d.printed||daysAgo(k)<=kd)return;if(d.type&&k.slice(0,4)>=keepY)return; // Abwesenheiten bleiben für den Kalender
+  {const sm=summary(k);if(sm)printRows(sm).forEach(r=>{const o=S.orders.find(x=>x.id===r.o);if(o){o.hrs=+((+o.hrs||0)+r.h).toFixed(2);if(!o.lastK||k>o.lastK)o.lastK=k;}});}
   if(st.otDate&&k>=st.otDate&&counts(k)){const sm=summary(k);st.otStart=+(((+st.otStart||0)+(sm?sm.total:0)-sollOf(k)).toFixed(4));}
   if(st.otDate&&k>=st.otDate){const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);st.otDate=dkey(n);}
   if(st.urlDate&&k>=st.urlDate)st.urlStart=+((+st.urlStart||0)-urlUse(k)).toFixed(2);
@@ -917,10 +984,10 @@ function recentIds(){const all=[];Object.keys(S.days).sort().reverse().slice(0,6
  all.sort((a,b)=>(b.s||0)-(a.s||0));const ids=[];all.forEach(e=>{if(!ids.includes(e.o))ids.push(e.o);});return ids;}
 function renderTiles(){
  const q=$('#q').value.trim().toLowerCase(),act=openEntry(today());let list;
- if(q){list=S.orders.filter(o=>matchQ(o,q)).sort((a,b)=>a.arch-b.arch).slice(0,9);}
- else{list=[];recentIds().forEach(id=>{const o=S.orders.find(x=>x.id===id&&!x.arch);if(o&&list.length<3)list.push(o);});
+ if(q){list=S.orders.filter(o=>matchQ(o,q)).sort((a,b)=>(!!a.done-!!b.done)||(a.arch-b.arch)).slice(0,9);}
+ else{list=[];recentIds().forEach(id=>{const o=S.orders.find(x=>x.id===id&&!x.arch&&!x.done);if(o&&list.length<3)list.push(o);});
   S.orders.filter(o=>!o.arch&&isInternal(o)).forEach(o=>{if(list.length<3&&!list.includes(o))list.push(o);});}
- let h=list.map((o,i)=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}" style="border-left-color:${TILECOL[i%3]}"><small>${esc(o.nr)}${o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');
+ let h=list.map((o,i)=>`<button class="tile${act&&act.o===o.id?' on':''}" data-o="${o.id}" style="border-left-color:${TILECOL[i%3]}"><small>${esc(o.nr)}${o.done?' · fertig':o.arch?' · archiviert':''}</small><b>${esc(o.kunde)}</b></button>`).join('');
  if(q&&!list.length)h=`<button class="tile" id="qNew" style="grid-column:1/-1"><b>+ „${esc(q)}“ neu anlegen</b><small>als Auftrag</small></button>`;
  $('#tiles').innerHTML=h||'<div class="mut" style="grid-column:1/-1">Noch keine Aufträge – über ☰ → Aufträge anlegen.</div>';
 }
@@ -967,31 +1034,39 @@ function render(){renderHeader();renderTiles();renderDay();if(VIEW==='vOrders')r
 
 /* ---------- Aufträge ---------- */
 function renderOrders(){
- const sa=$('#showArch').checked,list=S.orders.filter(o=>sa||!o.arch).sort((a,b)=>a.nr.localeCompare(b.nr));
- $('#oList').innerHTML=list.map(o=>`<div class="it"><div style="min-width:0"><b class="num">${esc(o.nr)}</b> ${esc(o.kunde)}${o.info?`<div class="mut" style="font-size:.8rem">${esc(o.info)}</div>`:''}${o.arch?'<div class="mut" style="font-size:.8rem">archiviert</div>':''}</div><button class="btn" data-ed="${o.id}">✎</button></div>`).join('')||'<div class="mut">Keine Aufträge.</div>';
+ const f=$('#oFilt').value,H=orderHours(),list=S.orders.filter(o=>f==='all'||(f==='done'?!!o.done:!o.done)).sort((a,b)=>(isInternal(a)-isInternal(b))||(f==='done'?String(b.done).localeCompare(a.done):(lastUse(b.id)||'').localeCompare(lastUse(a.id)||''))||a.nr.localeCompare(b.nr));
+ $('#oList').innerHTML=list.map(o=>{const l=lastUse(o.id);return `<div class="it"><div style="min-width:0"><b class="num">${esc(o.nr)}</b>${isProv(o)?' <span class="warn" style="font-size:.8rem">Kommission fehlt</span>':o.ein?` <span class="mut" style="font-size:.8rem">(${esc(o.ein)})</span>`:''} ${esc(o.kunde)}${o.info?`<div class="mut" style="font-size:.8rem">${esc(o.info)}</div>`:''}<div class="mut" style="font-size:.8rem">${H[o.id]?'<b>'+fmtH(H[o.id])+' h</b> · ':''}${l?'zuletzt '+dDate(l):'noch nicht benutzt'}${o.done?' · fertig seit '+dDate(o.done):o.arch?' · ausgeblendet':''}${isInternal(o)?' · intern':''}</div></div>
+  <span style="display:flex;gap:8px">${!isInternal(o)?(o.done?`<button class="btn" data-re="${o.id}">↺ öffnen</button>`:`<button class="btn" data-dn="${o.id}">✓</button>`):''}<button class="btn" data-ed="${o.id}">✎</button></span></div>`;}).join('')||'<div class="mut">Keine Aufträge.</div>';
 }
+const isProv=o=>!!(o&&/^E-/.test(o.nr));
+const einNr=v=>{v=String(v||'').trim().replace(/^E-?/i,'');return v?'E-'+v:'';};
 function addOrder(){
- const nr=normNr($('#nNr').value),ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
- if(!/^\d{8}$/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
+ const ein=einNr($('#nEin').value),nr=$('#nNr').value.trim()?normNr($('#nNr').value):ein,ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Kommissions- oder Eingangs-Nr. und Kunde nötig');
+ if(!/^\d{8}$/.test(nr)&&!/^E-/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
  if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
- const o={id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey(),int:$('#nInt').checked};S.orders.push(o);
- $('#nNr').value=$('#nKu').value=$('#nIn').value='';$('#nInt').checked=false;save();renderOrders();
+ const o={id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey(),int:$('#nInt').checked};if(ein)o.ein=ein;S.orders.push(o);
+ $('#nNr').value=$('#nKu').value=$('#nIn').value=$('#nEin').value='';$('#nInt').checked=false;save();renderOrders();
  dlg(`<h3>${esc(nr)} · ${esc(ku)} angelegt</h3><p class="mut" style="margin:0 0 6px">Was jetzt?</p>
  <div class="tiles"><button class="tile pri" id="nS"><b>▶ Jetzt beginnen</b><small>Arbeit startet</small></button><button class="tile drv" id="nF"><b>🚗 Hinfahren</b><small>Fahrt startet</small></button><button class="tile" id="nN"><b>Nur anlegen</b><small>später</small></button></div>`);
  $('#nS').onclick=()=>{closeDlg();showView('vMain');startOrder(o.id);};
  $('#nF').onclick=()=>{closeDlg();showView('vMain');const oe=openEntry(today());if(oe&&oe.kind!=='fahrt'&&!isInternal(order(oe.o))&&atCust(today(),oe.o))startFahrt(o.id,'next',oe.o);else startFahrt(o.id,'hin');};
  $('#nN').onclick=()=>{closeDlg();render();};
 }
+/* Nummer ändern: versiegelte Tage automatisch protokollieren (kein Abweichungs-Alarm) */
+function setOrderNr(o,nr){if(o.nr===nr)return;const old=o.nr,ks=Object.keys(S.days).filter(k=>S.days[k].seal&&S.days[k].entries.some(e=>e.o===o.id)),alt={};
+ ks.forEach(k=>alt[k]=dayText(k));o.nr=nr;ks.forEach(k=>logChange(k,alt[k],(isProv({nr:old})?'Kommissionsnummer nachgetragen: ':'Auftragsnummer geändert: ')+old+' → '+nr));save();}
 function editOrder(id){
  const o=S.orders.find(x=>x.id===id),used=Object.values(S.days).some(d=>d.entries.some(e=>e.o===id));
- dlg(`<h3>Auftrag bearbeiten</h3><label>Auftrags-Nr.<input id="eNr" inputmode="numeric" value="${esc(o.nr)}"></label>
+ dlg(`<h3>Auftrag bearbeiten</h3><label>Kommissions-Nr.${isProv(o)?' <span class="warn">(fehlt noch – jetzt eintragen)</span>':''}<input id="eNr" inputmode="numeric" value="${isProv(o)?'':esc(o.nr)}"></label>
+ <label>Eingangs-Nr.<input id="eEin" inputmode="numeric" value="${esc(o.ein||'')}"></label>
  <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label><label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
  <label class="chk"><input type="checkbox" id="eInt"${o.int?' checked':''}> interner Auftrag (Betriebsarbeiten, Büro …)</label>
- <label class="chk"><input type="checkbox" id="eAr"${o.arch?' checked':''}> archiviert (abgeschlossen)</label>
+ <label class="chk"><input type="checkbox" id="eDone"${o.done?' checked':''}> fertig (abgeschlossen)</label>
+ <label class="chk"><input type="checkbox" id="eAr"${o.arch?' checked':''}> aus Schnellkacheln ausblenden</label>
  <div class="btns">${used?'':'<button class="btn danger" id="eDel">Löschen</button>'}<button class="btn" data-x>Abbrechen</button><button class="btn pri" id="eOk">Speichern</button></div>`);
  if(!used)$('#eDel').onclick=()=>{S.orders=S.orders.filter(x=>x!==o);save();closeDlg();render();renderOrders();};
- $('#eOk').onclick=()=>{const nr=normNr($('#eNr').value),ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Nr. und Kunde nötig');
-  o.nr=nr;o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;o.int=$('#eInt').checked;save();closeDlg();render();renderOrders();};
+ $('#eOk').onclick=()=>{const ein=einNr($('#eEin').value),nr=$('#eNr').value.trim()?normNr($('#eNr').value):ein,ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Kommissions- oder Eingangs-Nr. und Kunde nötig');
+  if(ein)o.ein=ein;else delete o.ein;setOrderNr(o,nr);o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;o.int=$('#eInt').checked;if($('#eDone').checked){if(!o.done)o.done=dkey();}else delete o.done;save();closeDlg();render();renderOrders();};
 }
 
 /* ---------- Einträge & Tag bearbeiten ---------- */
@@ -1045,7 +1120,8 @@ function editDay(k){
 
 /* ---------- Urlaubsplanung ---------- */
 const addD=(k,n)=>{const d=new Date(k+'T12:00');d.setDate(d.getDate()+n);return dkey(d);};
-const isFree=k=>{const w=wdOf(k);return w===0||w===6||!!holidayOf(k);};
+const isWE=k=>{const w=wdOf(k);return w===0||w===6;};
+const isFree=k=>isWE(k)||!!holidayOf(k);
 const dayCost=k=>isFree(k)?0:halfDayOf(k)?0.5:1;
 const ABS=['urlaub','urlaub_halb','krank','bildung','rvfit','gleit'];
 const fmtR=(a,b)=>a===b?WD[wdOf(a)].slice(0,2)+' '+dDate(a):WD[wdOf(a)].slice(0,2)+' '+dDate(a).slice(0,6)+' – '+WD[wdOf(b)].slice(0,2)+' '+dDate(b);
@@ -1058,29 +1134,65 @@ function suggestions(y,max){
    if(j+1<days.length&&!freeP(days[j+1]))continue; // Block endet vor freiem Tag
    let a=i,b=j;while(a>0&&freeP(days[a-1]))a--;while(b+1<days.length&&freeP(days[b+1]))b++;
    const len=b-a+1;if(cost>0&&len>=4)res.push({a:days[a],b:days[b],from:days[i],to:days[j],cost,len,ratio:len/cost});}}
- res.sort((x,y)=>y.ratio-x.ratio||y.len-x.len);
- const out=[];res.forEach(r=>{if(out.some(o=>!(r.b<o.a||r.a>o.b)))return;out.push(r);});
- return out.filter(r=>r.b>=dkey()).slice(0,8).sort((x,y)=>x.a.localeCompare(y.a));
+ // je Feiertag (werktags) eine kurze (bestes Verhältnis) und eine lange Variante (meiste freie Tage im Budget)
+ const anchors=days.filter(k=>holidayOf(k)&&!isWE(k)),out=[],seen=new Set(),add=(r,v)=>{if(!r)return;const id=r.from+r.to;if(seen.has(id))return;seen.add(id);out.push(Object.assign({v},r));};
+ anchors.forEach(h=>{const c=res.filter(r=>r.a<=h&&r.b>=h);if(!c.length)return;
+  // höchstens 3 Varianten: effizienteste · beste mit ≥ 14 Tagen frei · längste im Budget (je ≥ 1,75 freie Tage pro Urlaubstag)
+  const by=(f,g)=>c.filter(f).sort(g)[0],ok=r=>r.ratio>=1.75;
+  add(by(()=>true,(x,y)=>y.ratio-x.ratio||y.len-x.len),'kurz');
+  add(by(r=>r.len>=14&&ok(r),(x,y)=>y.ratio-x.ratio||y.len-x.len),'2 Wochen+');
+  add(by(ok,(x,y)=>y.len-x.len||y.ratio-x.ratio),'lang');});
+ return out.filter(r=>r.b>=dkey()).sort((x,y)=>x.a.localeCompare(y.a)||x.cost-y.cost);
 }
 function setRangeType(a,b,ty){let n=0,c=0;for(let k=a;k<=b;k=addD(k,1)){if(isFree(k))continue;const d=day(k);if(d.entries.length&&ty!=='krank'){continue;}d.type=ty;n++;c+=ty==='urlaub'?dayCost(k):0;}save();return{n,c};}
 function absRanges(y){const ks=Object.keys(S.days).filter(k=>k.startsWith(y+'-')&&ABS.includes(typeOf(k))).sort(),out=[];
  ks.forEach(k=>{const t=typeOf(k),l=out[out.length-1];if(l&&l.t===t){let x=addD(l.b,1);while(x<k&&isFree(x)&&!typeOf(x))x=addD(x,1);if(x===k){l.b=k;l.n+=1;l.c+=urlUse(k);return;}}out.push({t,a:k,b:k,n:1,c:urlUse(k)});});return out;}
 function renderPlan(){
- const sel=$('#plY'),y0=new Date().getFullYear();if(!sel.options.length){sel.innerHTML=[y0,y0+1].map(y=>`<option>${y}</option>`).join('');}
+ const sel=$('#plY'),y0=new Date().getFullYear();if(!sel.options.length){sel.innerHTML=[y0,y0+1,y0+2].map(y=>`<option>${y}</option>`).join('');}
  const y=+sel.value,ru=resturlaub();
  const used=Object.keys(S.days).filter(k=>k.startsWith(y+'-')).reduce((a,k)=>a+urlUse(k),0);
  $('#plKonto').innerHTML=`Urlaub ${y} eingetragen: <b>${fmtH(used)} Tage</b>`+(y===y0&&ru?` · Resturlaub: <b>${fmtH(ru.r)} Tage</b>`:'')+(y>y0?` · im neuen Jahr kommen ${S.settings.urlYear} Tage dazu`:'')+
   `<br>${tyLabel('rvfit')}: <b>${yearCount(y,'rvfit')}</b><br>${tyLabel('bildung',y+'-12-31')}: <b>${yearCount(y,'bildung')}</b><br>Krank: ${yearCount(y,'krank')}`;
  const sg=suggestions(y,+$('#plMax').value);
  $('#plSug').innerHTML=sg.map((r,i)=>{const hs=[];for(let k=r.a;k<=r.b;k=addD(k,1))if(holidayOf(k)&&!hs.includes(holidayOf(k)))hs.push(holidayOf(k));
-  return `<div class="it"><div style="min-width:0"><b>${fmtR(r.a,r.b)}</b><div class="mut" style="font-size:.8rem">${fmtH(r.cost)} Urlaubstag${r.cost===1?'':'e'} → <b>${r.len} Tage frei</b>${hs.length?' · '+esc(hs.join(', ')):''}<br>Urlaub: ${fmtR(r.from,r.to)}</div></div><button class="btn" data-sg="${i}">Eintragen</button></div>`;}).join('')||'<div class="mut">Keine Vorschläge im Rest des Jahres.</div>';
+  return `<div class="it"><div style="min-width:0"><b>${fmtR(r.a,r.b)}</b> <span class="badge">${r.v}</span><div class="mut" style="font-size:.8rem">${fmtH(r.cost)} Urlaubstag${r.cost===1?'':'e'} → <b>${r.len} Tage frei</b>${hs.length?' · '+esc(hs.join(', ')):''}<br>Urlaub: ${fmtR(r.from,r.to)}</div></div><button class="btn" data-sg="${i}">Eintragen</button></div>`;}).join('')||'<div class="mut">Keine Vorschläge im Rest des Jahres.</div>';
+ $('#plPick').innerHTML='<option value="">–</option>'+sg.map((r,i)=>`<option value="${i}">${fmtR(r.from,r.to)} · ${fmtH(r.cost)} → ${r.len} frei (${r.v})</option>`).join('');
+ $('#plPick').onchange=()=>{const r=sg[+$('#plPick').value];if(!r)return;$('#plA').value=r.from;$('#plB').value=r.to;$('#plT').value='urlaub';calcPlan();};
  $('#plSug').onclick=e=>{const b=e.target.closest('[data-sg]');if(!b)return;const r=sg[+b.dataset.sg];const x=setRangeType(r.from,r.to,'urlaub');toast(fmtH(x.c)+' Urlaubstage eingetragen');renderPlan();render();};
  const rg=absRanges(y);
  $('#plList').innerHTML=rg.map((r,i)=>`<div class="it"><div style="min-width:0"><b>${esc(tyLabel(r.t,r.a))}</b> · ${fmtR(r.a,r.b)}<div class="mut" style="font-size:.8rem">${r.n} Werktag${r.n===1?'':'e'}${r.c?` · ${fmtH(r.c)} Urlaubstage`:''}${r.b<dkey()?' · vergangen':''}</div></div><button class="btn danger" data-rm="${i}">✕</button></div>`).join('')||'<div class="mut">Nichts eingetragen.</div>';
  $('#plList').onclick=e=>{const b=e.target.closest('[data-rm]');if(!b)return;const r=rg[+b.dataset.rm];if(!confirm(TYP[r.t]+' '+fmtR(r.a,r.b)+' entfernen?'))return;
   for(let k=r.a;k<=r.b;k=addD(k,1))if(S.days[k]&&S.days[k].type===r.t){delete S.days[k].type;const d=S.days[k];if(!d.kommen&&!d.entries.length&&!d.pausen.length)delete S.days[k];}save();renderPlan();render();};
- calcPlan();
+ renderCal(y);calcPlan();
 }
+const MS=['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const CALSYM={urlaub:['X','tx'],urlaub_halb:['½','th'],bildung:['B','tb'],rvfit:['R','tr'],krank:['K','tk'],gleit:['Ü','tg']};
+const calKey=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
+function calSnap(y){const o={};Object.keys(S.days).forEach(k=>{const t=typeOf(k);if(k.startsWith(y+'-')&&t&&t!=='krank'&&CALSYM[t])o[k]=t;});return o;}
+function calNew(y){const p=(S.urlPrint||{})[y];if(!p)return new Set();const n=calSnap(y),r=new Set();Object.keys(n).forEach(k=>{if(p.snap[k]!==n[k])r.add(k);});Object.keys(p.snap).forEach(k=>{if(!n[k])r.add(k);});return r;}
+function renderCal(y){const nw=calNew(y),t=dkey();let h='<div class="acal"><span class="h"></span>'+Array.from({length:31},(_,i)=>`<span class="h">${i+1}</span>`).join('');
+ for(let m=1;m<=12;m++){h+=`<span class="m">${MS[m-1]}</span>`;const dim=new Date(y,m,0).getDate();
+  for(let d=1;d<=31;d++){if(d>dim){h+='<span class="na"></span>';continue;}const k=calKey(y,m,d),c=[],ty=typeOf(k),sy=CALSYM[ty];if(isWE(k))c.push('we');if(holidayOf(k))c.push('ho');if(sy)c.push(sy[1]);if(nw.has(k))c.push('nw');if(k===t)c.push('td');
+   h+=`<button class="${c.join(' ')}" data-ck="${k}">${holidayOf(k)?'F':sy?sy[0]:''}</button>`;}}
+ $('#plCal').innerHTML=h+'</div>';
+ const p=(S.urlPrint||{})[y];$('#plNote').innerHTML=nw.size?`<div class="warn" style="margin-top:10px;font-size:.85rem">📝 ${nw.size} Tag${nw.size===1?'':'e'} geändert seit dem letzten Urlaubsantrag (${dDate(p.date)}).</div>`:p?`<div class="mut" style="margin-top:10px;font-size:.8rem">Letzter Urlaubsantrag gedruckt am ${dDate(p.date)}.</div>`:'';
+ $('#plCal').onclick=e=>{const b=e.target.closest('[data-ck]');if(b)calDay(b.dataset.ck);};}
+function calDay(k){if(isFree(k))return toast(dDate(k)+' ist '+(holidayOf(k)?'Feiertag ('+holidayOf(k)+')':WD[wdOf(k)])+' – nichts einzutragen');
+ const cur=typeOf(k),d=S.days[k],busy=d&&d.entries.length;
+ dlg(`<h3>${WD[wdOf(k)]} ${dDate(k)}</h3>${cur?`<p class="mut" style="margin:0 0 6px">Eingetragen: ${esc(tyLabel(cur,k))}</p>`:''}${busy?'<p class="warn" style="margin:0 0 6px">An diesem Tag sind Arbeitszeiten gebucht.</p>':''}
+ <div class="tiles" style="grid-template-columns:1fr 1fr">${['urlaub','urlaub_halb','bildung','rvfit','krank','gleit'].map(t=>`<button class="tile${cur===t?' pri':''}" data-ct="${t}"><b>${CALSYM[t][0]} ${esc(TYP[t])}</b></button>`).join('')}
+ ${cur?'<button class="tile" data-ct="" style="grid-column:1/-1"><b>✕ Eintrag entfernen</b></button>':''}</div><div class="btns"><button class="btn" data-x>Abbrechen</button></div>`);
+ D.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{const t=b.dataset.ct;closeDlg();const go=()=>{const dd=day(k);if(t)dd.type=t;else{delete dd.type;if(!dd.kommen&&!dd.entries.length&&!dd.pausen.length)delete S.days[k];}save();renderPlan();render();};
+  if(S.days[k]&&S.days[k].seal)commitSealed(k,go);else go();});}
+function yearSheet(y,blank){const nw=blank?new Set():calNew(y);let h='<table><tr><th class="m"></th>'+Array.from({length:31},(_,i)=>`<th>${i+1}.</th>`).join('')+'</tr>';
+ for(let m=1;m<=12;m++){h+=`<tr><td class="m">${MS[m-1]}</td>`;const dim=new Date(y,m,0).getDate();
+  for(let d=1;d<=31;d++){if(d>dim){h+='<td class="na"></td>';continue;}const k=calKey(y,m,d),c=[],ty=blank?'':typeOf(k),sy=ty&&ty!=='krank'&&ty!=='gleit'?CALSYM[ty]:null;
+   if(isWE(k))c.push('we');if(holidayOf(k))c.push('ho');if(sy)c.push('x');if(nw.has(k)&&sy)c.push('nw');h+=`<td class="${c.join(' ')}">${holidayOf(k)?'F':sy?sy[0]:''}</td>`;}h+='</tr>';}
+ return `<div class="ys"><div class="top"><div class="tit">Urlaubsantrag</div><div class="yr">${y}</div></div><div class="meta">Name: <i>${esc(S.settings.name||'')}</i></div>${h}</table>
+ <div class="leg">X Urlaub · ½ halber Urlaubstag · B ${esc(tyLabel('bildung',y+'-12-31'))} · R ${esc(tyLabel('rvfit'))} · F Feiertag${blank?'':' · <b style="color:#1c3d9c">umrahmt = neu seit letztem Antrag</b>'}</div></div>`;}
+function printYear(blank){const y=+$('#plY').value;$('#pageStyle').textContent='@page{size:148mm 105mm;margin:0}';$('#printOut').innerHTML=yearSheet(y,blank);
+ if(!blank){S.urlPrint=S.urlPrint||{};S.urlPrint[y]={date:dkey(),snap:calSnap(y)};save();}
+ window.print();setTimeout(()=>{applyPaper();renderPlan();},500);}
 function calcPlan(){const a=$('#plA').value,b=$('#plB').value||a;if(!a||b<a){$('#plCalc').textContent='';return;}
  let w=0,c=0,f=0;for(let k=a;k<=b;k=addD(k,1)){if(isFree(k)){f++;continue;}w++;c+=dayCost(k);}
  $('#plCalc').textContent=`${w} Werktag${w===1?'':'e'}`+($('#plT').value==='urlaub'?` = ${fmtH(c)} Urlaubstage`:'')+(f?` · ${f} Wochenend-/Feiertage werden übersprungen`:'');}
@@ -1138,7 +1250,7 @@ function renderBackup(){
 }
 const SETF=[['sName','name','t'],['sPre','prefix','t'],['sSoll','soll','h'],['sSollFr','sollFr','h'],['sFr','fruehstueck','i'],['sMi','mittag','i'],['sRMode','roundMode','t'],['sRnd','round','i'],
  ['sFillNr','fillNr','nr'],['sFill','fill','b'],['sHol','holidays','b'],['sOtS','otStart','h'],['sOtD','otDate','t'],['sUS','urlStart','h'],['sUD','urlDate','t'],['sUJ','urlYear','i'],
- ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i'],['sAusgNr','ausgNr','nr'],['sLock','lockMin','i']];
+ ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i'],['sAusgNr','ausgNr','nr'],['sLock','lockMin','i'],['sStart','startTime','t'],['sBack','backMin','i']];
 function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});
  const open=!locked(2)||level()>=2;document.querySelectorAll('#vSet .adm').forEach(c=>c.style.display=open?'':'none');$('#admLock').style.display=open?'none':'';
  $('#pinInfo').innerHTML=`Büro-PIN: <b>${S.settings.pinB?'gesetzt':'keine (offen)'}</b> · Admin-PIN: <b>${S.settings.pinA?'gesetzt':'keine (offen)'}</b>`;
@@ -1156,6 +1268,26 @@ function renderInfo(){
  <h2>Fehlerprotokoll</h2>${ERR.length?'<pre style="white-space:pre-wrap;font-size:.75rem">'+esc(ERR.join('\n'))+'</pre>':'<p class="mut">Keine Fehler seit dem Start.</p>'}`;
 }
 
+/* ---------- Einrichtung beim ersten Start ---------- */
+function setupWizard(){const st=S.settings;
+ dlg(`<h3>👋 Stundenbuch einrichten</h3><p class="mut" style="margin:0 0 6px">Einmalig: die wichtigsten Angaben. Alles lässt sich später unter Einstellungen ändern.</p>
+ <label>Name auf dem Ausdruck<input id="wzN" value="${esc(st.name||'')}" placeholder="z. B. Borchert 0695"></label>
+ <label>Präfix für Kurznummern (Abteilung + Jahr)<input id="wzP" inputmode="numeric" value="${esc(st.prefix||'')}"></label>
+ <div class="row"><label>Soll Mo–Do (h)<input id="wzS" inputmode="decimal" value="${fmtH(+st.soll||0)}"></label><label>Soll Fr (h)<input id="wzF" inputmode="decimal" value="${fmtH(+st.sollFr||0)}"></label></div>
+ <div class="row"><label>Arbeitsbeginn<input type="time" id="wzB" value="${esc(st.startTime||'07:00')}"></label><label>Frühstück um<input type="time" id="wzFt" value="${esc(st.frTime||'09:00')}"></label><label>Mittag um<input type="time" id="wzMt" value="${esc(st.miTime||'12:00')}"></label></div>
+ <div class="row"><label>Frühstück (min)<input id="wzFl" inputmode="numeric" value="${+st.fruehstueck||0}"></label><label>Mittag (min)<input id="wzMl" inputmode="numeric" value="${+st.mittag||0}"></label></div>
+ <div class="row"><label>Admin-PIN (4–8 Ziffern)<input id="wzA" type="password" inputmode="numeric"></label><label>PIN wiederholen<input id="wzA2" type="password" inputmode="numeric"></label></div>
+ <div class="mut" style="font-size:.75rem">Die Admin-PIN schützt Einstellungen, Sicherung laden und Zurücksetzen. Gut notieren – vergessen heißt: nur Zurücksetzen hilft.</div>
+ <div class="btns"><button class="btn pri" id="wzOk">Fertig – loslegen</button></div>`);
+ D.oncancel=e=>e.preventDefault();
+ $('#wzOk').onclick=()=>{const num=id=>parseFloat($('#'+id).value.replace(',','.')),a=$('#wzA').value.trim();
+  if(!$('#wzN').value.trim())return toast('Bitte Namen eintragen');if(!/^\d{4}$/.test($('#wzP').value.trim()))return toast('Präfix: 4 Ziffern, z. B. 2126');
+  if(!(num('wzS')>0)||!(num('wzF')>=0))return toast('Sollzeiten prüfen');if(!/^\d{4,8}$/.test(a))return toast('Admin-PIN: 4–8 Ziffern');if(a!==$('#wzA2').value.trim())return toast('PINs stimmen nicht überein');
+  Object.assign(st,{name:$('#wzN').value.trim(),prefix:$('#wzP').value.trim(),soll:num('wzS'),sollFr:num('wzF'),startTime:$('#wzB').value||'07:00',frTime:$('#wzFt').value,miTime:$('#wzMt').value,
+   fruehstueck:parseInt($('#wzFl').value)||0,mittag:parseInt($('#wzMl').value)||0,pinA:pinHash(a),setupDone:true});
+  const pre=st.prefix;S.orders.forEach(o=>{if(isInternal(o)&&/^\d{8}$/.test(o.nr)&&o.nr.slice(0,4)!==pre){o.nr=pre+o.nr.slice(4);}});st.fillNr=pre+String(st.fillNr||'21260003').slice(4);st.ausgNr=pre+String(st.ausgNr||'21260008').slice(4);
+  D.oncancel=null;save();closeDlg();render();toast('Eingerichtet – viel Erfolg!');};}
+
 /* ---------- Ereignisse ---------- */
 $('#bK').onclick=()=>guardAbs(doKommen);$('#bG').onclick=doGehen;$('#bP').onclick=doPause;$('#bI').onclick=doInfo;$('#bF').onclick=()=>guardAbs(doFahrt);
 $('#pbGo').onclick=()=>endPause();$('#dbGo').onclick=arrive;
@@ -1165,7 +1297,7 @@ document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{showView('vMa
 $('#q').oninput=renderTiles;
 $('#tiles').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.id==='qNew'){const q=$('#q').value.trim();showView('vOrders');if(/^\d+$/.test(q))$('#nNr').value=q;else $('#nKu').value=q;$('#q').value='';renderTiles();return;}
- if(b.dataset.o){const id=b.dataset.o;guardAbs(()=>{const o=S.orders.find(x=>x.id===id);if(o&&o.arch){o.arch=false;delete o.archAt;}startOrder(id);$('#q').value='';renderTiles();});}};
+ if(b.dataset.o){const id=b.dataset.o;guardAbs(()=>{const o=S.orders.find(x=>x.id===id);if(o&&o.arch){o.arch=false;delete o.archAt;}if(o&&o.done){delete o.done;toast(o.kunde+' wieder geöffnet');}startOrder(id);$('#q').value='';renderTiles();});}};
 $('#dSel').onchange=renderDay;
 $('#dTog').onclick=()=>{S.ui.dayOpen=!S.ui.dayOpen;save();renderDay();};
 $('#dayList').onclick=e=>{const k=$('#dSel').value||dkey(),g=e.target.closest('[data-g]'),it=e.target.closest('[data-e]');
@@ -1174,13 +1306,24 @@ $('#bFill').onclick=()=>gate(1,()=>{const k=$('#dSel').value||dkey();commitSeale
 $('#bAddE').onclick=()=>gate(1,()=>editEntry($('#dSel').value||dkey(),null));
 $('#bEditDay').onclick=()=>gate(1,()=>editDay($('#dSel').value||dkey()));
 $('#bAddO').onclick=addOrder;
-$('#showArch').onchange=renderOrders;
-$('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)editOrder(b.dataset.ed);};
+$('#oFilt').onchange=renderOrders;
+$('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)return editOrder(b.dataset.ed);const d=e.target.closest('[data-dn]');if(d)return doneOrder(d.dataset.dn);
+ const r=e.target.closest('[data-re]');if(r){const o=S.orders.find(x=>x.id===r.dataset.re);delete o.done;o.arch=false;save();renderOrders();render();toast(o.kunde+' wieder geöffnet');}};
 $('#pFrom').onchange=$('#pTo').onchange=renderPrint;
 $('#pPaper').onchange=()=>{S.settings.paper=$('#pPaper').value;save();renderPrint();};
 $('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};
 $('#bWeek').onclick=()=>setRange(0);$('#bLastWeek').onclick=()=>setRange(-1);
-$('#bPrint').onclick=()=>{const f=$('#pFrom').value,t=$('#pTo').value;Object.keys(S.days).forEach(k=>{if(k>=f&&k<=t&&k<dkey())S.days[k].printed=true;});save();
+$('#bPrint').onclick=()=>{const f=$('#pFrom').value,t=$('#pTo').value,miss={};
+ Object.keys(S.days).forEach(k=>{if(k<f||k>t)return;S.days[k].entries.forEach(e=>{const o=S.orders.find(x=>x.id===e.o);if(isProv(o))(miss[o.id]=miss[o.id]||new Set()).add(k);});});
+ const ids=Object.keys(miss);if(ids.length&&!$('#bPrint').dataset.go){
+  dlg(`<h3>⚠ Kommissionsnummer fehlt</h3><p class="mut" style="margin:0 0 6px">Diese Aufträge haben erst eine Eingangsnummer:</p>
+  ${ids.map(id=>{const o=order(id);return `<label>${esc(o.nr)} · ${esc(o.kunde)} <span class="mut">(${[...miss[id]].sort().map(k=>WD[wdOf(k)].slice(0,2)+' '+dDate(k).slice(0,6)).join(', ')})</span><input data-mn="${id}" inputmode="numeric" placeholder="Kommissions-Nr. eintragen"></label>`;}).join('')}
+  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn" id="mnAny">Trotzdem drucken</button><button class="btn pri" id="mnOk">Eintragen und drucken</button></div>`);
+  const go=()=>{closeDlg();$('#bPrint').dataset.go='1';$('#bPrint').click();delete $('#bPrint').dataset.go;};
+  $('#mnAny').onclick=go;
+  $('#mnOk').onclick=()=>{let n=0;D.querySelectorAll('[data-mn]').forEach(i=>{if(!i.value.trim())return;const o=S.orders.find(x=>x.id===i.dataset.mn);setOrderNr(o,normNr(i.value));n++;});if(!n)return toast('Keine Nummer eingetragen');render();renderPrint();go();};
+  return;}
+ Object.keys(S.days).forEach(k=>{if(k>=f&&k<=t&&k<dkey())S.days[k].printed=true;});save();
  applyPaper();$('#printOut').innerHTML='<div class="pdoc p-'+(S.settings.paper||'A6')+'">'+printHtml()+'</div>';window.print();};
 $('#bExp').onclick=async()=>{await backup();renderBackup();};
 $('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};
@@ -1217,10 +1360,15 @@ $('#bReset').onclick=()=>gate(2,()=>{
   if(keep){Object.keys(old).forEach(k=>{if(!['otStart','otDate','urlStart','urlDate','yearAsked'].includes(k))n.settings[k]=old[k];});
    (n.settings.marks||[]).forEach(m=>{m.since='';m.carry=0;});
    const pre=n.settings.prefix;n.orders.forEach((o,i)=>{o.nr=pre+(i?'0004':'0003');});}
-  S=n;save();closeDlg();OPEN.clear();$('#q').value='';showView('vMain');render();toast('Alles zurückgesetzt – viel Erfolg mit dem echten Start!');};
+  S=n;if(!keep)S.settings.setupDone=false;save();closeDlg();OPEN.clear();$('#q').value='';showView('vMain');render();if(!S.settings.setupDone)setTimeout(setupWizard,300);toast('Alles zurückgesetzt – viel Erfolg mit dem echten Start!');};
 });
-$('#plY').onchange=renderPlan;$('#plMax').onchange=renderPlan;$('#plA').onchange=()=>{if(!$('#plB').value||$('#plB').value<$('#plA').value)$('#plB').value=$('#plA').value;calcPlan();};$('#plB').onchange=calcPlan;$('#plT').onchange=calcPlan;
-$('#plAdd').onclick=()=>{const a=$('#plA').value,b=$('#plB').value||a;if(!a||b<a)return toast('Zeitraum prüfen');const t=$('#plT').value;const x=setRangeType(a,b,t);
+$('#plY').onchange=renderPlan;$('#plPrint').onclick=()=>printYear(false);$('#plBlank').onclick=()=>printYear(true);$('#plMax').onchange=renderPlan;$('#plA').onchange=()=>{if(!$('#plB').value||$('#plB').value<$('#plA').value)$('#plB').value=$('#plA').value;calcPlan();};$('#plB').onchange=calcPlan;$('#plT').onchange=calcPlan;
+$('#plAdd').onclick=()=>{const a=$('#plA').value,b=$('#plB').value||a;if(!a||b<a)return toast('Zeitraum prüfen');const t=$('#plT').value;
+ let wd=0;for(let k=a;k<=b;k=addD(k,1))if(!isFree(k))wd++;
+ if(!wd){const why=k=>holidayOf(k)?'Feiertag ('+holidayOf(k)+')':WD[wdOf(k)];
+  return dlg(`<h3>Nichts einzutragen</h3><p style="margin:0 0 8px">${a===b?`Der ${dDate(a)} ist ein ${esc(why(a))}.`:`Im Zeitraum ${dDate(a)} – ${dDate(b)} liegen nur Wochenend- und Feiertage.`} Dafür wird kein Urlaubstag gebraucht.</p><div class="btns"><button class="btn pri" data-x>OK</button></div>`);}
+ const x=setRangeType(a,b,t);
+ if(!x.n)return dlg(`<h3>Nichts eingetragen</h3><p style="margin:0 0 8px">An allen Werktagen im Zeitraum sind schon Arbeitszeiten gebucht.</p><div class="btns"><button class="btn pri" data-x>OK</button></div>`);
  toast(TYP[t]+': '+x.n+' Werktag'+(x.n===1?'':'e')+' eingetragen'+(t==='urlaub'?' ('+fmtH(x.c)+' Urlaubstage)':''));$('#plA').value=$('#plB').value='';renderPlan();render();};
 document.addEventListener('pointerdown',()=>{if(S.settings.sound)primeAudio();},{once:true});
 document.addEventListener('pointerdown',()=>{lastTouch=Date.now();},true);
@@ -1230,7 +1378,9 @@ $('#priv').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagati
 $('#foot').textContent='Stundenbuch v'+VERSION+' · © 2026 grauman';
 $('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A6';
 S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);if(o.int===undefined)o.int=!!o.fav&&/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;});sealAll();save();
-setRange(0);housekeeping();checkPlannedPause();render();urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);
+if(!S.settings.setupDone){if(Object.keys(S.days).length||S.orders.some(o=>!isInternal(o)))S.settings.setupDone=true;}
+setRange(0);housekeeping();checkPlannedPause();render();
+if(!S.settings.setupDone)setTimeout(setupWizard,300);else{urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);setTimeout(checkOldOrders,1800);}
 let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();checkPauseRemind();checkPriv();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();sealAll();checkSeals();
  const p=openPause(today());if(p&&p.plan&&S.settings.awake)keepAwake(true);}});
