@@ -382,7 +382,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.5.6';
+const VERSION='1.5.8';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -418,7 +418,12 @@ if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Speichern fehlgeschlagen!',null,true);}}
 /* Änderungen anderer Seiten (z. B. Werkstattauftrag) übernehmen, bevor eigene Saves sie überschreiben */
-function reloadS(){try{const n=JSON.parse(localStorage.getItem(KEY));if(n&&n.orders&&n.days){const pw=S&&S.settings&&S.settings.bkPw;S=n;S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};if(pw&&!S.settings.bkPw)S.settings.bkPw=pw;}}catch(e){}}
+/* Reparatur: Einträge ohne gültige Startzeit entfernen, höchstens ein laufender Eintrag je Tag */
+function sanitize(){let n=0;Object.keys(S.days||{}).forEach(k=>{const d=S.days[k];if(!d||!d.entries)return;
+ const ok=e=>e.h!=null||(typeof e.s==='number'&&isFinite(e.s));const b=d.entries.length;d.entries=d.entries.filter(ok);n+=b-d.entries.length;
+ const open=d.entries.filter(e=>e.h==null&&!e.e).sort((a,b)=>a.s-b.s);for(let i=0;i<open.length-1;i++){open[i].e=Math.max(open[i].s,open[i+1].s);n++;}});
+ return n;}
+function reloadS(){try{const n=JSON.parse(localStorage.getItem(KEY));if(n&&n.orders&&n.days){const pw=S&&S.settings&&S.settings.bkPw;S=n;S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};if(pw&&!S.settings.bkPw)S.settings.bkPw=pw;if(sanitize()){save();}}}catch(e){}}
 addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){reloadS();try{render();}catch(x){}}});
 
 const order=id=>S.orders.find(o=>o.id===id)||{nr:'?',kunde:'(gelöscht)',info:''};
@@ -1382,7 +1387,7 @@ $('#priv').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagati
 /* ---------- Start ---------- */
 $('#foot').textContent='Stundenbuch v'+VERSION+' · © 2026 grauman';
 $('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A6';
-S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);if(o.int===undefined)o.int=!!o.fav&&/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;});sealAll();save();
+S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);if(o.int===undefined)o.int=!!o.fav&&/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;});{const fx=sanitize();if(fx)setTimeout(()=>toast(fx+' fehlerhafte Einträge repariert'),900);}sealAll();save();
 if(!S.settings.setupDone){if(Object.keys(S.days).length||S.orders.some(o=>!isInternal(o)))S.settings.setupDone=true;}
 setRange(0);housekeeping();checkPlannedPause();render();
 if(!S.settings.setupDone)setTimeout(setupWizard,300);else{urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);setTimeout(checkOldOrders,1800);}

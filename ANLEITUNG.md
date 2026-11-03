@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.5.6)
+# Stundenbuch – Einrichtung (v1.5.8)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -128,3 +128,5 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - v1.5.4: Das Stundenbuch übernimmt Änderungen dieser Seiten sofort (auch wenn es parallel offen ist).
 - v1.5.5: Knopf „📋 Werkstattauftrag“ oben im Stundenbuch, im Bogen „← Stundenbuch“ zurück. „📤 Als PDF teilen“ erzeugt Vorder- und Rückseite als PDF (offline) und öffnet das Teilen-Menü (Mail an den Arbeits-PC); ohne Teilen-Funktion landet das PDF im Download-Ordner.
 - v1.5.6: Update-Mechanismus robuster – Seiten kommen bei Netz immer frisch, fehlende Dateien blockieren das Update nicht mehr.
+- v1.5.7: Fehler behoben – leerer „Arbeitsbeginn“ im Werkstattauftrag erzeugte einen Eintrag ohne Startzeit. Das Stundenbuch repariert solche Einträge beim Öffnen automatisch.
+- v1.5.8: Werkstattauftrag als reine Eingabeseite – Vorschau per „👁 Vorschau“ zuschaltbar, Felder starten leer, größere Schrift.
