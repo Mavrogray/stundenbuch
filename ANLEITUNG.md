@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.5.4)
+# Stundenbuch – Einrichtung (v1.5.5)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -126,3 +126,4 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - Werkstattauftrag: „Neuer Auftrag“ merkt den Arbeitsbeginn → ausfüllen → „▶ Im Stundenbuch starten“ legt E-Nr. · Firma an und bucht ab Arbeitsbeginn (vorher laufender Auftrag endet dort). Voraussetzung: im Stundenbuch eingestempelt, keine Pause.
 - Drucken: Werkstattauftrag 2 Seiten (Rückseite Material + Ersatzteilbestellung), Prüfprotokoll 1 Seite – auf grünes Papier.
 - v1.5.4: Das Stundenbuch übernimmt Änderungen dieser Seiten sofort (auch wenn es parallel offen ist).
+- v1.5.5: Knopf „📋 Werkstattauftrag“ oben im Stundenbuch, im Bogen „← Stundenbuch“ zurück. „📤 Als PDF teilen“ erzeugt Vorder- und Rückseite als PDF (offline) und öffnet das Teilen-Menü (Mail an den Arbeits-PC); ohne Teilen-Funktion landet das PDF im Download-Ordner.

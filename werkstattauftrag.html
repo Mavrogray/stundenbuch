@@ -82,7 +82,7 @@ textarea{min-height:92px;resize:vertical}
 
 <div class="top">
   <div><h1>Werkstattauftrag</h1><p>Testseite für die Auftragsmappe – Eingaben links, Vorder- und Rückseite rechts wie auf dem grünen Papier. Beispieldaten sind vorausgefüllt.</p></div>
-  <div class="acts"><button id="bClear">Neuer Auftrag (leeren)</button><button id="bDemo">Beispiel laden</button><button class="pri" id="bSB" hidden>▶ Im Stundenbuch starten</button><button class="pri" id="bPrint" hidden>🖨 Drucken (2 Seiten)</button></div>
+  <div class="acts"><button id="bBack" hidden>← Stundenbuch</button><button id="bClear">Neuer Auftrag (leeren)</button><button id="bDemo">Beispiel laden</button><button class="pri" id="bSB" hidden>▶ Im Stundenbuch starten</button><button class="pri" id="bShare" hidden>📤 Als PDF teilen</button><button class="pri" id="bPrint" hidden>🖨 Drucken (2 Seiten)</button></div>
 </div>
 <div class="wrap">
  <form class="form" id="f" autocomplete="off">
@@ -251,7 +251,13 @@ function sbStart(){const s=getState(),m=$('#sbMsg');m.style.color='var(--bad)';
  d.entries.push({id:uid(),o:o.id,info:s.obj||'',s:T,e:null});S.resume=null;
  try{localStorage.setItem('stundenbuch-v1',JSON.stringify(S));}catch(e){return m.textContent='Speichern im Stundenbuch fehlgeschlagen.';}
  m.style.color='var(--accent)';m.textContent=`✓ ${ein} · ${s.firma} läuft im Stundenbuch ab ${new Date(T).toTimeString().slice(0,5)}.`;}
-if(STANDALONE){$('#bSB').hidden=false;$('#bSB').onclick=sbStart;$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{$('#stage2').hidden=false;document.querySelectorAll('.page').forEach(p=>p.style.transform='none');window.print();setTimeout(()=>{$('#stage2').hidden=!document.querySelector('.pg[data-p="2"]').classList.contains('on');fitStage();},400);};}
+async function doShare(){const s=getState(),b=$('#bShare'),m=$('#sbMsg');b.disabled=true;b.textContent='PDF wird erstellt …';
+ try{if(!window.sharePdf)await new Promise((ok,no)=>{const x=document.createElement('script');x.src='pdfshare.js';x.onload=ok;x.onerror=()=>no(new Error('pdfshare.js fehlt'));document.head.appendChild(x);});
+  $('#stage2').hidden=false;const name=('Werkstattauftrag_'+(s.enr?'E-'+String(s.enr).replace(/^E-?/i,''):'ohne-Nr')+'_'+(s.firma||'').replace(/[^\wäöüÄÖÜß-]+/g,'-')).replace(/-+$/,'')+'.pdf';
+  const r=await sharePdf([$('#page1'),$('#page2')],name,'Werkstattauftrag '+(s.enr?'E '+s.enr:''));m.style.color='var(--accent)';m.textContent=r==='geteilt'?'✓ PDF geteilt.':r==='gespeichert'?'✓ PDF im Download-Ordner gespeichert: '+name:'Teilen abgebrochen.';}
+ catch(e){m.style.color='var(--bad)';m.textContent='PDF konnte nicht erstellt werden: '+e.message;}
+ finally{b.disabled=false;b.textContent='📤 Als PDF teilen';$('#stage2').hidden=!document.querySelector('.pg[data-p="2"]').classList.contains('on');fitStage();}}
+if(STANDALONE){$('#bBack').hidden=false;$('#bBack').onclick=()=>{location.href='./';};$('#bShare').hidden=false;$('#bShare').onclick=doShare;$('#bSB').hidden=false;$('#bSB').onclick=sbStart;$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{$('#stage2').hidden=false;document.querySelectorAll('.page').forEach(p=>p.style.transform='none');window.print();setTimeout(()=>{$('#stage2').hidden=!document.querySelector('.pg[data-p="2"]').classList.contains('on');fitStage();},400);};}
 let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!saved){DEMO.hd=(()=>{try{return localStorage.getItem('form-hd')||'';}catch(e){return '';}})();}
 fitTables();setState(saved||DEMO);fitStage();addEventListener('resize',fitStage);

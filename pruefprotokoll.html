@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>[hidden]{display:none!important}</style></head><body>
 <title>Prüfprotokoll Test</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Roboto+Condensed:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -71,7 +71,7 @@ textarea{min-height:92px;resize:vertical}
 
 <div class="top">
   <div><h1>Prüfprotokoll nach VDE 0530</h1><p>Testseite für die Auftragsmappe – Eingaben links, Bogen rechts wie auf dem grünen Papier. Beispieldaten sind vorausgefüllt.</p></div>
-  <div class="acts"><button id="bClear">Leeren</button><button id="bDemo">Beispiel laden</button><button class="pri" id="bPrint" hidden>🖨 Drucken</button></div>
+  <div class="acts"><button id="bBack" hidden>← Stundenbuch</button><button id="bClear">Leeren</button><button id="bDemo">Beispiel laden</button><button class="pri" id="bPrint" hidden>🖨 Drucken</button></div>
 </div>
 <div class="wrap">
  <form class="form" id="f" autocomplete="off">
@@ -174,7 +174,7 @@ document.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{const t=$('#bem');t.v
 $('#bClear').onclick=()=>{const s=getState(),k={hd:s.hd,fl:s.fl,fr:s.fr,un:'400V'};setState(k);};
 // Drucken nur außerhalb der claude.ai-Vorschau (dort ist der Druckdialog gesperrt)
 const STANDALONE=/github\.io$/.test(location.hostname)||location.protocol==='file:'||location.hostname==='localhost';
-if(STANDALONE){$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{const p=$('#page');p.style.transform='none';window.print();setTimeout(fitStage,300);};}
+if(STANDALONE){$('#bBack').hidden=false;$('#bBack').onclick=()=>{location.href='./';};$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{const p=$('#page');p.style.transform='none';window.print();setTimeout(fitStage,300);};}
 let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 fitTable();setState(saved||DEMO);fitStage();addEventListener('resize',fitStage);
 document.fonts&&document.fonts.ready.then(()=>{fitTable();render();fitStage();});
