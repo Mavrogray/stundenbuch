@@ -1,87 +1,133 @@
-# Wickeldaten – Anleitung
+# Stundenbuch – Einrichtung (v1.5.9)
 
-Offline-App fürs Tablet, aufgebaut wie das Stundenbuch.
-Die Motordaten liegen **nur auf dem Gerät**. Im GitHub-Repository liegt nur der Programmcode.
+## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
-## Dateien
+Die App muss einmal über **HTTPS** geladen werden, danach läuft sie offline.
 
-| Datei | Zweck |
-|---|---|
-| `index.html` | die App |
-| `sw.js` | Offline-Cache (Service Worker) |
-| `manifest.json`, `icon-192.png`, `icon-512.png` | Installation als App |
-
-## 1. Auf GitHub Pages stellen
-
-1. Auf GitHub ein neues Repository `wickeldaten` anlegen.
+**Weg A – GitHub Pages (kostenlos, ohne Git-Kenntnisse)**
+1. Auf github.com ein Konto anlegen, dann ein neues Repository „stundenbuch“ (Public).
 2. „Add file → Upload files“ → alle Dateien aus der ZIP hochladen (nicht die ZIP selbst) → „Commit changes“.
 3. Settings → Pages → Source „Deploy from a branch“, Branch `main`, Ordner `/ (root)` → Save.
-4. Nach ca. 1 Minute ist die App unter `https://DEINNAME.github.io/wickeldaten/` erreichbar.
+4. Nach ca. 1 Minute ist die App unter `https://DEINNAME.github.io/stundenbuch/` erreichbar.
 
-Hinweis: GitHub Pages aus einem **privaten** Repository geht nur mit einem kostenpflichtigen Konto. Mach es so wie beim Stundenbuch. Ein öffentliches Repository ist unbedenklich, weil darin keine Motordaten liegen.
+Im Repository liegt nur der Programmcode. Deine Zeiten bleiben ausschließlich auf dem Tablet.
 
-## 2. Auf dem Tablet
-
+**Auf dem Tablet**
 1. Die Adresse in **Chrome** öffnen.
 2. Menü ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
 3. App einmal über das neue Symbol starten. Ab jetzt funktioniert sie ohne Netz.
+4. Unter „Daten“: Name, Sollstunden, Pausenlängen prüfen.
 
-**Ein Gerät ist das Original.** Jedes Tablet hat seinen eigenen Datenbestand, es wird nichts zwischen Geräten abgeglichen.
-Wenn mehrere Kollegen eintragen, dann alle am selben Gerät.
+**Update der App:** neue Dateien hochladen, App auf dem Tablet zweimal neu öffnen (mit Internet).
 
-## 3. Sicherung
+## 2. Sicherung per Syncthing
 
-- **Automatisch:** Beim ersten Speichern eines Tages legt die App `wickeldaten-backup-JJJJ-MM-TT.json` im Download-Ordner ab.
-- **Fotos/PDFs** kommen bei jeder Sicherung als `wickeldaten-fotos-JJJJ-MM-TT-HHMM.zip` dazu – nur die seit der letzten Sicherung **neuen** Dateien. Alle ZIPs zusammen ergeben den kompletten Foto-Bestand, also keine davon löschen.
-- **Manuell:** Gibt es danach weitere Änderungen, erscheint oben der Knopf **„⬇ Sichern“**. Außerdem: ⚙ Einstellungen → „Sicherung speichern“.
-- Unter der Überschrift stehen der Zeitpunkt der letzten Sicherung und die Zahl der Änderungen seitdem.
-- Mehrere Sicherungen am selben Tag legt Chrome als `…(1).json`, `…(2).json` ab. Die neueste ist die mit der höchsten Nummer.
+Ablauf: Bei „Gehen“ legt die App `stundenbuch-backup-JJJJ-MM-TT.json` im Download-Ordner ab.
+Syncthing schickt diese Dateien im Firmen- oder Heim-WLAN an deinen Proxmox.
 
-### Syncthing (läuft schon fürs Stundenbuch)
+### 2a. Proxmox: Container mit Syncthing
+1. Neuen LXC anlegen: Debian 12, 1 Kern, 512 MB RAM, 4 GB Disk, unprivilegiert.
+2. In der Konsole des Containers (Achtung: Debian hat schon einen System-Benutzer `sync`, daher heißt unserer `syncthing`):
+   ```
+   apt update && apt install -y --no-install-recommends syncthing
+   useradd -m -s /bin/bash syncthing
+   mkdir -p /etc/systemd/system/syncthing@syncthing.service.d
+   printf '[Service]\nEnvironment=STGUIADDRESS=0.0.0.0:8384\n' > /etc/systemd/system/syncthing@syncthing.service.d/gui.conf
+   systemctl daemon-reload && systemctl enable --now syncthing@syncthing
+   ```
+3. Von außen (nur Host per ZeroTier erreichbar) am Laptop: `ssh -L 8384:IP-DES-CONTAINERS:8384 root@ZEROTIER-IP-DES-HOSTS`, dann im Browser `http://localhost:8384`.
+4. Im Browser `http://IP-DES-CONTAINERS:8384` (bzw. `http://localhost:8384`) öffnen → **sofort ein GUI-Passwort setzen** (Einstellungen → GUI).
+5. Den Container in deinen Proxmox-Backup-Job aufnehmen (Datacenter → Backup).
 
-Im Download-Ordner auf dem Tablet ist bereits ein Ignorier-Muster eingetragen. Es braucht **zwei zusätzliche Zeilen** vor dem `*`:
+### 2b. Tablet: Syncthing-Fork
+1. „Syncthing-Fork“ aus F-Droid oder dem Play Store installieren.
+2. Geräte gegenseitig verbinden: Auf dem Tablet „Gerät hinzufügen“ → QR-Code der Geräte-ID vom Container scannen (im Container: Aktionen → ID anzeigen). Auf dem Container die Anfrage bestätigen.
+3. Ordner hinzufügen: den **Download**-Ordner, Ordnertyp **„Nur senden“**, für den Container freigeben.
+4. Ignorier-Muster für diesen Ordner setzen, damit nur die Sicherungen übertragen werden:
+   ```
+   !/stundenbuch-backup-*.json
+   *
+   ```
+5. Einstellungen → Ausführungsbedingungen: „Nur bei WLAN“ und „Nur in ausgewählten WLANs“ → Firmen-Gast-WLAN und Heim-WLAN wählen. Die App braucht dafür die Standort-Berechtigung, sonst sieht sie den WLAN-Namen nicht.
+6. Akku-Optimierung für Syncthing-Fork ausschalten, sonst stoppt Android die Synchronisation.
 
-```
-!/stundenbuch-backup-*.json
-!/wickeldaten-backup-*.json
-!/wickeldaten-fotos-*.zip
-*
-```
-
-Syncthing-Fork → Ordner „Download“ → Ignorier-Muster bearbeiten → speichern.
-Danach kommen die Wickeldaten-Sicherungen im selben Container auf betzendorf an und werden über den Proxmox-Backup-Job mitgesichert.
+### 2c. Container: Ordner annehmen
+- Die Ordner-Anfrage vom Tablet annehmen, Ordnertyp **„Nur empfangen“**.
+- Ordner-Einstellungen → Dateiversionierung „Einfach“, damit auch versehentlich gelöschte Sicherungen erhalten bleiben.
 
 ### Wiederherstellen
+Neueste `stundenbuch-backup-….json` aufs Tablet kopieren → App → „Daten“ → „Sicherung laden“.
 
-Neueste `wickeldaten-backup-….json` **und alle** `wickeldaten-fotos-….zip` aufs Tablet kopieren → App → ⚙ Einstellungen → „Sicherung laden“ (PIN) → alle Dateien auf einmal auswählen.
-Vorhandene Motoren mit gleicher Kennung werden überschrieben, alle anderen bleiben erhalten.
+## 3. Stempeln per Link (für NFC-Tag oder QR-Code)
 
-Die JSON-Sicherung aus der Testversion auf claude.ai lässt sich genauso laden.
+Die App führt Aktionen aus, wenn sie mit einem dieser Zusätze an der Adresse geöffnet wird:
 
-## 4. Update der App
+| Zusatz       | Wirkung                                                        |
+|--------------|----------------------------------------------------------------|
+| `?a=stempel` | nicht eingestempelt → Kommen, sonst → Gehen                     |
+| `?a=kommen`  | Kommen                                                         |
+| `?a=gehen`   | Gehen (mit „Rückgängig“ und Auto-Sicherung)                    |
+| `?a=pause`   | Pause starten (vor 11 Uhr Frühstück, danach Mittag) bzw. beenden |
 
-1. Neue Dateien ins Repository hochladen.
-2. Versionsnummer an **zwei Stellen** gleich hochzählen, z. B. 1.1 → 1.2:
-   - `index.html`: `const APP_VERSION="1.1";`
-   - `sw.js`: `const VERSION = "wickeldaten-1.1";`
-   Ohne neue Nummer in `sw.js` bleibt die alte Version im Cache.
-   Die Nummer steht unten in der App, so siehst du, ob das Update angekommen ist.
-3. App auf dem Tablet mit Internet zweimal neu öffnen.
+Beispiel: `https://DEINNAME.github.io/stundenbuch/?a=stempel`
 
-Die Daten bleiben bei einem Update erhalten. Sie gehen nur verloren, wenn in Chrome die Website-Daten gelöscht werden oder die App deinstalliert wird. Dafür gibt es die Sicherung.
+Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NFC Tools“) oder als QR-Code gedruckt werden.
 
-## 5. PIN
+## 4. Datenschutz / Verschlüsselung
 
-⚙ Einstellungen → PIN (4–8 Ziffern) vergeben. Eine einzige PIN, sie schützt:
-Motoren löschen, Fotos löschen, Einsätze entfernen, Sicherung laden.
-Ohne PIN ist Löschen gesperrt. Nach der Eingabe bleibt die PIN 5 Minuten gültig.
-**PIN vergessen:** Chrome → Website-Einstellungen → Daten der App löschen, App neu öffnen, letzte Sicherung laden.
-Das ist ein Bedienschutz gegen Versehen, keine echte Sicherheit.
+- **Tablet:** Bildschirmsperre mit PIN setzen (Android verschlüsselt den Speicher dann automatisch).
+- **App:** Daten → „Passwort setzen“. Alle Sicherungsdateien (auch die automatische bei „Gehen“) werden mit AES-256-GCM verschlüsselt (Schlüssel per PBKDF2-SHA256, 310.000 Runden). **Passwort verloren = Sicherungen verloren.** Im Passwortmanager ablegen.
+- **CSV-Export** ist nicht verschlüsselt – nur bei Bedarf nutzen und danach löschen.
+- **Syncthing:** Beim Freigeben des Ordners auf dem Tablet für das Gerät „betzendorf“ ein **Verschlüsselungspasswort** eintragen → der Server speichert nur verschlüsselte Dateien („nicht vertrauenswürdiges Gerät“).
+- **Proxmox Backup:** Speicher „pbs“ auf betzendorf → Edit → Reiter „Encryption“ → Schlüssel erzeugen → **Schlüssel herunterladen und sicher aufbewahren.**
 
-## 6. Darstellung
+## 5. Bedienung v1.0
 
-⚙ Einstellungen → Darstellung: Hell/Dunkel, Schriftgröße (Normal / Groß / Sehr groß, Standard: Groß) und Akzentfarbe (Schnellfarben oder eigene Farbe). Gilt jeweils nur für das Gerät.
+- **Auftrag antippen** = Arbeit startet (die 3 zuletzt genutzten stehen oben, alles andere über die Suche).
+- **🚗 Fahrt:** Ziel wählen → blauer Fahrtbalken → bei Ankunft „Angekommen“. Fertig beim Kunden: 🚗 → „Zurück in die Firma“ oder nächster Kunde (Fahrzeit wird auf beide Kunden halbiert).
+- **📝 Zettel:** Beim Kunden zeigt der Kopf die Zeit für den Auftragszettel: bisher + Rückfahrt (Hinfahrtdauer + Puffer, Standard 15 min), aufgerundet. „Zurück in die Firma“ bucht genau diese Rückfahrt fest auf den Kunden; die Abweichung zur echten Fahrt wird über Betriebsarbeiten ausgeglichen.
+- **Überstunden:** Bei der Soll-Erinnerung „Überstunden“ wählen → sie laufen auf den aktuellen Auftrag. Bei einem Auftragswechsel fragt die App, ob die Überstunden mitwandern. Im Stundenbuch steht dieser Auftrag ganz unten als „Normal+Ü“ (z. B. „0+1,5Ü“), die Tagessumme als „8,25+1,5Ü“. Korrektur über „Tag bearbeiten“.
+- **Sichtschutz:** große Uhr, darunter Countdown bis zur nächsten Pause bzw. zum Feierabend.
+- **☕ Pause:** Frühstück/Mittag enden automatisch mit Ton. Danach läuft Betriebsarbeiten, die App fragt „Weiter mit Kunde?“.
+- **🏖 Urlaubsplanung (☰):** Zeitraum von–bis eintragen (Urlaub, Krank, Bildungsurlaub, RV Fit, Gleittag – nur Werktage zählen). Der Brückentag-Finder zeigt die Zeiträume mit den meisten freien Tagen pro Urlaubstag, „Eintragen“ übernimmt sie. Im Ausdruck erscheinen Abwesenheiten als ein Block ohne Stunden.
+- **☰ Menü:** Aufträge, Ausdruck, Tag bearbeiten (Urlaub, halber Urlaubstag, Krank, RV Fit, Bildungsurlaub, Gleittag), Sicherung, Einstellungen, Über/Hilfe (Version, Fehlerprotokoll).
+- **Feiertage Niedersachsen** werden automatisch berücksichtigt, 24.12./31.12. sind halbe Tage.
+- **Konten:** Unter Einstellungen einmal Überstunden- und Resturlaub-Startwert mit Datum eintragen. Am 1.1. kommen die Jahres-Urlaubstage dazu.
+- **Ausdruck:** A6 mit 20 mm Lochrand (Heftstreifen), eine Zeile pro Auftrag.
 
-## 7. Excel
+## 6. Neu in v1.4.0
 
-⚙ Einstellungen → „Alle als CSV (Excel)“: Trennzeichen Semikolon, Umlaute korrekt, öffnet direkt in Excel.
+- **Kennzeichen AW / KSB:** ✎ Info → „AW starten/beenden“. Im Buch „3+2AW“, mit Überstunden „4+2Ü(2AW)“. Zähler im Menü, Gutschein-Schwelle im Admin-Bereich.
+- **Ausgleich aus Überstunden:** Tag unter Soll → Zeile „21260008 Ausgleich aus Überstunden“, Tagessumme = Soll. Ganzer Tag aus Überstunden genauso. Abschaltbar je Tag in „Tag bearbeiten“.
+- **Siegel:** Bei „Gehen“ wird der Tag versiegelt. Spätere Änderungen nur mit Grund, sie stehen im Tag und im Monatsabschluss. Ungeklärte Änderungen meldet die App beim Start. Der Monatsabschluss trägt einen Prüfcode.
+- **Zugang:** Einstellungen → Zugang: Büro-PIN (Tage bearbeiten) und Admin-PIN (Einstellungen, Sicherung laden, Zurücksetzen). Ohne PIN offen.
+- **Interne Aufträge** per Haken beim Auftrag, nicht mehr über die Nummer.
+- **Display:** Die App kann das Display nicht abschalten → Android: Display → Ruhezustand 2–5 Minuten.
+
+## 7. Neu in v1.5.0
+
+- **Einrichtung beim ersten Start:** Name, Präfix, Sollzeiten, Arbeitsbeginn, Pausen und eigene Admin-PIN. Erscheint nur auf einem leeren Gerät oder nach „Zurücksetzen“ ohne „Einstellungen behalten“.
+- **Später Kommen:** Nach Arbeitsbeginn (Standard 07:00, bis 10:00) fragt die App „Seit 07:00?“, „Jetzt“ oder eine andere Zeit (bis 60 Min. zurück ohne PIN). Danach: was seitdem gemacht wurde, auch „Fahrt seit …“ mit Ankunftszeit.
+- **Auftrag fertig:** ✎ Info → „✓ Auftrag fertig“ oder in der Auftragsliste. Liste mit Filter Offen / Fertig / Alle, Stunden gesamt, zuletzt benutzt. Nach einem halben Jahr ohne Nutzung fragt die App, ob es den Auftrag noch gibt.
+- **Jahreskalender** in der Urlaubsplanung: Tag antippen zum Eintragen. „Urlaubsantrag drucken“ (A6 quer, Name aus den Einstellungen, Änderungen seit dem letzten Antrag umrahmt) und „Leer drucken“. Jahre bis 2 Jahre voraus.
+- **Urlaubs-Lotse 🧭:** je Feiertag kurz / 2 Wochen+ / lang, Budget bis 15 Tage, Vorschlag per Auswahlmenü übernehmen.
+- Zeitraum nur Wochenende/Feiertag → deutlicher Hinweis.
+
+## 8. Neu in v1.5.1
+
+- **Eingangsnummer:** Neuer Auftrag ohne Kommissionsnummer → nur Eingangs-Nr. eintragen, der Auftrag heißt dann „E-1234“. Später beim Auftrag (✎) die Kommissionsnummer eintragen – überall nachgezogen, abgeschlossene Tage protokollieren das automatisch („Kommissionsnummer nachgetragen“), kein Abweichungs-Alarm.
+- **Druck:** Fehlt im Zeitraum noch eine Kommissionsnummer, fragt die App vorher und lässt sie direkt eintragen.
+
+- v1.5.2: Urlaubsantrag und Stundenbuch drucken Wochenenden, Feiertage und Schraffur jetzt farbig mit (Druck-Hintergründe erzwungen).
+
+## 9. Werkstattauftrag und Prüfprotokoll (Test)
+
+- Adressen: `…/stundenbuch/werkstattauftrag.html` und `…/stundenbuch/pruefprotokoll.html` (liegen in derselben ZIP).
+- Werkstattauftrag: „Neuer Auftrag“ merkt den Arbeitsbeginn → ausfüllen → „▶ Im Stundenbuch starten“ legt E-Nr. · Firma an und bucht ab Arbeitsbeginn (vorher laufender Auftrag endet dort). Voraussetzung: im Stundenbuch eingestempelt, keine Pause.
+- Drucken: Werkstattauftrag 2 Seiten (Rückseite Material + Ersatzteilbestellung), Prüfprotokoll 1 Seite – auf grünes Papier.
+- v1.5.4: Das Stundenbuch übernimmt Änderungen dieser Seiten sofort (auch wenn es parallel offen ist).
+- v1.5.5: Knopf „📋 Werkstattauftrag“ oben im Stundenbuch, im Bogen „← Stundenbuch“ zurück. „📤 Als PDF teilen“ erzeugt Vorder- und Rückseite als PDF (offline) und öffnet das Teilen-Menü (Mail an den Arbeits-PC); ohne Teilen-Funktion landet das PDF im Download-Ordner.
+- v1.5.6: Update-Mechanismus robuster – Seiten kommen bei Netz immer frisch, fehlende Dateien blockieren das Update nicht mehr.
+- v1.5.7: Fehler behoben – leerer „Arbeitsbeginn“ im Werkstattauftrag erzeugte einen Eintrag ohne Startzeit. Das Stundenbuch repariert solche Einträge beim Öffnen automatisch.
+- v1.5.8: Werkstattauftrag als reine Eingabeseite – Vorschau per „👁 Vorschau“ zuschaltbar, Felder starten leer, größere Schrift.
+- v1.5.9: „Auftrag bearbeiten“ zeigt alle Zeiten des Auftrags (antippen = bearbeiten, „+ Zeit hinzufügen“). Fehler behoben: hängengebliebene offene Einträge enden automatisch beim nächsten Eintrag; Start aus dem Werkstattauftrag überlappt nie mit beendeten Einträgen.

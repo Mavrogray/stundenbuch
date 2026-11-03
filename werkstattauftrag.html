@@ -259,7 +259,7 @@ function sbStart(){const s=getState(),m=$('#sbMsg');m.style.color='var(--bad)';
  let o=S.orders.find(x=>x.ein===ein||x.nr===ein);
  if(!o){o={id:uid(),nr:ein,ein,kunde:s.firma,info:s.obj||'',fav:false,arch:false,created:k,int:false};S.orders.push(o);}else{o.arch=false;delete o.done;}
  const mt=/^(\d{1,2}):(\d{2})/.exec(s.start||''),now=Date.now();let T=mt?new Date(t.getFullYear(),t.getMonth(),t.getDate(),+mt[1],+mt[2]).getTime():now;if(!isFinite(T))T=now;
- const oe=d.entries.find(e=>e.h==null&&!e.e);if(T>now)T=now;if(T<d.kommen)T=d.kommen;if(oe&&T<oe.s)T=oe.s;
+ const oe=d.entries.find(e=>e.h==null&&!e.e);if(T>now)T=now;if(T<d.kommen)T=d.kommen;if(oe&&T<oe.s)T=oe.s;const lastE=Math.max(0,...d.entries.filter(e=>e.e&&e.h==null).map(e=>e.e));if(T<lastE)T=lastE;
  if(oe&&oe.o===o.id){m.style.color='var(--accent)';return m.textContent=ein+' läuft im Stundenbuch bereits.';}
  if(d.pausen.some(p=>!p.e))return m.textContent='Im Stundenbuch läuft gerade eine Pause – erst beenden.';
  if(oe){oe.e=T;if(T-oe.s<30000)d.entries=d.entries.filter(x=>x!==oe);}
