@@ -157,6 +157,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 .ys .we{background:#b9bec5}.ys .ho{background:#f5c542;font-weight:700}.ys .ho.we{background:#b9bec5}
 .ys .na{background:repeating-linear-gradient(135deg,#fff 0 .5mm,#555 .5mm .7mm)}.ys .x{color:#1c3d9c;font-weight:700;font-size:7pt}
 .ys .nw{outline:.7pt solid #1c3d9c;outline-offset:-.7pt;background:#e8f0ff}.ys .leg{font-size:5pt;color:#444;margin-top:1.2mm}
+.ys,.ys *,.pdoc,.pdoc *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
 .ysw{overflow:auto;margin-top:10px}.ysw .ys{border:1px solid var(--line);transform-origin:top left}
 .pdoc{background:#fff;color:#000;padding:8mm;border:2px solid var(--line);border-radius:6px;overflow:auto;font-family:Arial,Helvetica,sans-serif}
 .pdoc h1{font-size:15pt;margin:0}
@@ -381,7 +382,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 
 <script>
 'use strict';
-const VERSION='1.5.1';
+const VERSION='1.5.4';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -416,6 +417,9 @@ let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
 S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Speichern fehlgeschlagen!',null,true);}}
+/* Änderungen anderer Seiten (z. B. Werkstattauftrag) übernehmen, bevor eigene Saves sie überschreiben */
+function reloadS(){try{const n=JSON.parse(localStorage.getItem(KEY));if(n&&n.orders&&n.days){const pw=S&&S.settings&&S.settings.bkPw;S=n;S.settings=Object.assign(defaults().settings,S.settings||{});S.yStats=S.yStats||{};S.ui=S.ui||{};if(pw&&!S.settings.bkPw)S.settings.bkPw=pw;}}catch(e){}}
+addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){reloadS();try{render();}catch(x){}}});
 
 const order=id=>S.orders.find(o=>o.id===id)||{nr:'?',kunde:'(gelöscht)',info:''};
 function day(k){return S.days[k]||(S.days[k]={kommen:null,gehen:null,pausen:[],entries:[]});}
@@ -1180,7 +1184,7 @@ function renderCal(y){const nw=calNew(y),t=dkey();let h='<div class="acal"><span
 function calDay(k){if(isFree(k))return toast(dDate(k)+' ist '+(holidayOf(k)?'Feiertag ('+holidayOf(k)+')':WD[wdOf(k)])+' – nichts einzutragen');
  const cur=typeOf(k),d=S.days[k],busy=d&&d.entries.length;
  dlg(`<h3>${WD[wdOf(k)]} ${dDate(k)}</h3>${cur?`<p class="mut" style="margin:0 0 6px">Eingetragen: ${esc(tyLabel(cur,k))}</p>`:''}${busy?'<p class="warn" style="margin:0 0 6px">An diesem Tag sind Arbeitszeiten gebucht.</p>':''}
- <div class="tiles" style="grid-template-columns:1fr 1fr">${['urlaub','urlaub_halb','bildung','rvfit','krank','gleit'].map(t=>`<button class="tile${cur===t?' pri':''}" data-ct="${t}"><b>${CALSYM[t][0]} ${esc(TYP[t])}</b></button>`).join('')}
+ <div class="tiles" style="grid-template-columns:1fr 1fr">${['urlaub','urlaub_halb','bildung','rvfit','krank','gleit'].map(t=>`<button class="tile${cur===t?' pri':''}" data-ct="${t}"><b style="display:flex;align-items:center;gap:10px"><span class="acal" style="display:inline-grid;grid-template-columns:26px;margin:0"><span class="${CALSYM[t][1]}">${CALSYM[t][0]}</span></span>${esc(TYP[t])}</b></button>`).join('')}
  ${cur?'<button class="tile" data-ct="" style="grid-column:1/-1"><b>✕ Eintrag entfernen</b></button>':''}</div><div class="btns"><button class="btn" data-x>Abbrechen</button></div>`);
  D.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{const t=b.dataset.ct;closeDlg();const go=()=>{const dd=day(k);if(t)dd.type=t;else{delete dd.type;if(!dd.kommen&&!dd.entries.length&&!dd.pausen.length)delete S.days[k];}save();renderPlan();render();};
   if(S.days[k]&&S.days[k].seal)commitSealed(k,go);else go();});}
@@ -1382,7 +1386,7 @@ if(!S.settings.setupDone){if(Object.keys(S.days).length||S.orders.some(o=>!isInt
 setRange(0);housekeeping();checkPlannedPause();render();
 if(!S.settings.setupDone)setTimeout(setupWizard,300);else{urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);setTimeout(checkOldOrders,1800);}
 let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();checkPauseRemind();checkPriv();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();sealAll();checkSeals();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){reloadS();if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();sealAll();checkSeals();
  const p=openPause(today());if(p&&p.plan&&S.settings.awake)keepAwake(true);}});
 if(S.lastBackup&&Date.now()-S.lastBackup>7*864e5)setTimeout(()=>toast('Sicherung ist über 7 Tage alt – ☰ → Sicherung'),800);
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(ok=>{$('#stInfo').textContent=ok?'Speicher vom Browser als dauerhaft bestätigt.':'Browser hat dauerhaften Speicher nicht bestätigt – regelmäßig sichern.';});

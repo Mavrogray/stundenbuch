@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.5.1)
+# Stundenbuch – Einrichtung (v1.5.4)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -117,3 +117,12 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 
 - **Eingangsnummer:** Neuer Auftrag ohne Kommissionsnummer → nur Eingangs-Nr. eintragen, der Auftrag heißt dann „E-1234“. Später beim Auftrag (✎) die Kommissionsnummer eintragen – überall nachgezogen, abgeschlossene Tage protokollieren das automatisch („Kommissionsnummer nachgetragen“), kein Abweichungs-Alarm.
 - **Druck:** Fehlt im Zeitraum noch eine Kommissionsnummer, fragt die App vorher und lässt sie direkt eintragen.
+
+- v1.5.2: Urlaubsantrag und Stundenbuch drucken Wochenenden, Feiertage und Schraffur jetzt farbig mit (Druck-Hintergründe erzwungen).
+
+## 9. Werkstattauftrag und Prüfprotokoll (Test)
+
+- Adressen: `…/stundenbuch/werkstattauftrag.html` und `…/stundenbuch/pruefprotokoll.html` (liegen in derselben ZIP).
+- Werkstattauftrag: „Neuer Auftrag“ merkt den Arbeitsbeginn → ausfüllen → „▶ Im Stundenbuch starten“ legt E-Nr. · Firma an und bucht ab Arbeitsbeginn (vorher laufender Auftrag endet dort). Voraussetzung: im Stundenbuch eingestempelt, keine Pause.
+- Drucken: Werkstattauftrag 2 Seiten (Rückseite Material + Ersatzteilbestellung), Prüfprotokoll 1 Seite – auf grünes Papier.
+- v1.5.4: Das Stundenbuch übernimmt Änderungen dieser Seiten sofort (auch wenn es parallel offen ist).
