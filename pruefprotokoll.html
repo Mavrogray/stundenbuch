@@ -114,6 +114,7 @@ textarea{min-height:92px;resize:vertical}
  </div>
 </div>
 
+<script src="proto.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const CHECKS=[['I21','Rechtes Drehfeld'],['I22','Links Drehfeld'],['I23','Isolationswiderstand'],['I24','Pumpendichtigkeit'],['I25','Körperschlussprüfung'],['I26','Widerstandsmessung'],['I27','Phasenschlussprüfung']];
@@ -157,7 +158,7 @@ function render(){
  $('#mo').innerHTML=`&gt;1 MOhm ${isoOk===true?'☒':'☐'} &nbsp;&nbsp; &lt;1 MOhm ${isoOk===false?'☒':'☐'}`;
  $('#phd').textContent=s.hd||'';$('#pfl').textContent=s.fl||'';$('#pfr').textContent=s.fr||'';
  placeMo();
- try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+ try{if(window.PROTO&&PROTO.id)PROTO.save(s,{kunde:s.k1||'',nr:s.kom||s.ein||'',obj:s.obj||''});else localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
 }
 // Textfeld ">1 MOhm / <1 MOhm" wie in der Excel-Zeichnung: ab Spalte E (+0,4 cm), Zeile 21 (+0,32 cm)
 function placeMo(){const t=td('E21'),b=$('#pbody'),p=$('#page');if(!t)return;const sc=SCALE;
@@ -171,12 +172,19 @@ $('#f').addEventListener('input',render);$('#f').addEventListener('change',rende
 $('#green').onchange=()=>$('#page').classList.toggle('green',$('#green').checked);
 $('#bDemo').onclick=()=>setState(DEMO);
 document.querySelectorAll('.qb').forEach(b=>b.onclick=()=>{const t=$('#bem');t.value=(t.value&&!t.value.endsWith('\n')?t.value+'\n':t.value)+b.dataset.q;render();t.focus();});
-$('#bClear').onclick=()=>{const s=getState(),k={hd:s.hd,fl:s.fl,fr:s.fr,un:'400V'};setState(k);};
+$('#bClear').onclick=async()=>{if(window.PROTO&&PROTO.id){await PROTO.flush();const id=await PROTO.create('pp',null,null);location.href='pruefprotokoll.html?id='+id;return;}const s=getState(),k={hd:s.hd,fl:s.fl,fr:s.fr,un:'400V'};setState(k);};
 // Drucken nur außerhalb der claude.ai-Vorschau (dort ist der Druckdialog gesperrt)
 const STANDALONE=/github\.io$/.test(location.hostname)||location.protocol==='file:'||location.hostname==='localhost';
 if(STANDALONE){$('#bBack').hidden=false;$('#bBack').onclick=()=>{location.href='./';};$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{const p=$('#page');p.style.transform='none';window.print();setTimeout(fitStage,300);};}
 let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
-fitTable();setState(saved||DEMO);fitStage();addEventListener('resize',fitStage);
+fitTable();
+(async()=>{let st=saved||DEMO;
+ if(window.PROTO&&PROTO.id){const rec=await PROTO.load();
+  if(rec&&rec.state&&rec.state.__init!==1)st=rec.state;
+  else{const t=new Date(),d=String(t.getDate()).padStart(2,'0')+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+t.getFullYear();
+   st=Object.assign({hd:(saved||DEMO).hd,fl:DEMO.fl,fr:DEMO.fr,un:'400V',dat:d},rec&&rec.state||{});delete st.__init;}}
+ setState(st);fitStage();})();
+addEventListener('resize',fitStage);
 document.fonts&&document.fonts.ready.then(()=>{fitTable();render();fitStage();});
 </script>
 </body></html>

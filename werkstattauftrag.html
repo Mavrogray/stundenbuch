@@ -176,6 +176,7 @@ button{min-height:50px;font-size:1rem}
    <div class="ft"><span class="fl"></span><span>I N T E R N</span><span class="fr"></span></div></div></div>
  </div>
 </div>
+<script src="proto.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const ZUB=[['kk','Klemmkasten',15],['ku','Kupplung',16],['rs','Riemenscheibe',17],['kr','Kettenrad',18]];
@@ -237,7 +238,7 @@ function render(){const s=getState();
  MAT.slice(0,26).forEach((m,i)=>{abs('B'+(42+i),m.q,'left:0;right:0;text-align:center');abs('C'+(42+i),m.t);abs('L'+(42+i),m.p,'left:auto;right:4px');});
  abs('D69',s.eWo);abs('J69',s.eWann);abs('F70',s.eWem);abs('J70',s.eLt);abs('D71',s.eWas);abs('J71',s.eWer);
  document.querySelectorAll('.page .hd').forEach(e=>e.textContent=s.hd||'');document.querySelectorAll('.page .fl').forEach(e=>e.textContent=s.fl||'');document.querySelectorAll('.page .fr').forEach(e=>e.textContent=s.fr||'');
- try{localStorage.setItem(KEY,JSON.stringify(s));if(s.hd)localStorage.setItem('form-hd',s.hd);}catch(e){}}
+ try{if(window.PROTO&&PROTO.id)PROTO.save(s,{kunde:s.firma||'',nr:s.enr?'E-'+String(s.enr).replace(/^E-?/i,''):'',obj:s.obj||''});else localStorage.setItem(KEY,JSON.stringify(s));if(s.hd)localStorage.setItem('form-hd',s.hd);}catch(e){}}
 let SCALE=1;
 function fitTables(){const mm=3.7795,t1=$('#b1 table'),t2=$('#b2 table');SCALE=Math.min((201*mm)/t1.offsetWidth,(264*mm)/t1.offsetHeight,(264*mm)/t2.offsetHeight);
  $('#b1').style.transform=$('#b2').style.transform=`scale(${SCALE})`;$('#pinfo').textContent=`A4 · ${Math.round(SCALE*100)} %`;}
@@ -246,7 +247,7 @@ document.querySelectorAll('.pg').forEach(b=>b.onclick=()=>{document.querySelecto
 $('#f').addEventListener('input',e=>{if(!e.target.closest('#helper'))render();});$('#f').addEventListener('change',e=>{if(!e.target.closest('#helper'))render();});$('#f').addEventListener('submit',e=>e.preventDefault());
 $('#green').onchange=()=>document.querySelectorAll('.page').forEach(p=>p.classList.toggle('green',$('#green').checked));
 $('#bPrev').onclick=()=>{const on=$('#prev').classList.toggle('off')===false;$('.wrap').classList.toggle('withprev',on);$('#bPrev').setAttribute('aria-pressed',on);$('#bPrev').textContent=on?'👁 Vorschau aus':'👁 Vorschau';fitStage();if(on)$('#prev').scrollIntoView({behavior:'smooth',block:'start'});};
-$('#bClear').onclick=()=>{const s=getState();const t=new Date(),d=String(t.getDate()).padStart(2,'0')+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+t.getFullYear();const hm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');setState({hd:s.hd,fl:s.fl,fr:s.fr,bea:s.bea,ein:d,start:hm,mat:[]});H.hidden=true;};
+$('#bClear').onclick=async()=>{if(window.PROTO&&PROTO.id){await PROTO.flush();const id=await PROTO.create('wa',null,null);location.href='werkstattauftrag.html?id='+id;return;}const s=getState();const t=new Date(),d=String(t.getDate()).padStart(2,'0')+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+t.getFullYear();const hm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');setState({hd:s.hd,fl:s.fl,fr:s.fr,bea:s.bea,ein:d,start:hm,mat:[]});H.hidden=true;};
 const STANDALONE=/github\.io$/.test(location.hostname)||location.protocol==='file:'||location.hostname==='localhost';
 /* Übergabe ans Stundenbuch (gleiche Adresse, gleicher Speicher) */
 function sbStart(){const s=getState(),m=$('#sbMsg');m.style.color='var(--bad)';
@@ -258,6 +259,7 @@ function sbStart(){const s=getState(),m=$('#sbMsg');m.style.color='var(--bad)';
  const ein='E-'+String(s.enr).replace(/^E-?/i,'').trim(),uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
  let o=S.orders.find(x=>x.ein===ein||x.nr===ein);
  if(!o){o={id:uid(),nr:ein,ein,kunde:s.firma,info:s.obj||'',fav:false,arch:false,created:k,int:false};S.orders.push(o);}else{o.arch=false;delete o.done;}
+ if(window.PROTO&&PROTO.id&&PROTO._rec){PROTO._rec.order=o.id;PROTO.save(s,{kunde:s.firma||'',nr:ein,obj:s.obj||''});}
  const mt=/^(\d{1,2}):(\d{2})/.exec(s.start||''),now=Date.now();let T=mt?new Date(t.getFullYear(),t.getMonth(),t.getDate(),+mt[1],+mt[2]).getTime():now;if(!isFinite(T))T=now;
  const oe=d.entries.find(e=>e.h==null&&!e.e);if(T>now)T=now;if(T<d.kommen)T=d.kommen;if(oe&&T<oe.s)T=oe.s;const lastE=Math.max(0,...d.entries.filter(e=>e.e&&e.h==null).map(e=>e.e));if(T<lastE)T=lastE;
  if(oe&&oe.o===o.id){m.style.color='var(--accent)';return m.textContent=ein+' läuft im Stundenbuch bereits.';}
@@ -275,7 +277,15 @@ async function doShare(){const s=getState(),b=$('#bShare'),m=$('#sbMsg');b.disab
 if(STANDALONE){$('#bBack').hidden=false;$('#bBack').onclick=()=>{location.href='./';};$('#bShare').hidden=false;$('#bShare').onclick=doShare;$('#bSB').hidden=false;$('#bSB').onclick=sbStart;$('#bPrint').hidden=false;$('#bPrint').onclick=()=>{$('#stage2').hidden=false;document.querySelectorAll('.page').forEach(p=>p.style.transform='none');window.print();setTimeout(()=>{$('#stage2').hidden=!document.querySelector('.pg[data-p="2"]').classList.contains('on');fitStage();},400);};}
 let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 const BLANK={fl:'Borchert 0695 05/2026',fr:'Werkstattauftrag_V.9.1',hd:(()=>{try{return localStorage.getItem('form-hd')||'';}catch(e){return '';}})(),mat:[]};
-fitTables();setState(saved||BLANK);fitStage();addEventListener('resize',fitStage);
+fitTables();
+(async()=>{let st=saved||BLANK;
+ if(window.PROTO&&PROTO.id){const rec=await PROTO.load();if(!rec){$('#sbMsg').textContent='Protokoll nicht gefunden – es wurde vielleicht gelöscht.';}
+  else if(rec.state&&rec.state.__init!==1)st=rec.state;
+  else{const t=new Date(),d=String(t.getDate()).padStart(2,'0')+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+t.getFullYear(),hm=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+   st=Object.assign({},BLANK,{ein:d,start:hm},rec.state||{});delete st.__init;}}
+ setState(st);fitStage();
+ if(window.PROTO&&PROTO.view&&$('#prev').classList.contains('off'))$('#bPrev').click();})();
+addEventListener('resize',fitStage);
 document.fonts&&document.fonts.ready.then(()=>{fitTables();render();fitStage();});
 </script>
 </body></html>

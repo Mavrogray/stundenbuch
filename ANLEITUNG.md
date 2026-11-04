@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.5.9)
+# Stundenbuch – Einrichtung (v1.6.0)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -131,3 +131,6 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - v1.5.7: Fehler behoben – leerer „Arbeitsbeginn“ im Werkstattauftrag erzeugte einen Eintrag ohne Startzeit. Das Stundenbuch repariert solche Einträge beim Öffnen automatisch.
 - v1.5.8: Werkstattauftrag als reine Eingabeseite – Vorschau per „👁 Vorschau“ zuschaltbar, Felder starten leer, größere Schrift.
 - v1.5.9: „Auftrag bearbeiten“ zeigt alle Zeiten des Auftrags (antippen = bearbeiten, „+ Zeit hinzufügen“). Fehler behoben: hängengebliebene offene Einträge enden automatisch beim nächsten Eintrag; Start aus dem Werkstattauftrag überlappt nie mit beendeten Einträgen.
+- v1.5.10: Ausdruck – Abwesenheiten zeigen oben den Wochentag (z. B. „Montag“), darunter „Urlaub“; Kundennamen werden nicht mehr mitten im Wort umgebrochen.
+- v1.5.11: 24.12./31.12. werden im Kalender und im Urlaubsantrag als Halbtag (diagonal geteilt) angezeigt.
+- v1.6.0: Countdown im Sichtschutz erst 10 Min. vorher (einstellbar) · Auftragsobjekt in der Kachel neben dem Kunden · „Tag bearbeiten“: Betriebsarbeiten kürzen (−0,25/−0,5/Auf Soll, Zeit verfällt) · ohne Admin-PIN kein Siegel und keine Grund-Abfrage (beim Setzen der Admin-PIN werden alle vergangenen Tage versiegelt) · Pause groß in der Kopfzeile · Menü „Protokolle“: Werkstattauftrag, Prüfprotokoll und KSB-Inbetriebnahme beliebig viele, je Auftrag zugeordnet (in „Auftrag bearbeiten“ sichtbar), gespeichert in der Gerätedatenbank, Texte in der Sicherung (Fotos optional).

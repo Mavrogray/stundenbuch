@@ -1,6 +1,6 @@
 // Offline-Cache. Bei Änderungen die Versionsnummer erhöhen.
-const C = 'stundenbuch-1.5.9';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './werkstattauftrag.html', './pruefprotokoll.html', './pdfshare.js', './pdf-lib.min.js'];
+const C = 'stundenbuch-1.6.0';
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './werkstattauftrag.html', './pruefprotokoll.html', './pdfshare.js', './pdf-lib.min.js','./proto.js','./ksb-ibn.html'];
 // Jede Datei einzeln und am Zwischenspeicher vorbei laden; fehlende Dateien blockieren das Update nicht
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => Promise.all(FILES.map(f =>
@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req, { cache: 'no-store' }).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(req, cp)); return r; })
+    e.respondWith(fetch(req, { cache: 'no-store' }).then(r => { const cp = r.clone(); const u = new URL(req.url); u.search = ''; caches.open(C).then(c => c.put(u.href, cp)); return r; })
       .catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match('./index.html'))));
     return;
   }

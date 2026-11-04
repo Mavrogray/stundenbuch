@@ -1,0 +1,297 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>[hidden]{display:none!important}</style></head><body>
+<title>KSB-Inbetriebnahme</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Eingabe links (groß, fürs Tablet) · Vorschau zuschaltbar · Ausgabe im Stil der Prüfprotokolle aus dem MotorAnalyzer */
+:root{
+  --bg:#eef1ef;--panel:#ffffff;--ink:#17201b;--mut:#5d6b63;--line:#d3dbd6;--field:#f6f8f7;
+  --accent:#1e7a4f;--accentSoft:#dcefe5;--warn:#9a5b00;--bad:#b42318;
+  --f-ui:"Barlow",Roboto,system-ui,sans-serif;--f-doc:Arial,Helvetica,"Liberation Sans",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121714;--panel:#1a211d;--ink:#e6ece8;--mut:#9aa8a0;--line:#2c3631;--field:#212a25;--accent:#4fbf86;--accentSoft:#1d3328;--warn:#e0a24a;--bad:#f07a6e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121714;--panel:#1a211d;--ink:#e6ece8;--mut:#9aa8a0;--line:#2c3631;--field:#212a25;--accent:#4fbf86;--accentSoft:#1d3328;--warn:#e0a24a;--bad:#f07a6e;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:17px/1.4 var(--f-ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+h1{font-size:1.4rem;margin:0;text-wrap:balance}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.top p{margin:2px 0 0;color:var(--mut);font-size:.88rem}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-weight:600;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:10px 16px;cursor:pointer;min-height:50px}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+button.sm{min-height:40px;padding:6px 12px;font-size:.9rem}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#msg{min-height:1.3em;font-size:.9rem;margin:-4px 0 10px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.wrap.withprev{grid-template-columns:minmax(0,1fr)}
+@media (min-width:1000px){.wrap.withprev{grid-template-columns:minmax(360px,470px) minmax(0,1fr);align-items:start}}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px;align-items:start;min-width:0}
+.wrap.withprev .form{grid-template-columns:minmax(0,1fr)}
+fieldset{border:1.5px solid var(--line);border-radius:14px;background:var(--panel);padding:12px 14px 14px;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;min-width:0}
+legend{font-weight:700;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);padding:0 6px}
+label{display:flex;flex-direction:column;gap:3px;font-size:.88rem;color:var(--mut);min-width:0}
+.w{grid-column:1/-1}
+input,select,textarea{font:500 1.18rem var(--f-ui);color:var(--ink);background:var(--field);border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;min-height:52px;width:100%;min-width:0}
+textarea{min-height:120px;resize:vertical}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg label{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:1.02rem;border:1.5px solid var(--line);border-radius:9px;padding:8px 14px;background:var(--field);min-height:48px}
+.seg input{width:24px;height:24px;min-height:0;accent-color:var(--accent)}
+.rep{grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
+.item{border:1.5px dashed var(--line);border-radius:12px;padding:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px}
+.item .ih{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--ink)}
+.hint{font-size:.85rem;color:var(--mut)}
+.warn{color:var(--warn)}
+.photos{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.ph{position:relative;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--field);display:flex;flex-direction:column}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.ph input{border:0;border-radius:0;min-height:40px;font-size:.95rem}
+.ph button{position:absolute;top:4px;right:4px;min-height:34px;padding:2px 10px;background:rgba(0,0,0,.6);color:#fff;border:0}
+.sig{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.sigbox{display:flex;flex-direction:column;gap:6px}
+.sigbox canvas{width:100%;height:150px;background:#fff;border:1.5px solid var(--line);border-radius:10px;touch-action:none}
+.sigbox .r{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;color:var(--mut)}
+.prev{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.prev.off{position:absolute;left:-99999px;top:0;visibility:hidden}
+.prevhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:.88rem;color:var(--mut)}
+.stage{overflow:hidden;width:100%}
+.stage+.stage{margin-top:12px}
+
+/* ---------- Ausgabe A4 ---------- */
+.page{width:210mm;height:297mm;background:#fff;color:#000;position:relative;transform-origin:top left;box-shadow:0 2px 14px rgba(0,0,0,.18);font-family:var(--f-doc);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;--yel:#ffffd9;--cy:#e3fbfb;--blk:#000;--red:#d6262d}
+.pin{position:absolute;left:12mm;right:12mm;top:10mm;bottom:22mm;display:flex;flex-direction:column}
+.pin>*{flex-shrink:0}
+.ptitle{font-size:20pt;font-weight:400;margin:0 0 1mm}
+.pline{height:5mm;width:100%;display:block}
+.firm{display:flex;justify-content:space-between;align-items:flex-start;gap:6mm;margin:2mm 0 3mm;min-height:22mm}
+.firm .n{font:700 11pt/1.3 var(--f-doc)}.firm .s{font-size:9pt;margin:1mm 0 2mm}.firm .a{font-size:10.5pt;line-height:1.4}.firm .a b{display:block}
+.firm .lg{display:flex;align-items:center;gap:6mm;flex-shrink:0}.firm img{max-width:62mm;max-height:22mm;object-fit:contain}.firm img.k{max-width:40mm;max-height:16mm}
+.vt{font-size:8.5pt;color:#333;margin-top:2.5mm}
+.firm .ph0{color:#999;font-style:italic}
+.sec{margin-top:2.6mm}
+.bar{background:var(--blk);color:#fff;font-size:11pt;padding:.8mm 2mm;margin-bottom:1mm}
+.kv{width:100%;border-collapse:separate;border-spacing:0 .7mm;table-layout:fixed;font-size:9pt}
+.kv td{border:.3mm solid #000;background:var(--yel);padding:.5mm 1.2mm;vertical-align:top;line-height:1.3;overflow-wrap:anywhere}
+.kv td.k{width:17%;font-weight:700;font-style:italic;border-right:0}
+.kv.q td.k{width:17%}.kv.q td.v{width:33%}.kv.q td.v+td.k{border-left:.3mm solid #000}
+.kv.big td{font-size:10pt;padding:.8mm 1.5mm}
+.kv td.v{white-space:pre-line}
+.io{color:#1a9a1a}.nio{color:var(--red);font-weight:700}
+.grid{width:100%;border-collapse:separate;border-spacing:0 .7mm;table-layout:fixed;font-size:9pt}
+.grid th{background:var(--yel);border:.3mm solid #000;border-right:0;text-align:left;padding:.5mm 1.2mm;font-weight:700}
+.grid th:last-child,.grid td:last-child{border-right:.3mm solid #000}
+.grid td{background:var(--cy);border:.3mm solid #000;border-right:0;padding:.7mm 1.2mm;vertical-align:top;overflow-wrap:anywhere;line-height:1.3}
+.grid td.nr{font-weight:700;text-align:center}
+.notes{border:.3mm solid #000;background:var(--yel);padding:1.2mm 1.5mm;font-size:9.5pt;line-height:1.4;white-space:pre-line;min-height:16mm;overflow:hidden}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:10mm;margin-top:auto;padding-top:4mm}
+.sigs .s{display:flex;flex-direction:column;justify-content:flex-end;min-height:24mm}
+.sigs img{height:16mm;max-width:100%;object-fit:contain;object-position:left bottom}
+.sigs .ln{border-top:.3mm solid #000;padding-top:.8mm;font-size:8.5pt;display:flex;justify-content:space-between;gap:3mm}
+.sigs .who{font-size:9.5pt;font-weight:700;margin-bottom:1mm}
+.pfoot{position:absolute;left:12mm;right:12mm;bottom:9mm}
+.pfoot .db{height:2.4mm;background:#3a3f47}
+.pfoot .r{display:flex;justify-content:space-between;align-items:flex-end;margin-top:2mm;font-size:9pt}
+.pfoot .ts{color:#9aa0a6;font-style:italic}.pfoot .pg{font-size:11pt}
+.pics{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-top:2mm}
+.pics figure{margin:0;border:.3mm solid #000}
+.pics img{width:100%;height:64mm;object-fit:cover;display:block}
+.pics figcaption{background:var(--cy);border-top:.3mm solid #000;font-size:9pt;padding:.7mm 1.5mm;min-height:5mm}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff;padding:0}
+  body>*:not(.wrap),.form,.prevhead{display:none!important}
+  .wrap,.prev,.prev.off,.stage{display:block;border:0;padding:0;margin:0;background:none;overflow:visible;position:static!important;visibility:visible!important;left:auto!important;height:auto!important}
+  .page{transform:none!important;box-shadow:none;page-break-after:always;break-after:page}
+}
+</style>
+
+<div class="top">
+ <div><h1>KSB-Inbetriebnahme</h1><p>Anlage erfassen, unterschreiben lassen, als PDF teilen oder drucken. Die Vorschau blendest du mit „👁 Vorschau“ ein.</p></div>
+ <div class="acts">
+  <button id="bBack" hidden>← Stundenbuch</button>
+  <button id="bNew">Neues Protokoll</button>
+  <button id="bPrev" aria-pressed="false">👁 Vorschau</button>
+  <button id="bShare" class="pri" hidden>📤 Als PDF teilen</button>
+  <button id="bPrint" class="pri" hidden>🖨 Drucken</button>
+ </div>
+</div>
+<div id="msg"></div>
+
+<div class="wrap">
+ <form class="form" id="f" autocomplete="off" onsubmit="return false">
+  <fieldset><legend>Protokoll</legend>
+   <label>Protokollnummer<input id="pnr" data-k="pnr"></label>
+   <label>Datum<input id="dat" data-k="dat" type="date"></label>
+   <label>Auftragsnummer<input id="anr" data-k="anr" inputmode="numeric" placeholder="71…"></label>
+   <label>Gesamtergebnis<select id="erg" data-k="erg"><option value="">–</option><option value="iO">iO – Anlage in Betrieb</option><option value="niO">niO – Mängel, siehe Notizen</option></select></label>
+  </fieldset>
+  <fieldset><legend>Kunde &amp; Standort</legend>
+   <label class="w">Kunde<input id="kunde" data-k="kunde"></label>
+   <label>Ansprechpartner<input id="ansp" data-k="ansp"></label>
+   <label>Gebäude/Ebene<input id="geb" data-k="geb"></label>
+   <label class="w">Raum<input id="raum" data-k="raum"></label>
+   <label class="w">Hinweise zum Standort<input id="sthin" data-k="sthin" placeholder="Zugang, Schlüssel …"></label>
+  </fieldset>
+  <fieldset><legend>Anlagendaten</legend>
+   <label>Anlagentyp<input id="atyp" data-k="atyp"></label>
+   <label>Anlagen-Nr.<input id="anlnr" data-k="anlnr"></label>
+   <label>Anlagenform<input id="aform" data-k="aform" list="lForm"></label>
+   <label>Verwendung<input id="verw" data-k="verw" list="lVerw"></label>
+   <label class="w">Sammelschacht<input id="schacht" data-k="schacht"></label>
+   <datalist id="lForm"><option>Einzelpumpe</option><option>Doppelpumpe</option><option>Mehrpumpenanlage</option><option>Hebeanlage</option><option>Druckerhöhungsanlage</option></datalist>
+   <datalist id="lVerw"><option>Abwasser</option><option>Schmutzwasser</option><option>Trinkwasser</option><option>Kühlwasser</option><option>Eiswasser</option><option>Heizung</option></datalist>
+  </fieldset>
+  <fieldset><legend>Motor/Pumpe</legend>
+   <div class="rep" id="pumps"></div>
+   <button class="w sm" id="addP" type="button">+ Pumpe</button>
+  </fieldset>
+  <fieldset><legend>Steuerung/en</legend>
+   <div class="rep" id="ctrls"></div>
+   <button class="w sm" id="addC" type="button">+ Steuerung</button>
+  </fieldset>
+  <fieldset><legend>Hinweise/Notizen zur Anlage</legend>
+   <label class="w">Notizen<textarea id="notes" data-k="notes" placeholder="z. B. Mehrpumpenbetrieb, 4 Frequenzumrichter"></textarea></label>
+   <div class="w hint" id="notesHint"></div>
+  </fieldset>
+  <fieldset><legend>Bilder zur Anlage</legend>
+   <div class="photos" id="photos"></div>
+   <label class="w"><span>Fotos hinzufügen (kommen auf Blatt 2)</span><input id="pick" type="file" accept="image/*" multiple></label>
+  </fieldset>
+  <fieldset><legend>Unterschriften</legend>
+   <label>Ort<input id="ort" data-k="ort"></label>
+   <label>Datum Unterschrift<input id="sdat" data-k="sdat" type="date"></label>
+   <div class="sig">
+    <div class="sigbox"><div class="r"><b>KSB-Kundendienst</b><button class="sm" type="button" data-clr="s1">Löschen</button></div><canvas id="s1"></canvas></div>
+    <div class="sigbox"><div class="r"><b>Auftraggeber/Kunde</b><button class="sm" type="button" data-clr="s2">Löschen</button></div><canvas id="s2"></canvas></div>
+   </div>
+  </fieldset>
+  <fieldset><legend>Firmenkopf (bleibt gespeichert)</legend>
+   <label class="w">Firmenname Zeile 1<input id="h1" data-h="h1"></label>
+   <label class="w">Firmenname Zeile 2<input id="h2" data-h="h2"></label>
+   <label class="w">Zusatz<input id="h3" data-h="h3" placeholder="KSB-Kundenpartner"></label>
+   <label class="w">Straße<input id="h4" data-h="h4"></label>
+   <label>PLZ Ort<input id="h5" data-h="h5"></label>
+   <label>Telefon<input id="h6" data-h="h6"></label>
+   <label><span>Firmenlogo</span><input id="logo" type="file" accept="image/*"></label>
+   <label><span>KSB-Logo</span><input id="logo2" type="file" accept="image/*"></label>
+   <button class="sm" id="noLogo" type="button">Firmenlogo entfernen</button>
+   <button class="sm" id="noLogo2" type="button">KSB-Logo entfernen</button>
+   <label class="w">Verteiler (steht unter den Unterschriften)<input id="h7" data-h="h7" placeholder="Kunde · KSB · Kundenpartner"></label>
+  </fieldset>
+ </form>
+
+ <div class="prev off" id="prev">
+  <div class="prevhead"><span>Vorschau A4</span><span id="pcount"></span></div>
+  <div class="stage" id="st1"><div class="page" id="page1"></div></div>
+  <div class="stage" id="st2" hidden><div class="page" id="page2"></div></div>
+ </div>
+</div>
+
+<script src="proto.js"></script>
+<script>
+const $=s=>document.querySelector(s),KEY='ksb-ibn-v1',HKEY='ksb-ibn-hd',CKEY='ksb-ibn-cnt';
+const STANDALONE=/github\.io$/.test(location.hostname)||location.protocol==='file:'||location.hostname==='localhost';
+const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const deDate=k=>k?k.split('-').reverse().join('.'):'';
+const LONG=k=>{if(!k)return '';const d=new Date(k+'T12:00');return d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});};
+
+let S={},H=ls.get(HKEY,{}),sigs={s1:'',s2:''};
+const BLANK=()=>({dat:today(),sdat:today(),pumps:[{her:'KSB'}],ctrls:[{her:''}],photos:[]});
+
+/* Protokollnummer TTMMJJJJ_n */
+function nextNr(dat){const c=ls.get(CKEY,{}),k=dat||today();c[k]=(c[k]||0)+1;ls.set(CKEY,c);const [y,m,d]=k.split('-');return d+m+y+'_'+c[k];}
+
+/* ---------- Wiederholbare Blöcke ---------- */
+const PF=[['her','Hersteller'],['typ','Typ'],['sn','SN#'],['mot','Motordaten','z. B. 7,5 kW · 400 V · 14,2 A · 2900 1/min']];
+const CF=[['her','Hersteller'],['typ','Typ'],['sn','SN#'],['info','Info','z. B. FU-Anzahl, Software-Stand']];
+function drawRep(id,arr,F,name){$(id).innerHTML=arr.map((x,i)=>`<div class="item"><div class="ih"><span>${name} ${arr.length>1?i+1:''}</span>${arr.length>1?`<button class="sm" type="button" data-rm="${i}">✕</button>`:''}</div>${F.map(([k,l,ph])=>`<label class="${k==='mot'||k==='info'?'w':''}">${l}<input data-i="${i}" data-f="${k}" value="${esc(x[k]||'')}" ${ph?`placeholder="${ph}"`:''}></label>`).join('')}</div>`).join('');}
+function bindRep(id,key,F,name){const el=$(id);
+ el.oninput=e=>{const t=e.target;if(t.dataset.f==null)return;S[key][+t.dataset.i][t.dataset.f]=t.value;upd();};
+ el.onclick=e=>{const b=e.target.closest('[data-rm]');if(!b)return;S[key].splice(+b.dataset.rm,1);drawRep(id,S[key],F,name);upd();};}
+
+/* ---------- Fotos ---------- */
+function drawPhotos(){$('#photos').innerHTML=S.photos.map((p,i)=>`<div class="ph"><img src="${p.src}" alt=""><input data-pc="${i}" value="${esc(p.cap||'')}" placeholder="Beschriftung"><button type="button" data-prm="${i}">✕</button></div>`).join('');}
+function shrink(file,png){return new Promise(ok=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const M=png?800:1280,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(png?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.78));};im.onerror=()=>ok(null);im.src=r.result;};r.readAsDataURL(file);});}
+
+/* ---------- Unterschriften ---------- */
+function setupSig(id){const c=$('#'+id),g=c.getContext('2d');let draw=false,last=null;
+ const size=()=>{const r=c.getBoundingClientRect();if(!r.width)return;const dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;g.setTransform(dpr,0,0,dpr,0,0);g.lineWidth=2.4;g.lineCap='round';g.lineJoin='round';g.strokeStyle='#0b1b4d';
+  if(sigs[id]){const im=new Image();im.onload=()=>g.drawImage(im,0,0,r.width,r.height);im.src=sigs[id];}};
+ const pos=e=>{const r=c.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];};
+ c.onpointerdown=e=>{draw=true;last=pos(e);c.setPointerCapture(e.pointerId);};
+ c.onpointermove=e=>{if(!draw)return;const p=pos(e);g.beginPath();g.moveTo(...last);g.lineTo(...p);g.stroke();last=p;};
+ c.onpointerup=c.onpointercancel=()=>{if(!draw)return;draw=false;sigs[id]=c.toDataURL('image/png');S[id]=sigs[id];upd();};
+ return size;}
+const sizers={};
+
+/* ---------- Zustand ---------- */
+function readForm(){document.querySelectorAll('#f [data-k]').forEach(e=>S[e.dataset.k]=e.value);document.querySelectorAll('#f [data-h]').forEach(e=>H[e.dataset.h]=e.value);}
+function fillForm(){document.querySelectorAll('#f [data-k]').forEach(e=>e.value=S[e.dataset.k]||'');document.querySelectorAll('#f [data-h]').forEach(e=>e.value=H[e.dataset.h]||'');
+ drawRep('#pumps',S.pumps,PF,'Pumpe');drawRep('#ctrls',S.ctrls,CF,'Steuerung');drawPhotos();sigs={s1:S.s1||'',s2:S.s2||''};Object.values(sizers).forEach(f=>f());}
+function setState(s){S=Object.assign(BLANK(),s);if(!S.pnr)S.pnr=nextNr(S.dat);fillForm();upd();}
+let tSave;function upd(){readForm();render();if(window.PROTO&&PROTO.id){PROTO.save(S,{kunde:S.kunde||'',nr:S.pnr||'',obj:S.raum||S.atyp||''});clearTimeout(tSave);tSave=setTimeout(()=>ls.set(HKEY,H),300);return;}clearTimeout(tSave);tSave=setTimeout(()=>{const ok=ls.set(KEY,S);ls.set(HKEY,H);
+ if(!ok)note('Speicher voll – Fotos werden nicht dauerhaft gespeichert. PDF vor dem Schließen erstellen.','warn');},300);}
+function note(t,c){const m=$('#msg');m.textContent=t;m.className=c||'';}
+
+/* ---------- Ausgabe ---------- */
+const kv4=(rows,big)=>`<table class="kv q${big?' big':''}">${rows.map(r=>`<tr>${r.map(([k,v,cl])=>`<td class="k">${k}</td><td class="v${cl?' '+cl:''}">${v}</td>`).join('')}</tr>`).join('')}</table>`;
+const kv=(rows,big)=>`<table class="kv${big?' big':''}">${rows.map(([k,v,cl])=>`<tr><td class="k">${k}</td><td class="v${cl?' '+cl:''}">${v}</td></tr>`).join('')}</table>`;
+const bar=t=>`<div class="bar">${t}</div>`;
+const LINE=`<svg class="pline" viewBox="0 0 1000 20" preserveAspectRatio="none"><path d="M0 4 H70 L82 16 L94 4 H1000" fill="none" stroke="#d6262d" stroke-width="2.2" vector-effect="non-scaling-stroke"/></svg>`;
+function firm(){const has=H.h1||H.h2||H.h4;
+ return `<div class="firm"><div>${has?`<div class="n">${esc(H.h1)}${H.h2?'<br>'+esc(H.h2):''}</div><div class="s">${esc(H.h3||'KSB-Kundenpartner')}</div><div class="a">${esc(H.h4)}<b>${esc(H.h5)}</b>${H.h6?'Tel.: '+esc(H.h6):''}</div>`:`<div class="n ph0">Firmenkopf – unten unter „Firmenkopf“ eintragen</div><div class="s">${esc(H.h3||'KSB-Kundenpartner')}</div>`}</div>${H.logo||H.logo2?`<div class="lg">${H.logo2?`<img class="k" src="${H.logo2}" alt="">`:''}${H.logo?`<img src="${H.logo}" alt="">`:''}</div>`:''}</div>`;}
+function foot(n,of){const d=new Date();return `<div class="pfoot"><div class="db"></div><div class="r"><span class="ts">${d.toLocaleDateString('de-DE')} ${d.toTimeString().slice(0,8)}</span><span class="pg">${n}/${of}</span></div></div>`;}
+function render(){if(!S.pumps)return;
+ const ergCl=S.erg==='iO'?'io':S.erg==='niO'?'nio':'',pages=S.photos.length?2:1;
+ const pump=S.pumps.filter(p=>p.her||p.typ||p.sn||p.mot),ctrl=S.ctrls.filter(p=>p.her||p.typ||p.sn||p.info);
+ const tbl=(arr,F)=>`<table class="grid"><colgroup><col style="width:7mm">${F.map(([k])=>`<col${k==='her'?' style="width:15%"':k==='sn'?' style="width:20%"':k==='typ'?' style="width:26%"':''}>`).join('')}</colgroup><tr><th>Nr.</th>${F.map(([,l])=>`<th>${l}</th>`).join('')}</tr>${(arr.length?arr:[{}]).map((x,i)=>`<tr><td class="nr">${arr.length?i+1:''}</td>${F.map(([k])=>`<td>${esc(x[k]||'')}</td>`).join('')}</tr>`).join('')}</table>`;
+ $('#page1').innerHTML=`<div class="pin"><div class="ptitle">Inbetriebnahmeprotokoll</div>${LINE}${firm()}
+  ${kv4([[['Protokollnr.',esc(S.pnr)],['Auftragsnr.',esc(S.anr)]],[['Datum',esc(LONG(S.dat))],['Gesamtergebnis',esc(S.erg||''),ergCl]]],true)}
+  <div class="sec">${bar('Kunde &amp; Standort')}${kv([['Kunde',esc(S.kunde)]])}${kv4([[['Ansprechpartner',esc(S.ansp)],['Gebäude/Ebene',esc(S.geb)]]])}${kv([['Raum',esc(S.raum)],['Hinweise',esc(S.sthin)]])}</div>
+  <div class="sec">${bar('Anlagendaten')}${kv4([[['Anlagentyp',esc(S.atyp)],['Anlagen-Nr.',esc(S.anlnr)]],[['Anlagenform',esc(S.aform)],['Verwendung',esc(S.verw)]]])}${kv([['Sammelschacht',esc(S.schacht)]])}</div>
+  <div class="sec">${bar('Motor/Pumpe')}${tbl(pump,PF)}</div>
+  <div class="sec">${bar('Steuerung/en')}${tbl(ctrl,CF)}</div>
+  <div class="sec">${bar('Hinweise/Notizen zur Anlage')}<div class="notes" id="pnotes">${esc(S.notes)}</div></div>
+  <div class="sigs">${[['KSB-Kundendienst','s1'],['Auftraggeber/Kunde','s2']].map(([w,k])=>`<div class="s"><div class="who">${w}</div>${S[k]?`<img src="${S[k]}" alt="">`:''}<div class="ln"><span>Ort, Datum, Unterschrift</span><span>${esc([S.ort,deDate(S.sdat)].filter(Boolean).join(', '))}</span></div></div>`).join('')}</div>
+  <div class="vt">Verteiler: ${esc(H.h7||'Kunde · KSB · Kundenpartner')}</div>
+ </div>${foot(1,pages)}`;
+ $('#st2').hidden=pages<2;
+ if(pages>1)$('#page2').innerHTML=`<div class="pin"><div class="ptitle">Inbetriebnahmeprotokoll</div>${LINE}${kv([['Protokollnummer',esc(S.pnr)],['Kunde',esc(S.kunde)]])}<div class="sec">${bar('Bilder zur Anlage')}<div class="pics">${S.photos.slice(0,6).map(p=>`<figure><img src="${p.src}" alt=""><figcaption>${esc(p.cap||'')}</figcaption></figure>`).join('')}</div></div></div>${foot(2,2)}`;
+ $('#pcount').textContent=pages+' Blatt'+(S.photos.length>6?' · nur die ersten 6 Fotos passen aufs Blatt':'');
+ fit();
+ // Notizen zu lang?
+ const pin=$('#page1 .pin'),over=pin.scrollHeight>pin.clientHeight+2;$('#notesHint').textContent=over?'⚠ Blatt 1 ist zu voll – Notizen kürzen oder weniger Pumpen/Steuerungen.':'';$('#notesHint').className='w hint'+(over?' warn':'');}
+function fit(){['1','2'].forEach(n=>{const st=$('#st'+n),p=$('#page'+n);if(st.hidden)return;const k=Math.min(1,(st.clientWidth||1)/p.offsetWidth);p.style.transform=`scale(${k})`;st.style.height=p.offsetHeight*k+'px';});}
+addEventListener('resize',()=>{fit();Object.values(sizers).forEach(f=>f());});
+
+/* ---------- Bedienung ---------- */
+$('#f').addEventListener('input',e=>{if(e.target.dataset.k||e.target.dataset.h)upd();if(e.target.dataset.pc!=null){S.photos[+e.target.dataset.pc].cap=e.target.value;upd();}});
+$('#f').addEventListener('change',e=>{if(e.target.dataset.k)upd();});
+$('#photos').onclick=e=>{const b=e.target.closest('[data-prm]');if(!b)return;S.photos.splice(+b.dataset.prm,1);drawPhotos();upd();};
+$('#pick').onchange=async e=>{for(const f of e.target.files){const src=await shrink(f);if(src)S.photos.push({src,cap:''});}e.target.value='';drawPhotos();upd();};
+$('#logo').onchange=async e=>{const f=e.target.files[0];if(!f)return;H.logo=await shrink(f,1);e.target.value='';upd();};
+$('#noLogo').onclick=()=>{delete H.logo;upd();};
+$('#logo2').onchange=async e=>{const f=e.target.files[0];if(!f)return;H.logo2=await shrink(f,1);e.target.value='';upd();};
+$('#noLogo2').onclick=()=>{delete H.logo2;upd();};
+$('#addP').onclick=()=>{S.pumps.push({her:S.pumps[0]?.her||'KSB'});drawRep('#pumps',S.pumps,PF,'Pumpe');upd();};
+$('#addC').onclick=()=>{S.ctrls.push({her:S.ctrls[0]?.her||''});drawRep('#ctrls',S.ctrls,CF,'Steuerung');upd();};
+bindRep('#pumps','pumps',PF,'Pumpe');bindRep('#ctrls','ctrls',CF,'Steuerung');
+document.querySelectorAll('[data-clr]').forEach(b=>b.onclick=()=>{const id=b.dataset.clr,c=$('#'+id);c.getContext('2d').clearRect(0,0,c.width,c.height);sigs[id]='';S[id]='';upd();});
+let armNew=0;$('#bNew').onclick=()=>{if(Date.now()-armNew>4000){armNew=Date.now();$('#bNew').textContent='Wirklich leeren? Nochmal tippen';setTimeout(()=>$('#bNew').textContent='Neues Protokoll',4000);return;}
+ armNew=0;$('#bNew').textContent='Neues Protokoll';if(window.PROTO&&PROTO.id){PROTO.flush().then(()=>PROTO.create('ibn',null,null)).then(id=>location.href='ksb-ibn.html?id='+id);return;}setState({});note('Neues Protokoll '+S.pnr+' angelegt.');};
+$('#bPrev').onclick=()=>{const on=$('#prev').classList.toggle('off')===false;$('.wrap').classList.toggle('withprev',on);$('#bPrev').setAttribute('aria-pressed',on);$('#bPrev').textContent=on?'👁 Vorschau aus':'👁 Vorschau';fit();Object.values(sizers).forEach(f=>f());if(on)$('#prev').scrollIntoView({behavior:'smooth',block:'start'});};
+$('#bPrint').onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.style.transform='none');window.print();setTimeout(fit,300);};
+$('#bShare').onclick=async()=>{const b=$('#bShare');b.disabled=true;b.textContent='PDF wird erstellt …';
+ try{if(!window.sharePdf)await new Promise((ok,no)=>{const x=document.createElement('script');x.src='pdfshare.js';x.onload=ok;x.onerror=()=>no(new Error('pdfshare.js fehlt'));document.head.appendChild(x);});
+  const pg=[$('#page1')];if(!$('#st2').hidden)pg.push($('#page2'));
+  const nm=('IBN_'+(S.anr||S.pnr)+'_'+(S.kunde||'')).replace(/[^\wäöüÄÖÜß.-]+/g,'_').replace(/_+$/,'')+'.pdf';
+  const r=await window.sharePdf(pg,nm,'Inbetriebnahmeprotokoll '+S.pnr);note(r==='gespeichert'?'PDF gespeichert: '+nm:r==='geteilt'?'PDF geteilt.':'');}
+ catch(e){note('PDF fehlgeschlagen: '+e.message,'warn');}finally{b.disabled=false;b.textContent='📤 Als PDF teilen';}};
+if(STANDALONE){$('#bBack').hidden=$('#bShare').hidden=$('#bPrint').hidden=false;$('#bBack').onclick=()=>location.href='index.html';}
+
+sizers.s1=setupSig('s1');sizers.s2=setupSig('s2');
+(async()=>{if(window.PROTO&&PROTO.id){const rec=await PROTO.load();const st=rec&&rec.state?Object.assign({},rec.state):{};delete st.__init;setState(st);if(PROTO.view&&$('#prev').classList.contains('off'))$('#bPrev').click();}else setState(ls.get(KEY,null)||{});})();
+document.fonts&&document.fonts.ready.then(()=>render());
+</script>
+</body></html>
