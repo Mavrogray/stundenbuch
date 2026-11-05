@@ -192,7 +192,8 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 #pPrev.p4{max-width:none;overflow-x:auto;background:var(--card2);padding:10px;border-radius:6px;display:flex;flex-direction:column;gap:10px}
 .sheet{position:relative;width:210mm;height:297mm;background:#fff;color:#000;flex:0 0 auto;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sheet .a6{position:absolute;box-sizing:border-box;padding:5mm 5mm 5mm 20mm;overflow:hidden}
-.pdoc.p-A6.big h1{font-size:12pt}.pdoc.p-A6.big .pmeta{font-size:8pt}.pdoc.p-A6.big .phead{font-size:10.5pt}.pdoc.p-A6.big .pstamp{font-size:7.5pt}.pdoc.p-A6.big table{font-size:9.5pt}.pdoc.p-A6.big th{font-size:7pt}.pdoc.p-A6.big td{padding:.9mm .5mm}.pdoc.p-A6.big th:nth-child(1){width:16.5mm}.pdoc.p-A6.big th:nth-child(2){width:36%}.pdoc.p-A6.big th:nth-child(4){width:9mm}.pdoc.p-A6.big .pday{margin-bottom:8mm}.pdoc.p-A6.big .psum{font-size:8.5pt}
+.pdoc.p-A6.big h1{font-size:12pt}.pdoc.p-A6.big .pmeta{font-size:8pt}.pdoc.p-A6.big .phead{font-size:11.5pt}.pdoc.p-A6.big .pstamp{font-size:7.5pt}.pdoc.p-A6.big table{font-size:10.5pt}.pdoc.p-A6.big th{font-size:7.5pt}.pdoc.p-A6.big td{white-space:nowrap;overflow:hidden}.pdoc.p-A6.big td.inf{white-space:pre}.pdoc.p-A6.big .psum{font-size:10pt;text-align:left}
+.pdoc .arr{font-size:13pt;font-weight:700;text-align:right;line-height:1;margin-top:1mm}.pdoc .arr.l{text-align:left;margin:0 0 1mm}.pdoc.p-A6.big td{padding:.9mm .5mm}.pdoc.p-A6.big th:nth-child(1){width:16.5mm}.pdoc.p-A6.big th:nth-child(2){width:36%}.pdoc.p-A6.big th:nth-child(4){width:9mm}.pdoc.p-A6.big .pday{margin-bottom:8mm}
 .sheet .a6 .pdoc{border:0;padding:0;overflow:visible;border-radius:0}
 .sheet .a6n{position:absolute;right:5mm;bottom:3mm;font:6pt Arial,sans-serif;color:#666}
 .sheet .cv{position:absolute;top:0;bottom:0;border-left:.3mm dashed #888}
@@ -280,6 +281,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch, 20 mm Lochrand)</option><option value="A5">A5</option><option value="A4">A4</option><option value="A6x4">A6 auf A4 – 4 pro Blatt mit Schnittlinien</option></select></label>
   <div class="row" id="pBook"><label>Buchseite Breite (mm)<input id="pBW" inputmode="decimal"></label><label>Höhe (mm)<input id="pBH" inputmode="decimal"></label></div>
   <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen mitdrucken</label>
+  <label class="chk"><input type="checkbox" id="pLA"> Lohnart mitdrucken (z. B. 21260005/500)</label>
   <div class="btns"><button class="btn" id="bWeek">Diese Woche</button><button class="btn" id="bLastWeek">Letzte Woche</button><button class="btn pri" id="bPrint">🖨 Drucken / PDF</button></div>
  </div>
  <div class="pdoc" id="pPrev"></div>
@@ -415,7 +417,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <script>
 let PLIST=[],PIDX={};const protoCount=id=>PIDX[id]||0;
 'use strict';
-const VERSION='1.6.3';
+const VERSION='1.7.0';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -444,7 +446,7 @@ function defaults(){return{v:1,orders:[
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
   otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
-  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,privCd:10,rPuf:15,ausgNr:'21260008',lockMin:5,startTime:'07:00',backMin:60,setupDone:false,pinB:'',pinA:'',
+  holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,privCd:10,rPuf:15,ausgNr:'21260010',lockMin:5,startTime:'07:00',backMin:60,setupDone:false,pinB:'',pinA:'',
   marks:[{k:'AW',n:'Abwasser',ic:'🧪',goal:0,since:'',carry:0},{k:'KSB',n:'KSB-Schulung',ic:'📘',goal:0,since:'',carry:0}]},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
 if(!S||!S.orders||!S.days)S=defaults();
@@ -535,25 +537,34 @@ function markSplit(k,sm){const d=S.days[k],R=+S.settings.round||15,up=m=>m>0.5?M
 function ausgH(k,sm){const d=S.days[k],ty=typeOf(k),R=+S.settings.round||15;if(!d||d.noAusg)return 0;
  if(ty==='gleit')return sollOf(k);if(ty&&ty!=='urlaub_halb')return 0;if(!d.gehen||!sm.rows.length)return 0;
  const df=Math.round((sollOf(k)-sm.total)*60/R)*R/60;return df>0?df:0;}
-function ausgOrder(){const nr=normNr(S.settings.ausgNr||'21260008');let o=S.orders.find(x=>x.nr===nr);
- if(!o){o={id:uid(),nr,kunde:'Ausgleich aus Überstunden',info:'',fav:true,arch:false,int:true};S.orders.push(o);save();}else if(o.arch){o.arch=false;}return o;}
+/* feste Nummern: gleiche Abteilung + gleiche Endung, Jahr egal (2126 0003 ≙ 2127 0003) */
+const sameFix=(nr,ref)=>/^\d{8}$/.test(nr||'')&&/^\d{8}$/.test(ref||'')&&nr.slice(0,2)===ref.slice(0,2)&&nr.slice(4)===ref.slice(4);
+const isBalNr=nr=>sameFix(nr,normNr(S.settings.fillNr||'21260003'));
+const LA={'0001':'11','0002':'1','0003':'11','0004':'20','0005':'500','0006':'501','0008':'503','0009':'504','0010':'505'};
+const dept=()=>String(S.settings.prefix||'2126').slice(0,2);
+const fixNrOf=(suf,k)=>dept()+String(k||dkey()).slice(2,4)+suf;
+function pNr(nr){nr=String(nr||'');return nr+(S.settings.lohnart&&/^\d{8}$/.test(nr)&&nr.slice(0,2)===dept()&&LA[nr.slice(4)]?'/'+LA[nr.slice(4)]:'');}
+const pName=o=>o.short||o.kunde;
+const ABSFIX={urlaub:'0005',urlaub_halb:'0005',krank:'0006',bildung:'0008'};
+function ausgOrder(){const nr=normNr(S.settings.ausgNr||'21260010');let o=S.orders.find(x=>x.nr===nr);
+ if(!o){o={id:uid(),nr,kunde:'Fehlstunden',short:'Fehl',info:'Guthabenabbau',fav:false,arch:false,int:true};S.orders.push(o);save();}else if(o.arch){o.arch=false;}return o;}
 function summaryBase(k){
  const d=S.days[k];if(!d||!d.entries.length)return null;
  const m=new Map(),bnr=normNr(S.settings.fillNr||'21260003');
  d.entries.forEach(e=>{const r=m.get(e.o)||{o:e.o,infos:[],min:0};r.min+=emin(e);if(e.kind!=='fahrt'&&e.info&&!r.infos.includes(e.info))r.infos.push(e.info);m.set(e.o,r);});
  // feste Rückfahrt (Zettel): Differenz geplant/echt über Betriebsarbeiten
  let short=0;
- d.entries.forEach(e=>{if(!e.adj||!e.e)return;const rc=m.get(e.o);if(!rc)return;let rb=[...m.values()].find(r=>order(r.o).nr===bnr);
+ d.entries.forEach(e=>{if(!e.adj||!e.e)return;const rc=m.get(e.o);if(!rc)return;let rb=[...m.values()].find(r=>isBalNr(order(r.o).nr));
   if(e.adj>0){const x=Math.min(e.adj,rb?Math.max(0,rb.min):0);rc.min+=x;if(rb)rb.min-=x;short+=e.adj-x;}
   else{if(!rb){const b=balOrder();rb={o:b.id,infos:[],min:0};m.set(b.id,rb);}rc.min+=e.adj;rb.min-=e.adj;}});
- if(d.cut){const fn=normNr(S.settings.fillNr||'21260003'),rb=[...m.values()].find(r=>order(r.o).nr===fn);if(rb)rb.min=Math.max(0,rb.min-d.cut);}
+ if(d.cut){const rb=[...m.values()].find(r=>isBalNr(order(r.o).nr));if(rb)rb.min=Math.max(0,rb.min-d.cut);}
  const res=summaryRound(m);res.short=short;return res;}
 function summaryRound(m){
  const rows=[...m.values()].sort((a,b)=>order(a.o).nr.localeCompare(order(b.o).nr));
  rows.forEach(r=>r.info=r.infos.join('\n'));
  const R=+S.settings.round||15,tot=rows.reduce((a,r)=>a+r.min,0),up=r=>r.min>0.5?Math.ceil((r.min-0.5)/R):0;
  if(S.settings.roundMode==='bal'){
-  const fnr=normNr(S.settings.fillNr||'21260003'),isBal=r=>order(r.o).nr===fnr;
+  const isBal=r=>isBalNr(order(r.o).nr);
   const target=Math.round(tot/R);let other=0;rows.forEach(r=>{if(!isBal(r)){r.u=up(r);other+=r.u;}});
   const bal=rows.find(isBal);let rest=target-other,over=0;
   if(bal){bal.u=Math.max(0,rest);if(rest<0)over=-rest;}else if(rest<0)over=-rest;else if(rest>0){const big=rows.slice().sort((a,b)=>b.min-a.min)[0];if(big)big.u+=rest;}
@@ -570,7 +581,7 @@ function otSplit(k,sm){const d=S.days[k],R=+S.settings.round||15;sm.ot=0;sm.all.
  const su=Math.round(sollOf(k)*60/R),tu=Math.round(sm.total*60/R),ou=tu-su;if(ou<=0)return sm;
  let row=sm.all.find(r=>r.o===d.otO);if(!row){row={o:d.otO,infos:[],info:'',min:0,u:0,h:0};sm.all.push(row);}
  let nu=row.u-ou;
- if(nu<0){let def=-nu;nu=0;const bnr=normNr(S.settings.fillNr||'21260003'),isB=r=>order(r.o).nr===bnr?1:0;
+ if(nu<0){let def=-nu;nu=0;const isB=r=>isBalNr(order(r.o).nr)?1:0;
   sm.all.filter(r=>r!==row&&r.u>0).sort((a,b)=>isB(b)-isB(a)||b.u-a.u).forEach(r=>{if(!def)return;const t=Math.min(def,r.u);r.u-=t;r.h=r.n=r.u*R/60;def-=t;});}
  row.u=nu+ou;row.n=nu*R/60;row.ot=ou*R/60;row.h=row.n+row.ot;sm.ot=row.ot;
  sm.rows=sm.all.filter(r=>r!==row&&r.u>0).concat([row]);return sm;}
@@ -1084,7 +1095,7 @@ function renderDay(){
  const by=new Map();d.entries.slice().sort((a,b)=>(a.s||0)-(b.s||0)).forEach(e=>{if(!by.has(e.o))by.set(e.o,[]);by.get(e.o).push(e);});
  const live=k===dkey()&&!d.gehen,R0=+S.settings.round||15;
  const rowOf=o=>{const r=sm?sm.all.find(x=>x.o===o):null;if(!r||!live||S.settings.roundMode==='dist')return r;
-  const fnr=normNr(S.settings.fillNr||'21260003'),u=order(o).nr===fnr?Math.round(r.min/R0):(r.min>0.5?Math.ceil((r.min-0.5)/R0):0);return Object.assign({},r,{h:u*R0/60});};
+  const u=isBalNr(order(o).nr)?Math.round(r.min/R0):(r.min>0.5?Math.ceil((r.min-0.5)/R0):0);return Object.assign({},r,{h:u*R0/60});};
  let h='';by.forEach((es,o)=>{const ord=order(o),r=rowOf(o),infos=r?r.infos.join(', '):'',op=OPEN.has(k+o),run=es.some(e=>e.h==null&&!e.e);
   h+=`<div class="grp"><button class="gh" data-g="${o}"><span class="ch">${op?'▾':'▸'}</span><span class="n"><b>${esc(ord.kunde)}${run?' ●':''}</b><small>${esc(ord.nr)}${infos?' · '+esc(infos):''}${run&&live?(z=>z?' · 📝 Zettel '+fmtH(z.h)+' h':'')(zettel(d,openEntry(d))):''}</small></span><span class="raw">${fmtDur(r?r.min:0)}</span><span class="v">${r?(live?fmtH(r.h):hTxt(r)):'0'}</span></button>`;
   if(op)h+=es.map(e=>{const lab=e.kind==='fahrt'?(e.dir==='hin'?'🚗 Hinfahrt':e.dir==='next'?'🚗 Fahrt (geteilt)':'🚗 Rückfahrt'+(e.plan?' (fest '+fmtDur(e.plan/60000)+')':'')):e.auto?'aufgefüllt':e.h!=null?'manuell':isInternal(ord)?'Arbeit':vorOrt(d,e)?'Montage vor Ort':'Werkstatt';
@@ -1122,7 +1133,7 @@ function editOrder(id){
  const o=S.orders.find(x=>x.id===id),used=Object.values(S.days).some(d=>d.entries.some(e=>e.o===id));
  dlg(`<h3>Auftrag bearbeiten</h3><label>Kommissions-Nr.${isProv(o)?' <span class="warn">(fehlt noch – jetzt eintragen)</span>':''}<input id="eNr" inputmode="numeric" value="${isProv(o)?'':esc(o.nr)}"></label>
  <label>Eingangs-Nr.<input id="eEin" inputmode="numeric" value="${esc(o.ein||'')}"></label>
- <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label><label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
+ <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label><label>Kurzname im Ausdruck <span class="mut">(optional, z. B. Betrieb)</span><input id="eSh" value="${esc(o.short||'')}"></label><label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
  <label class="chk"><input type="checkbox" id="eInt"${o.int?' checked':''}> interner Auftrag (Betriebsarbeiten, Büro …)</label>
  <label class="chk"><input type="checkbox" id="eDone"${o.done?' checked':''}> fertig (abgeschlossen)</label>
  <label class="chk"><input type="checkbox" id="eAr"${o.arch?' checked':''}> aus Schnellkacheln ausblenden</label>
@@ -1137,8 +1148,20 @@ function editOrder(id){
  if($('#eProt')){$('#eProt').onclick=e=>{const b=e.target.closest('[data-pr]');if(b)protoMenu(b.dataset.pr);};$('#eAddP').onclick=()=>newProtoDlg(id,null);}
  if(!used)$('#eDel').onclick=()=>{S.orders=S.orders.filter(x=>x!==o);save();closeDlg();render();renderOrders();};
  $('#eOk').onclick=()=>{const ein=einNr($('#eEin').value),nr=$('#eNr').value.trim()?normNr($('#eNr').value):ein,ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Kommissions- oder Eingangs-Nr. und Kunde nötig');
-  if(ein)o.ein=ein;else delete o.ein;setOrderNr(o,nr);o.kunde=ku;o.info=$('#eIn').value.trim();o.arch=$('#eAr').checked;o.int=$('#eInt').checked;if($('#eDone').checked){if(!o.done)o.done=dkey();}else delete o.done;save();closeDlg();render();renderOrders();};
+  if(ein)o.ein=ein;else delete o.ein;setOrderNr(o,nr);o.kunde=ku;o.info=$('#eIn').value.trim();if($('#eSh').value.trim())o.short=$('#eSh').value.trim();else delete o.short;o.arch=$('#eAr').checked;o.int=$('#eInt').checked;if($('#eDone').checked){if(!o.done)o.done=dkey();}else delete o.done;save();closeDlg();render();renderOrders();};
 }
+
+/* einmalig: feste Nummern nach Firmentabelle (Ausgleich 0008 → 0010 Fehlstunden, Kurznamen, KUG/Fahrt anlegen) */
+function migrateFix(){const st=S.settings;if(st.fixV>=1)return;const pre=(st.prefix||'2126').slice(0,4);
+ const oldA=normNr(st.ausgNr||'21260008');
+ if(/0008$/.test(oldA)){const nn=oldA.slice(0,4)+'0010',o=S.orders.find(x=>x.nr===oldA&&/ausgleich/i.test(x.kunde));
+  const ks=Object.keys(S.days).filter(k=>{const sm=summary(k);return S.days[k].seal&&sm&&sm.ausg;}),alt={};ks.forEach(k=>alt[k]=dayText(k));
+  if(o&&!S.orders.some(x=>x.nr===nn)){setOrderNr(o,nn);o.kunde='Fehlstunden';o.short='Fehl';o.info='Guthabenabbau';}
+  st.ausgNr=nn;ks.forEach(k=>{if(sealOn())logChange(k,alt[k],'Ausgleich aus Überstunden auf Fehlstunden '+nn+' umgestellt');});}
+ const want=[['0001','KUG','KUG'],['0002','Fahrt / Ladezeiten','Fahrt'],['0003','Betriebsarbeiten','Betrieb'],['0004','Büroarbeiten','Büro'],['0010','Fehlstunden','Fehl']];
+ want.forEach(([suf,name,sh])=>{const nr=pre+suf;let o=S.orders.find(x=>x.nr===nr);if(!o&&(suf==='0001'||suf==='0002')){o={id:uid(),nr,kunde:name,info:'',fav:false,arch:false,int:true,created:dkey()};S.orders.push(o);}
+  if(o&&!o.short)o.short=sh;if(o&&suf==='0010'&&!o.info)o.info='Guthabenabbau';});
+ st.fixV=1;save();}
 
 /* ---------- Protokolle ---------- */
 const PT=()=>window.PROTO?PROTO.TYPES:{};
@@ -1227,7 +1250,7 @@ function editDay(k){
  let cut=d.cut||0;const cutShow=()=>{const sm=summary(k),tot=sm?sm.total-((cut-(d.cut||0))/60):0;if($('#cutV'))$('#cutV').textContent=(cut?'−'+fmtH(cut/60)+' h · ':'')+'Stundenbuch dann '+fmtH(Math.max(0,tot))+' h (Soll '+fmtH(sollOf(k))+')';};cutShow();
  D.querySelectorAll('[data-cut]').forEach(b=>b.onclick=()=>{const v=b.dataset.cut,sm=summary(k);
   if(v==='soll'){const ex=sm?(sm.total-sollOf(k))*60-(cut-(d.cut||0)):0;if(ex<=0)return toast('Liegt schon auf oder unter Soll');cut+=ex;}else if(v==='0')cut=0;else cut+=+v;
-  const fn=normNr(S.settings.fillNr||'21260003'),bm=d.entries.filter(e=>order(e.o).nr===fn).reduce((a,e)=>a+emin(e),0);if(cut>bm){cut=Math.floor(bm/15)*15;toast('Mehr als Betriebsarbeiten geht nicht');}cutShow();});
+  const bm=d.entries.filter(e=>isBalNr(order(e.o).nr)).reduce((a,e)=>a+emin(e),0);if(cut>bm){cut=Math.floor(bm/15)*15;toast('Mehr als Betriebsarbeiten geht nicht');}cutShow();});
  $('#pl').oninput=e=>{const i=e.target.dataset.i;if(i!=null)P[i][e.target.dataset.f]=e.target.value;};
  $('#pl').onclick=e=>{const i=e.target.dataset.rm;if(i!=null){P.splice(+i,1);draw();}};
  $('#pAdd').onclick=()=>{P.push({s:'12:00',e:'12:30'});draw();};
@@ -1324,7 +1347,7 @@ function kw(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));co
 function monday(off){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7+off*7);return d;}
 function setRange(off){const m=monday(off),e=new Date(m);e.setDate(m.getDate()+6);$('#pFrom').value=dkey(m);$('#pTo').value=dkey(e);renderPrint();}
 function printHtml(){
- const from=$('#pFrom').value,to=$('#pTo').value,show=$('#pStamp').checked;if(!from||!to)return '';
+ const from=$('#pFrom').value,to=$('#pTo').value,bk=S.settings.paper==='A6x4',show=$('#pStamp').checked;if(!from||!to)return '';
  let h='',sum=0,n=0,soll=0,sOt=0,sAu=0;
  const monthEnd=k=>{const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);return n.getDate()===1;};
  const mBlock=k=>{const ob=otBalance(k),ur=urlAt(k),m=new Date(k+'T12:00'),ym=k.slice(0,8);let ot=0,au=0,ch=0;const mk={};
@@ -1338,40 +1361,50 @@ function printHtml(){
  for(const dt=new Date(from+'T12:00');dkey(dt)<=to;dt.setDate(dt.getDate()+1)){
   const k=dkey(dt),sm=summary(k),ty=typeOf(k),w=dt.getDay(),hol=holidayOf(k)&&w>0&&w<6?holidayOf(k):'';
   if(!sm&&!ty&&!hol){if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
-  if(!sm&&ty&&ABS.includes(ty)&&ty!=='gleit'){ // Abwesenheit als Block von–bis, ohne Stunden
-   let end=k,x=addD(k,1);while(x<=to){if(typeOf(x)===ty&&!summary(x)){end=x;x=addD(x,1);continue;}if(isFree(x)&&!typeOf(x)&&!summary(x)){x=addD(x,1);continue;}break;}
-   let wd=0;for(let z=k;z<=end;z=addD(z,1))if(typeOf(z)===ty)wd++;n++;
-   const w2=new Date(end+'T12:00').getDay();h+=`<section class="pday"><div class="phead"><span>${end===k?WD[w]:WD[w]+' – '+WD[w2]}</span><span>${end===k?dDate(k):dDate(k).slice(0,6)+'–'+dDate(end)}</span></div><table><tbody><tr><td colspan="3">${esc(tyLabel(ty,k))}${wd>1?' · '+wd+' Werktage':''}</td><td class="r"></td></tr></tbody></table></section>`;
-   let z=k;while(z<end){z=addD(z,1);if(monthEnd(addD(z,-1))&&addD(z,-1)<=dkey())h+=mBlock(addD(z,-1));}
-   if(monthEnd(end)&&end<=dkey())h+=mBlock(end);
-   dt.setTime(new Date(end+'T12:00').getTime());continue;}
+  if(!sm&&((ty&&ABS.includes(ty)&&ty!=='gleit')||(!ty&&hol))){ // Abwesenheit/Feiertag: je Tag mit fester Nummer und Soll-Stunden
+   const suf=ty?ABSFIX[ty]:'0009',hrs=ty==='urlaub_halb'?baseSoll(k)/2:baseSoll(k),lab=ty?tyLabel(ty,k):'Feiertag – '+hol;n++;
+   h+=`<section class="pday"><div class="phead"><span>${WD[w]}</span><span>${dDate(k)}</span></div><table><tbody><tr><td>${suf?esc(pNr(fixNrOf(suf,k))):''}</td><td colspan="2">${esc(lab)}</td><td class="r">${hrs?fmtH(hrs):''}</td></tr></tbody></table></section>`;
+   if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
   const dd=S.days[k];n++;sum+=sm?sm.total:0;sOt+=sm&&sm.ot||0;sAu+=sm&&sm.ausg||0;if(counts(k))soll+=sollOf(k);
   const lab=ty?tyLabel(ty,k):hol?'Feiertag – '+hol:'';
   h+=`<section class="pday"><div class="phead"><span>${WD[w]}${lab&&sm?' · '+esc(lab):''}</span><span>${dDate(k)}</span></div>`;
   if(!sm){h+=`<table><tbody><tr><td colspan="3">${esc(lab)}</td><td class="r"></td></tr></tbody></table></section>`;if(monthEnd(k)&&k<=dkey())h+=mBlock(k);continue;}
   if(show&&dd.kommen)h+=`<div class="pstamp">Kommen ${hm(dd.kommen)} · Gehen ${hm(dd.gehen)||'–'}</div>`;
   h+=`<table><thead><tr><th>Auftrags-Nr.</th><th>Kunde</th><th>Info</th><th class="r">Zeit</th></tr></thead><tbody>`+
-   printRows(sm).map(r=>{const o=order(r.o);return `<tr><td>${esc(o.nr)}</td><td>${esc(o.kunde)}</td><td class="inf">${esc(r.info)}</td><td class="r">${wb(hTxt(r))}</td></tr>`;}).join('')+
+   printRows(sm).map(r=>{const o=order(r.o);return `<tr><td>${esc(pNr(o.nr))}</td><td>${esc(pName(o))}</td><td class="inf">${esc(r.info||(r.ausgRow?o.info||'':''))}</td><td class="r">${wb(hTxt(r))}</td></tr>`;}).join('')+
    `</tbody><tfoot><tr><td colspan="3">Gesamt Stunden</td><td class="r">${wb(totTxt(sm))}</td></tr></tfoot></table></section>`;
   if(monthEnd(k)&&k<=dkey())h+=mBlock(k);
  }
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
- return head+(n?h+`<div class="psum">Summe: ${fmtH(sum+sAu)} h${sOt||sAu?` (davon ${[sOt?fmtH(sOt)+' Ü':'',sAu?fmtH(sAu)+' Ausgleich':''].filter(Boolean).join(', ')})`:''}${soll?` · Soll ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+ const ob=otBalance(to<dkey()?to:dkey());
+ return (bk?'':head)+(n?h+`<div class="psum">${fmtH(sum+sAu)} h${soll?` von ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)}`:''}${ob!=null?` (aktuell ${fmtSig(ob)})`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
 const PAGE={A6x4:'210mm 297mm;margin:0',A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
 function applyPaper(){const p=S.settings.paper||'A6';if($('#pBook')){$('#pBook').hidden=p!=='A6x4';$('#pBW').value=S.settings.bookW||101;$('#pBH').value=S.settings.bookH||144;}$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className=p==='A6x4'?'p4':'pdoc p-'+p;}
 /* A6-Seiten auf A4 (2×2) mit Schnittlinien: Inhalt tageweise auf A6-Seiten verteilen */
 function sheetsA6(html){const mm=3.7795,W=+S.settings.bookW||101,Hh=+S.settings.bookH||144,H=(Hh-10)*mm,box=document.createElement('div');
  box.className='pdoc p-A6 big';box.style.cssText=`position:absolute;left:-9999px;top:0;width:${W-25}mm;padding:0;border:0;visibility:hidden`;box.innerHTML=html;document.body.appendChild(box);
- const P=[{it:[],hs:[],u:0}];[...box.children].forEach(c=>{const cs=getComputedStyle(c),h=c.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);let L=P[P.length-1];
-  if(L.u+h>H&&L.it.length){const np={it:[],hs:[],u:0};
-   if(c.classList.contains('psum')&&L.it.length>1){const x=L.it.pop(),xh=L.hs.pop();L.u-=xh;np.it.push(x);np.hs.push(xh);np.u=xh;} // Summe nie allein: letzten Tag mitnehmen
-   P.push(np);L=np;}
-  L.it.push(c.outerHTML);L.hs.push(h);L.u+=h;});box.remove();
- const pages=P.map(x=>x.it);
- const n=pages.length,pos=[[0,0],[W,0],[0,Hh],[W,Hh]];let out='';
- for(let i=0;i<n;i+=4){out+='<div class="sheet">'+pages.slice(i,i+4).map((pg,j)=>`<div class="a6" style="left:${pos[j][0]}mm;top:${pos[j][1]}mm;width:${W}mm;height:${Hh}mm"><div class="pdoc p-A6 big">${pg.join('')}</div><div class="a6n">${i+j+1}/${n}</div></div>`).join('')+
-  `<i class="cv" style="left:${W}mm"></i><i class="cv" style="left:${2*W}mm"></i><i class="ch" style="top:${Hh}mm"></i><i class="ch" style="top:${2*Hh}mm"></i><span class="sc" style="left:${W-1.8}mm;top:2mm">✂</span><span class="sc" style="left:2mm;top:${Hh-2}mm">✂</span></div>`;}
+ box.querySelectorAll('table').forEach(t=>t.insertAdjacentHTML('afterbegin',`<colgroup><col style="width:${S.settings.lohnart?23:17}mm"><col style="width:36%"><col><col style="width:9mm"></colgroup>`));
+ // eine Zeile je Auftrag: zu lange Texte etwas kleiner statt Umbruch
+ box.querySelectorAll('td').forEach(td=>{let f=100;while(td.scrollWidth>td.clientWidth+1&&f>72){f-=4;td.style.fontSize=f+'%';}if(td.scrollWidth>td.clientWidth+1)td.style.whiteSpace='normal';});
+ const hOf=el=>{const cs=getComputedStyle(el);return el.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);};
+ const measure=el=>{box.appendChild(el);const h=hOf(el);el.remove();return h;};
+ const P=[{it:[],hs:[],u:0}],add=(html,h)=>{const L=P[P.length-1];L.it.push(html);L.hs.push(h);L.u+=h;},newPage=()=>{P.push({it:[],hs:[],u:0});};
+ [...box.children].forEach(c=>{const h=hOf(c);let L=P[P.length-1];
+  if(L.u+h<=H||!L.it.length){add(c.outerHTML,h);return;}
+  if(c.classList.contains('psum')){if(L.it.length>1){const x=L.it.pop(),xh=L.hs.pop();L.u-=xh;newPage();add(x,xh);}else newPage();add(c.outerHTML,h);return;} // Summe nie allein
+  // Tag teilen, wenn auf der Folgeseite mindestens zwei Auftragszeilen landen
+  const rows=[...c.querySelectorAll('tbody tr')];
+  if(c.classList.contains('pday')&&rows.length>=3){
+   for(let n=rows.length-2;n>=1;n--){const a=c.cloneNode(true);[...a.querySelectorAll('tbody tr')].slice(n).forEach(r=>r.remove());a.querySelector('tfoot')&&a.querySelector('tfoot').remove();
+    a.style.marginBottom='0';a.insertAdjacentHTML('beforeend','<div class="arr">↗</div>');const ah=measure(a);
+    if(L.u+ah<=H){const b2=c.cloneNode(true);b2.querySelector('.phead')&&b2.querySelector('.phead').remove();b2.querySelector('.pstamp')&&b2.querySelector('.pstamp').remove();b2.querySelector('thead')&&b2.querySelector('thead').remove();
+     [...b2.querySelectorAll('tbody tr')].slice(0,n).forEach(r=>r.remove());b2.insertAdjacentHTML('afterbegin','<div class="arr l">↳</div>');const bh=measure(b2);
+     add(a.outerHTML,ah);newPage();add(b2.outerHTML,bh);return;}}}
+  newPage();add(c.outerHTML,h);});box.remove();
+ const pages=P.map(x=>x.it),n=pages.length,pos=[[0,0],[W,0],[0,Hh],[W,Hh]];let out='';
+ for(let i=0;i<n;i+=4){out+='<div class="sheet">'+pages.slice(i,i+4).map((pg,j)=>`<div class="a6" style="left:${pos[j][0]}mm;top:${pos[j][1]}mm;width:${W}mm;height:${Hh}mm"><div class="pdoc p-A6 big">${pg.join('')}</div></div>`).join('')+
+  `<i class="cv" style="left:${W}mm"></i><i class="cv" style="left:${2*W}mm"></i><i class="ch" style="top:${Hh}mm"></i><i class="ch" style="top:${2*Hh}mm"></i></div>`;}
  return out;}
 function renderPrint(){applyPaper();const h=printHtml();$('#pPrev').innerHTML=(S.settings.paper==='A6x4'&&h)?sheetsA6(h):h;}
 
@@ -1420,7 +1453,7 @@ function setupWizard(){const st=S.settings;
   if(!(num('wzS')>0)||!(num('wzF')>=0))return toast('Sollzeiten prüfen');if(!/^\d{4,8}$/.test(a))return toast('Admin-PIN: 4–8 Ziffern');if(a!==$('#wzA2').value.trim())return toast('PINs stimmen nicht überein');
   Object.assign(st,{name:$('#wzN').value.trim(),prefix:$('#wzP').value.trim(),soll:num('wzS'),sollFr:num('wzF'),startTime:$('#wzB').value||'07:00',frTime:$('#wzFt').value,miTime:$('#wzMt').value,
    fruehstueck:parseInt($('#wzFl').value)||0,mittag:parseInt($('#wzMl').value)||0,pinA:pinHash(a),setupDone:true});
-  const pre=st.prefix;S.orders.forEach(o=>{if(isInternal(o)&&/^\d{8}$/.test(o.nr)&&o.nr.slice(0,4)!==pre){o.nr=pre+o.nr.slice(4);}});st.fillNr=pre+String(st.fillNr||'21260003').slice(4);st.ausgNr=pre+String(st.ausgNr||'21260008').slice(4);
+  const pre=st.prefix;S.orders.forEach(o=>{if(isInternal(o)&&/^\d{8}$/.test(o.nr)&&o.nr.slice(0,4)!==pre){o.nr=pre+o.nr.slice(4);}});st.fillNr=pre+String(st.fillNr||'21260003').slice(4);st.ausgNr=pre+String(st.ausgNr||'21260010').slice(4);
   D.oncancel=null;save();closeDlg();render();toast('Eingerichtet – viel Erfolg!');};}
 
 /* ---------- Ereignisse ---------- */
@@ -1446,9 +1479,9 @@ $('#oFilt').onchange=renderOrders;
 $('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)return editOrder(b.dataset.ed);const d=e.target.closest('[data-dn]');if(d)return doneOrder(d.dataset.dn);
  const r=e.target.closest('[data-re]');if(r){const o=S.orders.find(x=>x.id===r.dataset.re);delete o.done;o.arch=false;save();renderOrders();render();toast(o.kunde+' wieder geöffnet');}};
 $('#pFrom').onchange=$('#pTo').onchange=renderPrint;
-$('#pPaper').onchange=()=>{S.settings.paper=$('#pPaper').value;save();renderPrint();};
+$('#pPaper').onchange=()=>{S.settings.paper=$('#pPaper').value;if(S.settings.paper==='A6x4'){S.settings.stamp=false;$('#pStamp').checked=false;}save();renderPrint();};
 $('#pBW').onchange=$('#pBH').onchange=()=>{const w=parseFloat($('#pBW').value.replace(',','.')),h=parseFloat($('#pBH').value.replace(',','.'));if(w>=80&&w<=105)S.settings.bookW=w;if(h>=100&&h<=148)S.settings.bookH=h;save();renderPrint();};
-$('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};
+$('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};$('#pLA').onchange=()=>{S.settings.lohnart=$('#pLA').checked;save();renderPrint();};
 $('#bWeek').onclick=()=>setRange(0);$('#bLastWeek').onclick=()=>setRange(-1);
 $('#bPrint').onclick=()=>{const f=$('#pFrom').value,t=$('#pTo').value,miss={};
  Object.keys(S.days).forEach(k=>{if(k<f||k>t)return;S.days[k].entries.forEach(e=>{const o=S.orders.find(x=>x.id===e.o);if(isProv(o))(miss[o.id]=miss[o.id]||new Set()).add(k);});});
@@ -1515,11 +1548,11 @@ let privGuard=0;$('#priv').addEventListener('pointerdown',e=>{e.preventDefault()
 
 /* ---------- Start ---------- */
 $('#foot').textContent='Stundenbuch v'+VERSION+' · © 2026 grauman';
-$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pPaper').value=S.settings.paper||'A6';
+$('#dSel').value=dkey();$('#pStamp').checked=!!S.settings.stamp;$('#pLA').checked=!!S.settings.lohnart;$('#pPaper').value=S.settings.paper||'A6';
 S.orders.forEach(o=>{if(/^\d{1,4}$/.test(o.nr))o.nr=normNr(o.nr);if(o.int===undefined)o.int=!!o.fav&&/^\d{8}$/.test(o.nr)&&+o.nr.slice(4)<100;});{const fx=sanitize();if(fx)setTimeout(()=>toast(fx+' fehlerhafte Einträge repariert'),900);}sealAll();save();
 if(!S.settings.setupDone){if(Object.keys(S.days).length||S.orders.some(o=>!isInternal(o)))S.settings.setupDone=true;}
 setRange(0);housekeeping();checkPlannedPause();render();
-migrateProtos().then(loadProtos).then(()=>{try{render();}catch(e){}});
+migrateFix();migrateProtos().then(loadProtos).then(()=>{try{render();}catch(e){}});
 if(!S.settings.setupDone)setTimeout(setupWizard,300);else{urlAction();setTimeout(checkYear,600);setTimeout(checkSeals,1200);setTimeout(checkOldOrders,1800);}
 let tickN=0;setInterval(()=>{try{checkPlannedPause();checkAskResume();checkRemind();checkPauseRemind();checkPriv();renderHeader();if(++tickN%15===0&&VIEW==='vMain')renderDay();}catch(e){showErr(e.message);}},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){reloadS();loadProtos().then(()=>{try{render();if(VIEW==='vProto')renderProtos();}catch(e){}});if($('#dSel').value<dkey())$('#dSel').value=dkey();checkPlannedPause();render();checkRemind();checkYear();sealAll();checkSeals();
