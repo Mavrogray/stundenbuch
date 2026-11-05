@@ -189,8 +189,17 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 .pdoc.p-A6 th:nth-child(1){width:14mm}.pdoc.p-A6 th:nth-child(2){width:32%}.pdoc.p-A6 th:nth-child(4){width:18mm}
 .pdoc.p-A6 .pday{margin-bottom:3mm}.pdoc.p-A6 .psum{font-size:7.5pt}
 #pPrev.p-A6{max-width:105mm;margin:0 auto;padding:5mm 5mm 5mm 20mm}#pPrev.p-A5{max-width:148mm;margin:0 auto;padding-left:20mm}
+#pPrev.p4{max-width:none;overflow-x:auto;background:var(--card2);padding:10px;border-radius:6px;display:flex;flex-direction:column;gap:10px}
+.sheet{position:relative;width:210mm;height:297mm;background:#fff;color:#000;flex:0 0 auto;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet .a6{position:absolute;width:105mm;height:148.5mm;box-sizing:border-box;padding:5mm 5mm 5mm 20mm;overflow:hidden}
+.sheet .a6 .pdoc{border:0;padding:0;overflow:visible;border-radius:0}
+.sheet .a6n{position:absolute;right:5mm;bottom:3mm;font:6pt Arial,sans-serif;color:#666}
+.sheet .cv{position:absolute;left:105mm;top:0;bottom:0;border-left:.3mm dashed #888}
+.sheet .ch{position:absolute;top:148.5mm;left:0;right:0;border-top:.3mm dashed #888}
+.sheet .sc{position:absolute;font-size:9pt;color:#666;line-height:1}.sheet .sv{left:103.2mm;top:2mm}.sheet .sh{left:2mm;top:146.5mm}
 @media print{
  body{background:#fff;padding:0}
+ .sheet{page-break-after:always;break-after:page}.sheet:last-child{page-break-after:auto;break-after:auto}
  body>*:not(#printOut){display:none!important}
  #printOut{display:block}
  #printOut .pdoc{border:0;padding:0}
@@ -267,7 +276,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="vhead"><button class="btn" data-back>←</button><h1>Ausdruck Stundenbuch</h1></div>
  <div class="card">
   <div class="row"><label>Von<input type="date" id="pFrom"></label><label>Bis<input type="date" id="pTo"></label></div>
-  <label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch, 20 mm Lochrand)</option><option value="A5">A5</option><option value="A4">A4</option></select></label>
+  <label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch, 20 mm Lochrand)</option><option value="A5">A5</option><option value="A4">A4</option><option value="A6x4">A6 auf A4 – 4 pro Blatt mit Schnittlinien</option></select></label>
   <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen mitdrucken</label>
   <div class="btns"><button class="btn" id="bWeek">Diese Woche</button><button class="btn" id="bLastWeek">Letzte Woche</button><button class="btn pri" id="bPrint">🖨 Drucken / PDF</button></div>
  </div>
@@ -404,7 +413,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <script>
 let PLIST=[],PIDX={};const protoCount=id=>PIDX[id]||0;
 'use strict';
-const VERSION='1.6.1';
+const VERSION='1.6.2';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -1347,9 +1356,18 @@ function printHtml(){
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
  return head+(n?h+`<div class="psum">Summe: ${fmtH(sum+sAu)} h${sOt||sAu?` (davon ${[sOt?fmtH(sOt)+' Ü':'',sAu?fmtH(sAu)+' Ausgleich':''].filter(Boolean).join(', ')})`:''}${soll?` · Soll ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
-const PAGE={A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
-function applyPaper(){const p=S.settings.paper||'A6';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className='pdoc p-'+p;}
-function renderPrint(){applyPaper();$('#pPrev').innerHTML=printHtml();}
+const PAGE={A6x4:'210mm 297mm;margin:0',A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
+function applyPaper(){const p=S.settings.paper||'A6';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className=p==='A6x4'?'p4':'pdoc p-'+p;}
+/* A6-Seiten auf A4 (2×2) mit Schnittlinien: Inhalt tageweise auf A6-Seiten verteilen */
+function sheetsA6(html){const mm=3.7795,H=138*mm,box=document.createElement('div');box.className='pdoc p-A6';
+ box.style.cssText='position:absolute;left:-9999px;top:0;width:80mm;padding:0;border:0;visibility:hidden';box.innerHTML=html;document.body.appendChild(box);
+ const pages=[[]];let used=0;[...box.children].forEach(c=>{const cs=getComputedStyle(c),h=c.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);
+  if(used+h>H&&pages[pages.length-1].length){pages.push([]);used=0;}pages[pages.length-1].push(c.outerHTML);used+=h;});box.remove();
+ const n=pages.length,pos=[[0,0],[105,0],[0,148.5],[105,148.5]];let out='';
+ for(let i=0;i<n;i+=4){out+='<div class="sheet">'+pages.slice(i,i+4).map((pg,j)=>`<div class="a6" style="left:${pos[j][0]}mm;top:${pos[j][1]}mm"><div class="pdoc p-A6">${pg.join('')}</div><div class="a6n">${i+j+1}/${n}</div></div>`).join('')+
+  '<i class="cv"></i><i class="ch"></i><span class="sc sv">✂</span><span class="sc sh">✂</span></div>';}
+ return out;}
+function renderPrint(){applyPaper();const h=printHtml();$('#pPrev').innerHTML=(S.settings.paper==='A6x4'&&h)?sheetsA6(h):h;}
 
 /* ---------- Sicherung, Einstellungen, Info ---------- */
 function renderBackup(){if($('#sBkPh'))$('#sBkPh').checked=!!S.settings.bkPhotos;
@@ -1436,7 +1454,7 @@ $('#bPrint').onclick=()=>{const f=$('#pFrom').value,t=$('#pTo').value,miss={};
   $('#mnOk').onclick=()=>{let n=0;D.querySelectorAll('[data-mn]').forEach(i=>{if(!i.value.trim())return;const o=S.orders.find(x=>x.id===i.dataset.mn);setOrderNr(o,normNr(i.value));n++;});if(!n)return toast('Keine Nummer eingetragen');render();renderPrint();go();};
   return;}
  Object.keys(S.days).forEach(k=>{if(k>=f&&k<=t&&k<dkey())S.days[k].printed=true;});save();
- applyPaper();$('#printOut').innerHTML='<div class="pdoc p-'+(S.settings.paper||'A6')+'">'+printHtml()+'</div>';window.print();};
+ applyPaper();$('#printOut').innerHTML=S.settings.paper==='A6x4'?sheetsA6(printHtml()):'<div class="pdoc p-'+(S.settings.paper||'A6')+'">'+printHtml()+'</div>';window.print();};
 $('#bExp').onclick=async()=>{await backup();renderBackup();};
 $('#sAuto').onchange=()=>{S.settings.autoBackup=$('#sAuto').checked;save();};$('#sBkPh').onchange=()=>{S.settings.bkPhotos=$('#sBkPh').checked;save();};
 $('#bPw').onclick=setPw;
