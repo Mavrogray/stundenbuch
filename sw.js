@@ -1,5 +1,5 @@
 // Offline-Cache. Bei Änderungen die Versionsnummer erhöhen.
-const C = 'stundenbuch-1.6.0';
+const C = 'stundenbuch-1.6.1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './werkstattauftrag.html', './pruefprotokoll.html', './pdfshare.js', './pdf-lib.min.js','./proto.js','./ksb-ibn.html'];
 // Jede Datei einzeln und am Zwischenspeicher vorbei laden; fehlende Dateien blockieren das Update nicht
 self.addEventListener('install', e => {
