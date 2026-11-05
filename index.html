@@ -192,7 +192,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 #pPrev.p4{max-width:none;overflow-x:auto;background:var(--card2);padding:10px;border-radius:6px;display:flex;flex-direction:column;gap:10px}
 .sheet{position:relative;width:210mm;height:297mm;background:#fff;color:#000;flex:0 0 auto;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sheet .a6{position:absolute;box-sizing:border-box;padding:5mm 5mm 5mm 20mm;overflow:hidden}
-.pdoc.p-A6.big h1{font-size:12pt}.pdoc.p-A6.big .pmeta{font-size:8pt}.pdoc.p-A6.big .phead{font-size:11.5pt}.pdoc.p-A6.big .pstamp{font-size:7.5pt}.pdoc.p-A6.big table{font-size:10.5pt}.pdoc.p-A6.big th{font-size:7.5pt}.pdoc.p-A6.big td{white-space:nowrap;overflow:hidden}.pdoc.p-A6.big td.inf{white-space:pre}.pdoc.p-A6.big .psum{font-size:10pt;text-align:left}
+.pdoc.p-A6.big h1{font-size:12pt}.pdoc.p-A6.big .pmeta{font-size:8pt}.pdoc.p-A6.big .phead{font-size:11.5pt}.pdoc.p-A6.big .pstamp{font-size:7.5pt}.pdoc.p-A6.big table{font-size:10.5pt}.pdoc.p-A6.big th{font-size:7.5pt}.pdoc.p-A6.big td{white-space:nowrap;overflow:hidden}.pdoc.p-A6.big td.inf{white-space:pre;font-size:76%;vertical-align:middle}.pdoc.p-A6.big .psum{font-size:10pt;text-align:left;line-height:1.4}
 .pdoc .arr{font-size:13pt;font-weight:700;text-align:right;line-height:1;margin-top:1mm}.pdoc .arr.l{text-align:left;margin:0 0 1mm}.pdoc.p-A6.big td{padding:.9mm .5mm}.pdoc.p-A6.big th:nth-child(1){width:16.5mm}.pdoc.p-A6.big th:nth-child(2){width:36%}.pdoc.p-A6.big th:nth-child(4){width:9mm}.pdoc.p-A6.big .pday{margin-bottom:8mm}
 .sheet .a6 .pdoc{border:0;padding:0;overflow:visible;border-radius:0}
 .sheet .a6n{position:absolute;right:5mm;bottom:3mm;font:6pt Arial,sans-serif;color:#666}
@@ -417,7 +417,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <script>
 let PLIST=[],PIDX={};const protoCount=id=>PIDX[id]||0;
 'use strict';
-const VERSION='1.7.0';
+const VERSION='1.7.2';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -636,7 +636,14 @@ function resumeAfterGehen(d,t){if(d.gehen){if(d.seal){d.log=d.log||[];d.log.push
 function balOrder(){const nr=normNr(S.settings.fillNr||'21260003');let o=S.orders.find(x=>x.nr===nr&&!x.arch);
  if(!o){o=S.orders.find(x=>x.nr===nr);if(o){o.arch=false;delete o.archAt;}else{o={id:uid(),nr,kunde:'Betriebsarbeiten',info:'',fav:true,arch:false,int:true};S.orders.push(o);}}return o;}
 function begin(d,t){if(!d.kommen)d.kommen=t;resumeAfterGehen(d,t);const p=openPause(d);if(p){p.e=t;keepAwake(false);}}
+/* nach „Gehen“: erst nachfragen, bevor wieder Zeit zählt */
+let goOk=false;
+function afterGehen(fn){const d=today();if(!d.gehen||goOk)return fn();
+ dlg(`<h3>Heute schon gegangen (${hm(d.gehen)})</h3><p class="mut" style="margin:0 0 6px">Wirklich weiterarbeiten? Die Zeit seit ${hm(d.gehen)} zählt dann als Pause.</p>
+ <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="kgN"><b>Nein</b><small>versehentlich gedrückt</small></button><button class="tile" id="kgY"><b>Ja, weiterarbeiten</b><small>ab ${hm(Date.now())}</small></button></div>`);
+ $('#kgN').onclick=closeDlg;$('#kgY').onclick=()=>{closeDlg();goOk=true;try{fn();}finally{goOk=false;}};return true;}
 function startOrder(id){
+ if(today().gehen&&!goOk)return afterGehen(()=>startOrder(id));
  const d=today(),t=Date.now(),oe=openEntry(d);
  if(oe&&oe.kind==='fahrt'&&oe.o===id)return arrive();
  if(oe&&oe.o===id&&oe.kind!=='fahrt')return;
@@ -758,6 +765,7 @@ function vorOrt(d,e){const f=d.entries.filter(x=>x.kind==='fahrt'&&x.s&&x.s<(e.s
 function atCust(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.s).sort((a,b)=>a.s-b.s).pop();return !!(f&&f.o===o&&(f.dir==='hin'||f.dir==='next')&&f.e);}
 function hinDur(d,o){const f=d.entries.filter(e=>e.kind==='fahrt'&&e.dir==='hin'&&e.o===o&&e.e);return f.length?f[f.length-1].e-f[f.length-1].s:0;}
 function startFahrt(id,dir,prev,plan){
+ if(today().gehen&&!goOk)return afterGehen(()=>startFahrt(id,dir,prev,plan));
  const d=today(),t=Date.now(),oe=openEntry(d);begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
  const e={id:uid(),o:id,info:'',s:t,e:null,kind:'fahrt',dir};if(prev)e.prev=prev;if(plan)e.plan=plan;d.entries.push(e);save();render();
  if(dir==='hin'||dir==='next')askOt(id);
@@ -796,6 +804,7 @@ function custList(q,ex){const rec=recentIds();
  if(q)return S.orders.filter(o=>o.id!==ex&&matchQ(o,q)).sort((a,b)=>(!!a.done-!!b.done)||(a.arch-b.arch)||(isInternal(a)-isInternal(b))).slice(0,9);
  return S.orders.filter(o=>!o.arch&&!o.done&&!isInternal(o)&&o.id!==ex).sort((a,b)=>{const ia=rec.indexOf(a.id),ib=rec.indexOf(b.id);return(ia<0?999:ia)-(ib<0?999:ib);}).slice(0,9);}
 function doFahrt(){
+ if(today().gehen&&!goOk)return afterGehen(doFahrt);
  const d=today(),oe=openEntry(d);
  if(oe&&oe.kind==='fahrt')return arrive();
  let h='',from=null;
@@ -1347,7 +1356,7 @@ function kw(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));co
 function monday(off){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7+off*7);return d;}
 function setRange(off){const m=monday(off),e=new Date(m);e.setDate(m.getDate()+6);$('#pFrom').value=dkey(m);$('#pTo').value=dkey(e);renderPrint();}
 function printHtml(){
- const from=$('#pFrom').value,to=$('#pTo').value,bk=S.settings.paper==='A6x4',show=$('#pStamp').checked;if(!from||!to)return '';
+ const from=$('#pFrom').value,to=$('#pTo').value,bk=S.settings.paper==='A6x4',show=$('#pStamp').checked&&!bk;if(!from||!to)return '';
  let h='',sum=0,n=0,soll=0,sOt=0,sAu=0;
  const monthEnd=k=>{const n=new Date(k+'T12:00');n.setDate(n.getDate()+1);return n.getDate()===1;};
  const mBlock=k=>{const ob=otBalance(k),ur=urlAt(k),m=new Date(k+'T12:00'),ym=k.slice(0,8);let ot=0,au=0,ch=0;const mk={};
@@ -1377,7 +1386,7 @@ function printHtml(){
  }
  const head=`<h1>Stundenbuch${S.settings.name?' – '+esc(S.settings.name):''}</h1><div class="pmeta">${dDate(from)} – ${dDate(to)} · KW ${kw(new Date(from+'T12:00'))}</div>`;
  const ob=otBalance(to<dkey()?to:dkey());
- return (bk?'':head)+(n?h+`<div class="psum">${fmtH(sum+sAu)} h${soll?` von ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)}`:''}${ob!=null?` (aktuell ${fmtSig(ob)})`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
+ return (bk?'':head)+(n?h+`<div class="psum">${fmtH(sum+sAu)} h${soll?` von ${fmtH(soll)} h${bk?'<br>':' · '}Überstunden ${fmtSig(sum-soll)}`:''}${ob!=null?` (aktuell ${fmtSig(ob)})`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
 const PAGE={A6x4:'210mm 297mm;margin:0',A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
 function applyPaper(){const p=S.settings.paper||'A6';if($('#pBook')){$('#pBook').hidden=p!=='A6x4';$('#pBW').value=S.settings.bookW||101;$('#pBH').value=S.settings.bookH||144;}$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className=p==='A6x4'?'p4':'pdoc p-'+p;}
@@ -1386,7 +1395,7 @@ function sheetsA6(html){const mm=3.7795,W=+S.settings.bookW||101,Hh=+S.settings.
  box.className='pdoc p-A6 big';box.style.cssText=`position:absolute;left:-9999px;top:0;width:${W-25}mm;padding:0;border:0;visibility:hidden`;box.innerHTML=html;document.body.appendChild(box);
  box.querySelectorAll('table').forEach(t=>t.insertAdjacentHTML('afterbegin',`<colgroup><col style="width:${S.settings.lohnart?23:17}mm"><col style="width:36%"><col><col style="width:9mm"></colgroup>`));
  // eine Zeile je Auftrag: zu lange Texte etwas kleiner statt Umbruch
- box.querySelectorAll('td').forEach(td=>{let f=100;while(td.scrollWidth>td.clientWidth+1&&f>72){f-=4;td.style.fontSize=f+'%';}if(td.scrollWidth>td.clientWidth+1)td.style.whiteSpace='normal';});
+ box.querySelectorAll('td').forEach(td=>{let f=100;const fs=parseFloat(getComputedStyle(td).fontSize);while(td.scrollWidth>td.clientWidth+1&&f>72){f-=4;td.style.fontSize=(fs*f/100).toFixed(2)+'px';}if(td.scrollWidth>td.clientWidth+1)td.style.whiteSpace='normal';});
  const hOf=el=>{const cs=getComputedStyle(el);return el.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);};
  const measure=el=>{box.appendChild(el);const h=hOf(el);el.remove();return h;};
  const P=[{it:[],hs:[],u:0}],add=(html,h)=>{const L=P[P.length-1];L.it.push(html);L.hs.push(h);L.u+=h;},newPage=()=>{P.push({it:[],hs:[],u:0});};

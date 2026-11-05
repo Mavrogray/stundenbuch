@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.7.0)
+# Stundenbuch – Einrichtung (v1.7.2)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -138,3 +138,5 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - v1.6.2: Ausdruck „A6 auf A4 – 4 pro Blatt mit Schnittlinien“: Woche wird tageweise auf A6-Seiten verteilt, je 4 pro A4-Blatt, gestrichelte Schnittlinien, Seitenzahl je A6.
 - v1.6.3: A6 auf A4 – Seitenmaß des Buchs einstellbar (Standard 101 × 144 mm), Schnittlinien an allen Kanten, größere Schrift, mehr Platz unter jedem Tag für die rote Summe, die Wochensumme bleibt beim letzten Tag.
 - v1.7.0: Feste Nummern nach Firmentabelle (Ausgleich jetzt 21260010 Fehlstunden „Guthabenabbau“, KUG 0001 und Fahrt/Ladezeiten 0002 angelegt, Urlaub 0005, Krank 0006, Bildung 0008, Feiertag 0009 im Ausdruck mit Soll-Stunden) · Kurzname je Auftrag für den Ausdruck (Betrieb, Büro, Fehl) · Lohnart optional mitdrucken · Betriebsarbeiten wird über den Jahreswechsel hinweg erkannt · A6 auf A4: ohne Kopf, ohne Kommen/Gehen, ohne Schere und Seitenzahlen, größere Schrift, eine Zeile je Auftrag, Tage dürfen mit ↗/↳ geteilt werden, Wochensumme „x h von y h · Überstunden ± (aktuell)“.
+- v1.7.1: A6 auf A4 – Info-Spalte durchgehend kleiner, Kommen/Gehen immer aus, Wochensumme zweizeilig.
+- v1.7.2: Nach „Gehen“ fragen auch Auftrags-Kacheln und „Fahrt“ nach, bevor wieder Zeit zählt · Werkstattauftrag: eingetragene Werte größer und fett.
