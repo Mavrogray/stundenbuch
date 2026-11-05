@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.6.2)
+# Stundenbuch – Einrichtung (v1.6.3)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -136,3 +136,4 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - v1.6.0: Countdown im Sichtschutz erst 10 Min. vorher (einstellbar) · Auftragsobjekt in der Kachel neben dem Kunden · „Tag bearbeiten“: Betriebsarbeiten kürzen (−0,25/−0,5/Auf Soll, Zeit verfällt) · ohne Admin-PIN kein Siegel und keine Grund-Abfrage (beim Setzen der Admin-PIN werden alle vergangenen Tage versiegelt) · Pause groß in der Kopfzeile · Menü „Protokolle“: Werkstattauftrag, Prüfprotokoll und KSB-Inbetriebnahme beliebig viele, je Auftrag zugeordnet (in „Auftrag bearbeiten“ sichtbar), gespeichert in der Gerätedatenbank, Texte in der Sicherung (Fotos optional).
 - v1.6.1: „Kommen“ nach „Gehen“ am selben Tag fragt nach · Pause vor 11 Uhr gilt als Frühstück (keine Erinnerung mehr um 9) · „Gehen“ vor dem Soll fragt nach (ausgleichen / aus Versehen) · Tipp auf den Sichtschutz löst keinen Knopf mehr aus · Auswahl bei „Angekommen“ · Anzeige „Montage vor Ort“ bzw. „Werkstatt“ je nach Fahrt.
 - v1.6.2: Ausdruck „A6 auf A4 – 4 pro Blatt mit Schnittlinien“: Woche wird tageweise auf A6-Seiten verteilt, je 4 pro A4-Blatt, gestrichelte Schnittlinien, Seitenzahl je A6.
+- v1.6.3: A6 auf A4 – Seitenmaß des Buchs einstellbar (Standard 101 × 144 mm), Schnittlinien an allen Kanten, größere Schrift, mehr Platz unter jedem Tag für die rote Summe, die Wochensumme bleibt beim letzten Tag.

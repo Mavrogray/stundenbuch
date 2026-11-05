@@ -191,12 +191,13 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 #pPrev.p-A6{max-width:105mm;margin:0 auto;padding:5mm 5mm 5mm 20mm}#pPrev.p-A5{max-width:148mm;margin:0 auto;padding-left:20mm}
 #pPrev.p4{max-width:none;overflow-x:auto;background:var(--card2);padding:10px;border-radius:6px;display:flex;flex-direction:column;gap:10px}
 .sheet{position:relative;width:210mm;height:297mm;background:#fff;color:#000;flex:0 0 auto;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.sheet .a6{position:absolute;width:105mm;height:148.5mm;box-sizing:border-box;padding:5mm 5mm 5mm 20mm;overflow:hidden}
+.sheet .a6{position:absolute;box-sizing:border-box;padding:5mm 5mm 5mm 20mm;overflow:hidden}
+.pdoc.p-A6.big h1{font-size:12pt}.pdoc.p-A6.big .pmeta{font-size:8pt}.pdoc.p-A6.big .phead{font-size:10.5pt}.pdoc.p-A6.big .pstamp{font-size:7.5pt}.pdoc.p-A6.big table{font-size:9.5pt}.pdoc.p-A6.big th{font-size:7pt}.pdoc.p-A6.big td{padding:.9mm .5mm}.pdoc.p-A6.big th:nth-child(1){width:16.5mm}.pdoc.p-A6.big th:nth-child(2){width:36%}.pdoc.p-A6.big th:nth-child(4){width:9mm}.pdoc.p-A6.big .pday{margin-bottom:8mm}.pdoc.p-A6.big .psum{font-size:8.5pt}
 .sheet .a6 .pdoc{border:0;padding:0;overflow:visible;border-radius:0}
 .sheet .a6n{position:absolute;right:5mm;bottom:3mm;font:6pt Arial,sans-serif;color:#666}
-.sheet .cv{position:absolute;left:105mm;top:0;bottom:0;border-left:.3mm dashed #888}
-.sheet .ch{position:absolute;top:148.5mm;left:0;right:0;border-top:.3mm dashed #888}
-.sheet .sc{position:absolute;font-size:9pt;color:#666;line-height:1}.sheet .sv{left:103.2mm;top:2mm}.sheet .sh{left:2mm;top:146.5mm}
+.sheet .cv{position:absolute;top:0;bottom:0;border-left:.3mm dashed #888}
+.sheet .ch{position:absolute;left:0;right:0;border-top:.3mm dashed #888}
+.sheet .sc{position:absolute;font-size:9pt;color:#666;line-height:1}
 @media print{
  body{background:#fff;padding:0}
  .sheet{page-break-after:always;break-after:page}.sheet:last-child{page-break-after:auto;break-after:auto}
@@ -277,6 +278,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
  <div class="card">
   <div class="row"><label>Von<input type="date" id="pFrom"></label><label>Bis<input type="date" id="pTo"></label></div>
   <label>Papierformat<select id="pPaper"><option value="A6">A6 (Stundenbuch, 20 mm Lochrand)</option><option value="A5">A5</option><option value="A4">A4</option><option value="A6x4">A6 auf A4 – 4 pro Blatt mit Schnittlinien</option></select></label>
+  <div class="row" id="pBook"><label>Buchseite Breite (mm)<input id="pBW" inputmode="decimal"></label><label>Höhe (mm)<input id="pBH" inputmode="decimal"></label></div>
   <label class="chk"><input type="checkbox" id="pStamp"> Kommen / Gehen mitdrucken</label>
   <div class="btns"><button class="btn" id="bWeek">Diese Woche</button><button class="btn" id="bLastWeek">Letzte Woche</button><button class="btn pri" id="bPrint">🖨 Drucken / PDF</button></div>
  </div>
@@ -413,7 +415,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <script>
 let PLIST=[],PIDX={};const protoCount=id=>PIDX[id]||0;
 'use strict';
-const VERSION='1.6.2';
+const VERSION='1.6.3';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -1357,15 +1359,19 @@ function printHtml(){
  return head+(n?h+`<div class="psum">Summe: ${fmtH(sum+sAu)} h${sOt||sAu?` (davon ${[sOt?fmtH(sOt)+' Ü':'',sAu?fmtH(sAu)+' Ausgleich':''].filter(Boolean).join(', ')})`:''}${soll?` · Soll ${fmtH(soll)} h · Überstunden ${fmtSig(sum-soll)} h`:''}</div>`:'<p>Keine Einträge im Zeitraum.</p>');
 }
 const PAGE={A6x4:'210mm 297mm;margin:0',A4:'210mm 297mm;margin:12mm 12mm 12mm 25mm',A5:'148mm 210mm;margin:8mm 8mm 8mm 20mm',A6:'105mm 148mm;margin:5mm 5mm 5mm 20mm'};
-function applyPaper(){const p=S.settings.paper||'A6';$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className=p==='A6x4'?'p4':'pdoc p-'+p;}
+function applyPaper(){const p=S.settings.paper||'A6';if($('#pBook')){$('#pBook').hidden=p!=='A6x4';$('#pBW').value=S.settings.bookW||101;$('#pBH').value=S.settings.bookH||144;}$('#pageStyle').textContent='@page{size:'+PAGE[p]+'}';$('#pPrev').className=p==='A6x4'?'p4':'pdoc p-'+p;}
 /* A6-Seiten auf A4 (2×2) mit Schnittlinien: Inhalt tageweise auf A6-Seiten verteilen */
-function sheetsA6(html){const mm=3.7795,H=138*mm,box=document.createElement('div');box.className='pdoc p-A6';
- box.style.cssText='position:absolute;left:-9999px;top:0;width:80mm;padding:0;border:0;visibility:hidden';box.innerHTML=html;document.body.appendChild(box);
- const pages=[[]];let used=0;[...box.children].forEach(c=>{const cs=getComputedStyle(c),h=c.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);
-  if(used+h>H&&pages[pages.length-1].length){pages.push([]);used=0;}pages[pages.length-1].push(c.outerHTML);used+=h;});box.remove();
- const n=pages.length,pos=[[0,0],[105,0],[0,148.5],[105,148.5]];let out='';
- for(let i=0;i<n;i+=4){out+='<div class="sheet">'+pages.slice(i,i+4).map((pg,j)=>`<div class="a6" style="left:${pos[j][0]}mm;top:${pos[j][1]}mm"><div class="pdoc p-A6">${pg.join('')}</div><div class="a6n">${i+j+1}/${n}</div></div>`).join('')+
-  '<i class="cv"></i><i class="ch"></i><span class="sc sv">✂</span><span class="sc sh">✂</span></div>';}
+function sheetsA6(html){const mm=3.7795,W=+S.settings.bookW||101,Hh=+S.settings.bookH||144,H=(Hh-10)*mm,box=document.createElement('div');
+ box.className='pdoc p-A6 big';box.style.cssText=`position:absolute;left:-9999px;top:0;width:${W-25}mm;padding:0;border:0;visibility:hidden`;box.innerHTML=html;document.body.appendChild(box);
+ const P=[{it:[],hs:[],u:0}];[...box.children].forEach(c=>{const cs=getComputedStyle(c),h=c.offsetHeight+parseFloat(cs.marginTop)+parseFloat(cs.marginBottom);let L=P[P.length-1];
+  if(L.u+h>H&&L.it.length){const np={it:[],hs:[],u:0};
+   if(c.classList.contains('psum')&&L.it.length>1){const x=L.it.pop(),xh=L.hs.pop();L.u-=xh;np.it.push(x);np.hs.push(xh);np.u=xh;} // Summe nie allein: letzten Tag mitnehmen
+   P.push(np);L=np;}
+  L.it.push(c.outerHTML);L.hs.push(h);L.u+=h;});box.remove();
+ const pages=P.map(x=>x.it);
+ const n=pages.length,pos=[[0,0],[W,0],[0,Hh],[W,Hh]];let out='';
+ for(let i=0;i<n;i+=4){out+='<div class="sheet">'+pages.slice(i,i+4).map((pg,j)=>`<div class="a6" style="left:${pos[j][0]}mm;top:${pos[j][1]}mm;width:${W}mm;height:${Hh}mm"><div class="pdoc p-A6 big">${pg.join('')}</div><div class="a6n">${i+j+1}/${n}</div></div>`).join('')+
+  `<i class="cv" style="left:${W}mm"></i><i class="cv" style="left:${2*W}mm"></i><i class="ch" style="top:${Hh}mm"></i><i class="ch" style="top:${2*Hh}mm"></i><span class="sc" style="left:${W-1.8}mm;top:2mm">✂</span><span class="sc" style="left:2mm;top:${Hh-2}mm">✂</span></div>`;}
  return out;}
 function renderPrint(){applyPaper();const h=printHtml();$('#pPrev').innerHTML=(S.settings.paper==='A6x4'&&h)?sheetsA6(h):h;}
 
@@ -1441,6 +1447,7 @@ $('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)return editOr
  const r=e.target.closest('[data-re]');if(r){const o=S.orders.find(x=>x.id===r.dataset.re);delete o.done;o.arch=false;save();renderOrders();render();toast(o.kunde+' wieder geöffnet');}};
 $('#pFrom').onchange=$('#pTo').onchange=renderPrint;
 $('#pPaper').onchange=()=>{S.settings.paper=$('#pPaper').value;save();renderPrint();};
+$('#pBW').onchange=$('#pBH').onchange=()=>{const w=parseFloat($('#pBW').value.replace(',','.')),h=parseFloat($('#pBH').value.replace(',','.'));if(w>=80&&w<=105)S.settings.bookW=w;if(h>=100&&h<=148)S.settings.bookH=h;save();renderPrint();};
 $('#pStamp').onchange=()=>{S.settings.stamp=$('#pStamp').checked;save();renderPrint();};
 $('#bWeek').onclick=()=>setRange(0);$('#bLastWeek').onclick=()=>setRange(-1);
 $('#bPrint').onclick=()=>{const f=$('#pFrom').value,t=$('#pTo').value,miss={};
