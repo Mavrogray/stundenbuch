@@ -263,7 +263,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <section class="view" id="vOrders">
  <div class="vhead"><button class="btn" data-back>←</button><h1>Aufträge</h1></div>
  <div class="card"><h2>Neuer Auftrag</h2>
-  <div class="row"><label>Kommissions-Nr.<input id="nNr" inputmode="numeric" placeholder="z. B. 405 – leer, wenn noch keine"></label><label>Eingangs-Nr.<input id="nEin" inputmode="numeric" placeholder="vom Eingangszettel"></label></div>
+  <div class="row"><label>Kommissions-Nr.<span style="display:flex;gap:6px"><input id="nNr" inputmode="numeric" placeholder="z. B. 405 – leer, wenn noch keine"><button class="btn" id="nA" type="button" style="flex:0 0 auto;white-space:nowrap">Noch keine (A)</button></span></label><label>Eingangs-Nr.<input id="nEin" inputmode="numeric" placeholder="vom Eingangszettel"></label></div>
   <label>Kunde<input id="nKu"></label>
   <label>Standard-Info (optional)<input id="nIn"></label>
   <label class="chk"><input type="checkbox" id="nInt"> interner Auftrag (Betriebsarbeiten, Büro …)</label>
@@ -380,7 +380,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
   <label>Entsperrt bleiben für … Minuten<input id="sLock" inputmode="numeric"></label>
  </div>
  <div class="card adm"><h2>Aufräumen</h2>
-  <div class="row"><label>Aufträge archivieren nach … Tagen ohne Nutzung (0 = nie)<input id="sArch" inputmode="numeric"></label><label>Gedruckte Tage löschen nach … Tagen (0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
+  <div class="row"><label>Aufträge archivieren nach … Tagen ohne Nutzung (0 = nie)<input id="sArch" inputmode="numeric"></label><label>„Schon fertig?“ fragen ab … Stunden je Auftrag (0 = nie)<input id="sDoneH" inputmode="decimal"></label><label>Gedruckte Tage löschen nach … Tagen (0 = nie)<input id="sKeep" inputmode="numeric"></label></div>
   <div id="stInfo" class="mut" style="font-size:.75rem"></div>
  </div>
 </section>
@@ -417,7 +417,7 @@ dialog h3{margin:0 0 10px;font-size:1.2rem}
 <script>
 let PLIST=[],PIDX={};const protoCount=id=>PIDX[id]||0;
 'use strict';
-const VERSION='1.7.2';
+const VERSION='1.8.0';
 /* ---------- Fehleranzeige ---------- */
 const ERR=[];
 function showErr(m){ERR.push(new Date().toLocaleTimeString('de-DE')+' '+m);try{toast('⚠ Fehler: '+m,null,true);}catch(e){}}
@@ -445,7 +445,7 @@ function defaults(){return{v:1,orders:[
  {id:uid(),nr:'21260004',kunde:'Büro',info:'',fav:true,arch:false,int:true}],
  days:{},resume:null,yStats:{},ui:{},
  settings:{name:'',prefix:'2126',round:15,stamp:true,soll:8.25,sollFr:7,fruehstueck:15,mittag:30,autoBackup:true,paper:'A6',
-  otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
+  doneAskH:10,otStart:0,otDate:'',fill:true,fillNr:'21260003',remind:true,archDays:28,keepDays:90,roundMode:'bal',sound:true,
   holidays:true,urlStart:0,urlDate:'',urlYear:30,awake:false,frTime:'09:00',miTime:'12:00',pRemind:true,privMin:1,privCd:10,rPuf:15,ausgNr:'21260010',lockMin:5,startTime:'07:00',backMin:60,setupDone:false,pinB:'',pinA:'',
   marks:[{k:'AW',n:'Abwasser',ic:'🧪',goal:0,since:'',carry:0},{k:'KSB',n:'KSB-Schulung',ic:'📘',goal:0,since:'',carry:0}]},lastBackup:null};}
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}
@@ -642,9 +642,14 @@ function afterGehen(fn){const d=today();if(!d.gehen||goOk)return fn();
  dlg(`<h3>Heute schon gegangen (${hm(d.gehen)})</h3><p class="mut" style="margin:0 0 6px">Wirklich weiterarbeiten? Die Zeit seit ${hm(d.gehen)} zählt dann als Pause.</p>
  <div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="kgN"><b>Nein</b><small>versehentlich gedrückt</small></button><button class="tile" id="kgY"><b>Ja, weiterarbeiten</b><small>ab ${hm(Date.now())}</small></button></div>`);
  $('#kgN').onclick=closeDlg;$('#kgY').onclick=()=>{closeDlg();goOk=true;try{fn();}finally{goOk=false;}};return true;}
+/* einmalige Rückfrage, wenn ein Kundenauftrag viele Stunden hat */
+function askDone(oid){const lim=S.settings.doneAskH==null?10:+S.settings.doneAskH,o=S.orders.find(x=>x.id===oid);if(!lim||!o||o.done||o.askDone||isInternal(o))return;
+ const h=orderDays(oid).reduce((a,x)=>a+x.h,0)+(+o.hrs||0);if(h<lim)return;
+ setTimeout(()=>{if(D.open)return;dlg(`<h3>${esc(o.kunde)} hat jetzt ${fmtH(h)} h – schon fertig?</h3><p class="mut" style="margin:0 0 6px">${esc(o.nr)}${o.info?' · '+esc(o.info):''}</p><div class="tiles" style="grid-template-columns:1fr 1fr"><button class="tile pri" id="adN"><b>Nein</b><small>läuft weiter, nicht mehr fragen</small></button><button class="tile" id="adY"><b>Ja, fertig</b><small>als abgeschlossen markieren</small></button></div>`);
+  $('#adN').onclick=()=>{o.askDone=1;save();closeDlg();};$('#adY').onclick=()=>{o.done=dkey();o.askDone=1;save();closeDlg();render();toast(o.kunde+' fertig');};},700);}
 function startOrder(id){
  if(today().gehen&&!goOk)return afterGehen(()=>startOrder(id));
- const d=today(),t=Date.now(),oe=openEntry(d);
+ const d=today(),t=Date.now(),oe=openEntry(d);if(oe&&oe.o!==id)askDone(oe.o);
  if(oe&&oe.kind==='fahrt'&&oe.o===id)return arrive();
  if(oe&&oe.o===id&&oe.kind!=='fahrt')return;
  begin(d,t);if(oe)closeEntry(d,oe,t);S.resume=null;
@@ -734,6 +739,7 @@ function doGehen(force){
  let msg='Feierabend '+hm(t)+(nach?' (Nachlauf '+fmtDur(nach)+' h nicht gebucht)':'');if(S.settings.fill&&gapMin(d)>=1){const g=gapMin(d);fillGap(dkey(),true);msg+=' · '+fmtDur(g)+' h aufgefüllt';}
  seal(dkey());save();toast(msg,()=>{S=JSON.parse(snap);save();render();});
  if(S.settings.autoBackup)backup();
+ if(oe)askDone(oe.o);setTimeout(checkMonthNr,1500);
 }
 function doInfo(){
  const oe=openEntry(today());if(!oe)return;const o=order(oe.o);
@@ -930,6 +936,7 @@ function checkRemind(){
 
 /* ---------- Aufräumen & Jahreswechsel ---------- */
 function lastUse(id){const o=S.orders.find(x=>x.id===id);let l=(o&&o.lastK)||'';for(const k in S.days)if(k>l&&S.days[k].entries.some(e=>e.o===id))l=k;return l;}
+function orderDays(id){const L=[];Object.keys(S.days).sort().forEach(k=>{const sm=summary(k);if(!sm)return;const h=printRows(sm).filter(r=>r.o===id).reduce((a,r)=>a+r.h,0);if(h)L.push({k,h});});return L;}
 function orderHours(){const m={};S.orders.forEach(o=>m[o.id]=+o.hrs||0);Object.keys(S.days).forEach(k=>{const sm=summary(k);if(sm)printRows(sm).forEach(r=>{m[r.o]=(m[r.o]||0)+r.h;});});return m;}
 function daysAgo(k){return Math.floor((new Date(dkey()+'T12:00')-new Date(k+'T12:00'))/864e5);}
 function housekeeping(){
@@ -1121,11 +1128,17 @@ function renderOrders(){
  $('#oList').innerHTML=list.map(o=>{const l=lastUse(o.id);return `<div class="it"><div style="min-width:0"><b class="num">${esc(o.nr)}</b>${isProv(o)?' <span class="warn" style="font-size:.8rem">Kommission fehlt</span>':o.ein?` <span class="mut" style="font-size:.8rem">(${esc(o.ein)})</span>`:''} ${esc(o.kunde)}${o.info?`<div class="mut" style="font-size:.8rem">${esc(o.info)}</div>`:''}<div class="mut" style="font-size:.8rem">${H[o.id]?'<b>'+fmtH(H[o.id])+' h</b> · ':''}${l?'zuletzt '+dDate(l):'noch nicht benutzt'}${o.done?' · fertig seit '+dDate(o.done):o.arch?' · ausgeblendet':''}${isInternal(o)?' · intern':''}</div></div>
   <span style="display:flex;gap:8px">${!isInternal(o)?(o.done?`<button class="btn" data-re="${o.id}">↺ öffnen</button>`:`<button class="btn" data-dn="${o.id}">✓</button>`):''}<button class="btn" data-ed="${o.id}">✎</button></span></div>`;}).join('')||'<div class="mut">Keine Aufträge.</div>';
 }
-const isProv=o=>!!(o&&/^E-/.test(o.nr));
+const isProv=o=>!!(o&&/^[EA]-/.test(o.nr));
+const nextA=()=>{for(let i=1;i<1000;i++){const n='A-'+String(i).padStart(3,'0');if(!S.orders.some(o=>o.nr===n))return n;}return 'A-999';};
+/* letzter Arbeitstag im Monat: nach fehlenden Kommissionsnummern fragen */
+function checkMonthNr(){const k=dkey();let n=addD(k,1);while(isWE(n)||holidayOf(n))n=addD(n,1);if(n.slice(0,7)===k.slice(0,7))return;
+ const m=k.slice(0,7),L=S.orders.filter(o=>isProv(o)&&Object.keys(S.days).some(x=>x.startsWith(m)&&S.days[x].entries.some(e=>e.o===o.id)));if(!L.length||D.open)return;
+ dlg(`<h3>Monatsende – Kommissionsnummer fehlt noch</h3>${L.map(o=>`<label>${esc(o.nr)} ${esc(o.kunde)}${o.info?' · '+esc(o.info):''}<input data-mn="${o.id}" inputmode="numeric" placeholder="Kommissions-Nr."></label>`).join('')}<div class="btns"><button class="btn" data-x>Später</button><button class="btn pri" id="mnOk">Speichern</button></div>`);
+ $('#mnOk').onclick=()=>{D.querySelectorAll('[data-mn]').forEach(i=>{const v=i.value.trim();if(!v)return;const o=S.orders.find(x=>x.id===i.dataset.mn);if(o){if(/^E-/.test(o.nr)&&!o.ein)o.ein=o.nr;setOrderNr(o,normNr(v));}});save();closeDlg();render();toast('Nummern eingetragen');};}
 const einNr=v=>{v=String(v||'').trim().replace(/^E-?/i,'');return v?'E-'+v:'';};
 function addOrder(){
- const ein=einNr($('#nEin').value),nr=$('#nNr').value.trim()?normNr($('#nNr').value):ein,ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Kommissions- oder Eingangs-Nr. und Kunde nötig');
- if(!/^\d{8}$/.test(nr)&&!/^E-/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
+ const raw=$('#nNr').value.trim(),ein=einNr($('#nEin').value),nr=/^A-?\d+$/i.test(raw)?'A-'+raw.replace(/\D/g,'').padStart(3,'0'):raw?normNr(raw):ein,ku=$('#nKu').value.trim();if(!nr||!ku)return toast('Kunde und eine Nummer nötig – ohne Nummer: „Noch keine (A)“');
+ if(!/^\d{8}$/.test(nr)&&!/^[EA]-/.test(nr)&&!confirm('Nummer „'+nr+'“ hat nicht 8 Ziffern. Trotzdem anlegen?'))return;
  if(S.orders.some(o=>o.nr===nr&&!o.arch)&&!confirm('Nr. '+nr+' gibt es schon. Trotzdem anlegen?'))return;
  const o={id:uid(),nr,kunde:ku,info:$('#nIn').value.trim(),fav:false,arch:false,created:dkey(),int:$('#nInt').checked};if(ein)o.ein=ein;S.orders.push(o);
  $('#nNr').value=$('#nKu').value=$('#nIn').value=$('#nEin').value='';$('#nInt').checked=false;save();renderOrders();
@@ -1140,7 +1153,8 @@ function setOrderNr(o,nr){if(o.nr===nr)return;const old=o.nr,ks=Object.keys(S.da
  ks.forEach(k=>alt[k]=dayText(k));o.nr=nr;ks.forEach(k=>logChange(k,alt[k],(isProv({nr:old})?'Kommissionsnummer nachgetragen: ':'Auftragsnummer geändert: ')+old+' → '+nr));save();}
 function editOrder(id){
  const o=S.orders.find(x=>x.id===id),used=Object.values(S.days).some(d=>d.entries.some(e=>e.o===id));
- dlg(`<h3>Auftrag bearbeiten</h3><label>Kommissions-Nr.${isProv(o)?' <span class="warn">(fehlt noch – jetzt eintragen)</span>':''}<input id="eNr" inputmode="numeric" value="${isProv(o)?'':esc(o.nr)}"></label>
+ const OD=orderDays(id),OH=OD.reduce((a,x)=>a+x.h,0)+(+o.hrs||0);
+ dlg(`<h3>Auftrag bearbeiten</h3>${OH?`<details style="margin:0 0 10px"><summary style="cursor:pointer"><b>Gesamt ${fmtH(OH)} h</b> <span class="mut">an ${OD.length} Tag${OD.length===1?'':'en'} · antippen für Einzelstunden</span></summary><div class="list" style="margin-top:6px">${OD.map(x=>`<div class="it"><span>${WD[wdOf(x.k)].slice(0,2)} ${dDate(x.k)}</span><b>${fmtH(x.h)} h</b></div>`).join('')}${+o.hrs?`<div class="it"><span class="mut">Übertrag</span><b>${fmtH(+o.hrs)} h</b></div>`:''}</div></details>`:''}<label>Kommissions-Nr.${isProv(o)?' <span class="warn">(fehlt noch – jetzt eintragen)</span>':''}<input id="eNr" inputmode="numeric" value="${isProv(o)?'':esc(o.nr)}"></label>
  <label>Eingangs-Nr.<input id="eEin" inputmode="numeric" value="${esc(o.ein||'')}"></label>
  <label>Kunde<input id="eKu" value="${esc(o.kunde)}"></label><label>Kurzname im Ausdruck <span class="mut">(optional, z. B. Betrieb)</span><input id="eSh" value="${esc(o.short||'')}"></label><label>Standard-Info<input id="eIn" value="${esc(o.info)}"></label>
  <label class="chk"><input type="checkbox" id="eInt"${o.int?' checked':''}> interner Auftrag (Betriebsarbeiten, Büro …)</label>
@@ -1156,7 +1170,7 @@ function editOrder(id){
  $('#eAddT').onclick=()=>{closeDlg();gate(1,()=>editEntry(dkey(),null,id));};
  if($('#eProt')){$('#eProt').onclick=e=>{const b=e.target.closest('[data-pr]');if(b)protoMenu(b.dataset.pr);};$('#eAddP').onclick=()=>newProtoDlg(id,null);}
  if(!used)$('#eDel').onclick=()=>{S.orders=S.orders.filter(x=>x!==o);save();closeDlg();render();renderOrders();};
- $('#eOk').onclick=()=>{const ein=einNr($('#eEin').value),nr=$('#eNr').value.trim()?normNr($('#eNr').value):ein,ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Kommissions- oder Eingangs-Nr. und Kunde nötig');
+ $('#eOk').onclick=()=>{const ein=einNr($('#eEin').value),nr=$('#eNr').value.trim()?normNr($('#eNr').value):ein,ku=$('#eKu').value.trim();if(!nr||!ku)return toast('Kunde und eine Nummer nötig – ohne Nummer: „Noch keine (A)“');
   if(ein)o.ein=ein;else delete o.ein;setOrderNr(o,nr);o.kunde=ku;o.info=$('#eIn').value.trim();if($('#eSh').value.trim())o.short=$('#eSh').value.trim();else delete o.short;o.arch=$('#eAr').checked;o.int=$('#eInt').checked;if($('#eDone').checked){if(!o.done)o.done=dkey();}else delete o.done;save();closeDlg();render();renderOrders();};
 }
 
@@ -1246,7 +1260,10 @@ function editEntry(k,id,preO){
 }
 function editDay(k){
  const d=day(k),P=d.pausen.map(p=>({s:hm(p.s),e:hm(p.e)})),hol=holidayOf(k),half=halfDayOf(k);
- dlg(`<h3>${WD[wdOf(k)]} ${dDate(k)}</h3>${hol?`<span class="badge">Feiertag: ${esc(hol)}</span>`:''}${half?`<span class="badge">${half} – halber Tag</span>`:''}
+ const mon=addD(k,-((wdOf(k)+6)%7));
+ dlg(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><button class="btn" data-go="${addD(k,-1)}" style="flex:0 0 52px">‹</button><h3 style="margin:0;flex:1;text-align:center">${WD[wdOf(k)]} <input type="date" id="fDate" value="${k}" style="width:auto;min-height:40px;font:inherit"></h3><button class="btn" data-go="${addD(k,1)}" style="flex:0 0 52px">›</button></div>
+ <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:8px">${[0,1,2,3,4].map(i=>{const x=addD(mon,i);return `<button class="btn${x===k?' pri':''}" data-go="${x}">${WD[wdOf(x)].slice(0,2)} ${dDate(x).slice(0,6)}</button>`;}).join('')}</div>
+ <div id="navAsk" class="card" hidden style="margin:0 0 8px;padding:10px"><b>Änderungen am ${WD[wdOf(k)]} speichern?</b><div class="btns"><button class="btn" id="naX">Abbrechen</button><button class="btn" id="naN">Verwerfen</button><button class="btn pri" id="naY">Speichern</button></div></div>${hol?`<span class="badge">Feiertag: ${esc(hol)}</span>`:''}${half?`<span class="badge">${half} – halber Tag</span>`:''}
  <label>Tagesart<select id="fT"><option value="">Arbeitstag</option>${Object.keys(TYP).map(t=>`<option value="${t}"${d.type===t?' selected':''}>${TYP[t]}</option>`).join('')}</select></label>
  <div class="row"><label>Kommen<input type="time" id="fK" value="${hm(d.kommen)}"></label><label>Gehen<input type="time" id="fG" value="${hm(d.gehen)}"></label></div>
  ${(()=>{const ids=[...new Set(d.entries.map(e=>e.o))];if(d.otO&&!ids.includes(d.otO))ids.push(d.otO);return ids.length?`<label>Überstunden ausweisen auf<select id="fOt"><option value="">– keine (Normal)</option>${ids.map(id=>`<option value="${id}"${d.otOk&&d.otO===id?' selected':''}>${esc(order(id).nr)} ${esc(order(id).kunde)}</option>`).join('')}</select></label>`:'';})()}
@@ -1254,21 +1271,27 @@ function editDay(k){
  ${d.entries.length?`<label>Betriebsarbeiten kürzen <span class="mut">(gekürzte Zeit verfällt)</span></label><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px"><button class="btn" data-cut="15">−0,25</button><button class="btn" data-cut="30">−0,5</button><button class="btn" data-cut="soll">Auf Soll</button><button class="btn" data-cut="0">Zurück</button></div><div id="cutV" class="mut" style="margin:4px 0 10px;font-size:.85rem"></div>`:''}
  <label>Pausen (von – bis)</label><div id="pl"></div><button class="btn" id="pAdd">+ Pause</button>
  <div class="btns"><button class="btn" data-x>Abbrechen</button><button class="btn pri" id="fOk">Speichern</button></div>`);
- const draw=()=>{$('#pl').innerHTML=P.map((p,i)=>`<div class="row" style="margin:6px 0"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button class="btn" data-rm="${i}" style="flex:0 0 56px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
+ const pLab=()=>{const mi=pauseSlots().find(x=>x.id==='mi'),miT=mi?tsOf(k,mi.t):0;let fr=false,m=false;return P.map(p=>{if(!p.s)return '';const s0=tsOf(k,p.s),e0=p.e?tsOf(k,p.e):0,dur=e0?Math.round((e0-s0)/60000):null;
+  let n='Pause';if(miT&&s0<miT-60*60000&&!fr){n='☕ Frühstück';fr=true;}else if(miT&&s0>=miT-60*60000&&s0<=miT+120*60000&&!m){n='🍽 Mittag';m=true;}return n+(dur!=null?' · '+dur+' min':' · läuft');});};
+ const draw=()=>{const L=pLab();$('#pl').innerHTML=P.map((p,i)=>`<div class="mut" style="font-size:.85rem;margin-top:6px">${L[i]||''}</div><div class="row" style="margin:2px 0 6px"><input type="time" data-i="${i}" data-f="s" value="${p.s}"><input type="time" data-i="${i}" data-f="e" value="${p.e}"><button class="btn" data-rm="${i}" style="flex:0 0 56px">✕</button></div>`).join('')||'<div class="mut">Keine Pausen</div>';};
  draw();
  let cut=d.cut||0;const cutShow=()=>{const sm=summary(k),tot=sm?sm.total-((cut-(d.cut||0))/60):0;if($('#cutV'))$('#cutV').textContent=(cut?'−'+fmtH(cut/60)+' h · ':'')+'Stundenbuch dann '+fmtH(Math.max(0,tot))+' h (Soll '+fmtH(sollOf(k))+')';};cutShow();
  D.querySelectorAll('[data-cut]').forEach(b=>b.onclick=()=>{const v=b.dataset.cut,sm=summary(k);
   if(v==='soll'){const ex=sm?(sm.total-sollOf(k))*60-(cut-(d.cut||0)):0;if(ex<=0)return toast('Liegt schon auf oder unter Soll');cut+=ex;}else if(v==='0')cut=0;else cut+=+v;
   const bm=d.entries.filter(e=>isBalNr(order(e.o).nr)).reduce((a,e)=>a+emin(e),0);if(cut>bm){cut=Math.floor(bm/15)*15;toast('Mehr als Betriebsarbeiten geht nicht');}cutShow();});
- $('#pl').oninput=e=>{const i=e.target.dataset.i;if(i!=null)P[i][e.target.dataset.f]=e.target.value;};
+ $('#pl').oninput=e=>{const i=e.target.dataset.i;if(i!=null)P[i][e.target.dataset.f]=e.target.value;};$('#pl').onchange=()=>draw();
  $('#pl').onclick=e=>{const i=e.target.dataset.rm;if(i!=null){P.splice(+i,1);draw();}};
  $('#pAdd').onclick=()=>{P.push({s:'12:00',e:'12:30'});draw();};
+ const snapF=()=>JSON.stringify([$('#fT').value,$('#fK').value,$('#fG').value,$('#fOt')?$('#fOt').value:'',$('#fNoA')?$('#fNoA').checked:'',P,cut]);const snap0=snapF();
+ let goTo=null;const go=k2=>{if(!k2||k2===k)return;if(snapF()===snap0){editDay(k2);return;}goTo=k2;$('#navAsk').hidden=false;$('#navAsk').scrollIntoView({block:'nearest'});};
+ D.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#fDate').onchange=()=>go($('#fDate').value);
+ $('#naX').onclick=()=>{goTo=null;$('#navAsk').hidden=true;$('#fDate').value=k;};$('#naN').onclick=()=>editDay(goTo);$('#naY').onclick=()=>$('#fOk').onclick();
  $('#fOk').onclick=()=>{
   const K=tsOf(k,$('#fK').value),G=tsOf(k,$('#fG').value);if(K&&G&&G<K)return toast('Gehen liegt vor Kommen');
-  const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');np.push({s,e});}
+  const np=[];for(const p of P){if(!p.s)continue;const s=tsOf(k,p.s),e=p.e?tsOf(k,p.e):null;if(e&&e<s)return toast('Pause: Ende vor Beginn');if(e&&e===s)continue;np.push({s,e});}
   const ty=$('#fT').value||undefined,ov=$('#fOt')?$('#fOt').value:null,na=$('#fNoA')?!$('#fNoA').checked:d.noAusg;closeDlg();
   commitSealed(k,()=>{d.kommen=K;d.gehen=G;d.pausen=np.sort((a,b)=>a.s-b.s);d.type=ty;if(ov!==null){if(ov){d.otOk=1;d.otO=ov;}else{delete d.otO;}}if(na)d.noAusg=true;else delete d.noAusg;if(cut)d.cut=cut;else delete d.cut;
-   if(!d.seal&&k<dkey()&&(d.gehen||d.type))seal(k);save();render();});
+   if(!d.seal&&k<dkey()&&(d.gehen||d.type))seal(k);save();render();if(goTo)editDay(goTo);});
  };
 }
 
@@ -1427,7 +1450,7 @@ function renderBackup(){if($('#sBkPh'))$('#sBkPh').checked=!!S.settings.bkPhotos
 }
 const SETF=[['sName','name','t'],['sPre','prefix','t'],['sSoll','soll','h'],['sSollFr','sollFr','h'],['sFr','fruehstueck','i'],['sMi','mittag','i'],['sRMode','roundMode','t'],['sRnd','round','i'],
  ['sFillNr','fillNr','nr'],['sFill','fill','b'],['sHol','holidays','b'],['sOtS','otStart','h'],['sOtD','otDate','t'],['sUS','urlStart','h'],['sUD','urlDate','t'],['sUJ','urlYear','i'],
- ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sPrivCd','privCd','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i'],['sAusgNr','ausgNr','nr'],['sLock','lockMin','i'],['sStart','startTime','t'],['sBack','backMin','i']];
+ ['sRemind','remind','b'],['sPRem','pRemind','b'],['sFrT','frTime','t'],['sMiT','miTime','t'],['sPriv','privMin','i'],['sPrivCd','privCd','i'],['sSound','sound','b'],['sAwake','awake','b'],['sArch','archDays','i'],['sDoneH','doneAskH','i'],['sKeep','keepDays','i'],['sRPuf','rPuf','i'],['sAusgNr','ausgNr','nr'],['sLock','lockMin','i'],['sStart','startTime','t'],['sBack','backMin','i']];
 function renderSet(){SETF.forEach(([id,key,ty])=>{const el=$('#'+id),v=S.settings[key];if(ty==='b')el.checked=!!v;else el.value=ty==='h'?fmtH(+v||0):(v==null?'':String(v));});
  const open=!locked(2)||level()>=2;document.querySelectorAll('#vSet .adm').forEach(c=>c.style.display=open?'':'none');$('#admLock').style.display=open?'none':'';
  $('#pinInfo').innerHTML=`Büro-PIN: <b>${S.settings.pinB?'gesetzt':'keine (offen)'}</b> · Admin-PIN: <b>${S.settings.pinA?'gesetzt':'keine (offen)'}</b>`;
@@ -1483,7 +1506,7 @@ $('#dayList').onclick=e=>{const k=$('#dSel').value||dkey(),g=e.target.closest('[
 $('#bFill').onclick=()=>gate(1,()=>{const k=$('#dSel').value||dkey();commitSealed(k,()=>fillGap(k));});
 $('#bAddE').onclick=()=>gate(1,()=>editEntry($('#dSel').value||dkey(),null));
 $('#bEditDay').onclick=()=>gate(1,()=>editDay($('#dSel').value||dkey()));
-$('#bAddO').onclick=addOrder;
+$('#bAddO').onclick=addOrder;$('#nA').onclick=()=>{$('#nNr').value=nextA();toast('Platzhalter '+$('#nNr').value+' – Kommissionsnummer später unter „Auftrag bearbeiten“ eintragen');};
 $('#oFilt').onchange=renderOrders;
 $('#oList').onclick=e=>{const b=e.target.closest('[data-ed]');if(b)return editOrder(b.dataset.ed);const d=e.target.closest('[data-dn]');if(d)return doneOrder(d.dataset.dn);
  const r=e.target.closest('[data-re]');if(r){const o=S.orders.find(x=>x.id===r.dataset.re);delete o.done;o.arch=false;save();renderOrders();render();toast(o.kunde+' wieder geöffnet');}};

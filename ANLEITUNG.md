@@ -1,4 +1,4 @@
-# Stundenbuch – Einrichtung (v1.7.2)
+# Stundenbuch – Einrichtung (v1.8.0)
 
 ## 1. App auf das Tablet bringen (einmalig, braucht Internet)
 
@@ -140,3 +140,4 @@ Diese Adresse kann auf einen NFC-Tag geschrieben werden (z. B. mit der App „NF
 - v1.7.0: Feste Nummern nach Firmentabelle (Ausgleich jetzt 21260010 Fehlstunden „Guthabenabbau“, KUG 0001 und Fahrt/Ladezeiten 0002 angelegt, Urlaub 0005, Krank 0006, Bildung 0008, Feiertag 0009 im Ausdruck mit Soll-Stunden) · Kurzname je Auftrag für den Ausdruck (Betrieb, Büro, Fehl) · Lohnart optional mitdrucken · Betriebsarbeiten wird über den Jahreswechsel hinweg erkannt · A6 auf A4: ohne Kopf, ohne Kommen/Gehen, ohne Schere und Seitenzahlen, größere Schrift, eine Zeile je Auftrag, Tage dürfen mit ↗/↳ geteilt werden, Wochensumme „x h von y h · Überstunden ± (aktuell)“.
 - v1.7.1: A6 auf A4 – Info-Spalte durchgehend kleiner, Kommen/Gehen immer aus, Wochensumme zweizeilig.
 - v1.7.2: Nach „Gehen“ fragen auch Auftrags-Kacheln und „Fahrt“ nach, bevor wieder Zeit zählt · Werkstattauftrag: eingetragene Werte größer und fett.
+- v1.8.0: Prüfprotokoll fett/größer, Zahlen mittig, Hinweis Stromsymmetrie (0–5/5–10/>10 %) · Werkstattauftrag Werte mittig, Auftragsobjekt groß in eigener Zeile, Q (m³/h) und H (m) · „grünes Papier“ standardmäßig aus · „Tag bearbeiten“: Pausen mit Namen und Dauer, 0-min-Pausen fallen weg, Tag direkt wechseln (‹ ›, Mo–Fr, Kalender) · Auftrag bearbeiten: Gesamtstunden und Stunden je Tag · Rückfrage „schon fertig?“ ab 10 h (einstellbar) · Platzhalter A-001 für Aufträge ohne Nummer, Nachfrage am letzten Arbeitstag des Monats.
